@@ -1,0 +1,9 @@
+# =======Data sets=======
+#ge=/home/weiyi/workspace/data/lusc/tcga/ge/ge.17814x135.txt
+ge=/home/weiyi/workspace/javaworks/goldilox/testDataFor2.txt
+
+# =======parameters======
+#rank_based=true;
+#fdrThreshold=0.05;
+corr_threshold=0.2
+fdrThreshold=1
