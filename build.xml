@@ -1,0 +1,159 @@
+<?xml version="1.0" ?>
+<!-- ====================================================================== -->
+<!--                            S A - C L R                                 -->
+<!--                                                                        -->
+<!--                          MAIN BUILD FILE                               -->
+<!-- ====================================================================== -->
+<project name="caf" default="compile">
+
+    <!-- ===================================================================== -->
+    <!-- INIT  -->
+    <!-- ===================================================================== -->
+    <target name="init" description="Initializes the build environment.">
+
+        <!-- Project-wide properties -->
+        <!-- App name -->
+        <property name="app" value="caf"/>
+        <property name="version" value="0.2"/>
+
+        <!-- DEBUG setting -->
+        <property name="debug" value="off"/>
+
+        <!-- Paths -->
+        <property name="classes" value="classes"/>
+        <!-- Java Source -->
+        <property name="src" value="src"/>
+        <!-- Directory for releases -->
+        <property name="dist" value="dist"/>
+        <!-- Directory for Javadoc -->
+        <property name="docs" value="api"/>
+        <!-- The executable libs -->
+        <property name="lib" value="lib"/>
+        <!-- Release info -->
+        <property name="release.file" value="${dist}/${app}-${version}"/>
+
+    </target>
+
+    <!-- ===================================================================== -->
+    <!-- PREPARE  -->
+    <!-- ===================================================================== -->
+    <target name="prepare" depends="init" description="Prepares for compilation">
+        <mkdir dir="${classes}"/>
+
+        <!-- Classpath for compiling -->
+        <path id="classpath">
+            <fileset dir="${lib}"/>
+        </path>
+
+        <!-- Classpath for running -->
+        <path id="run.classpath">
+            <path refid="classpath"/>
+            <pathelement location="${classes}"/>
+        </path>
+
+    </target>
+
+    <!-- ===================================================================== -->
+    <!-- COMPILE  -->
+    <!-- ===================================================================== -->
+
+    <target name="compile" depends="prepare" description="Compiles .java source code.">
+        <javac srcdir="${src}" destdir="${classes}" debug="${debug}">
+            <classpath>
+                <path refid="classpath"/>
+            </classpath>
+        </javac>
+    </target>
+
+    <!-- ===================================================================== -->
+    <!-- CLEAN  -->
+    <!-- ===================================================================== -->
+    <target name="clean" description="Clean all build products." depends="init">
+        <delete dir="${classes}"/>
+    </target>
+
+    <!-- ===================================================================== -->
+    <!-- JAR  -->
+    <!-- ===================================================================== -->
+    <target name="jar" depends="compile" description="Builds the JAR file.">
+        <mkdir dir="${dist}"/>
+        <jar jarfile="${release.file}.jar">
+            <fileset dir="${classes}"/>
+        </jar>
+    </target>
+
+    <!-- ===================================================================== -->
+    <!-- DIST  -->
+    <!-- ===================================================================== -->
+    <target name="dist" depends="jar" description="Builds a release jar.">
+        <!-- Expand jars -->
+        <mkdir dir="${dist}/work"/>
+        <unjar dest="${dist}/work">
+            <fileset dir="${lib}">
+                <include name="*.jar"/>
+            </fileset>
+        </unjar>
+        <copy todir="${dist}/work">
+            <fileset dir="${classes}"/>
+        </copy>
+        <jar jarfile="${release.file}.jar">
+            <fileset dir="${dist}/work"/>
+	    <fileset dir="${src}"/>
+        </jar>
+    </target>
+
+    <!-- Copy class files -->
+
+    <!--<copy todir="${dist}">-->
+    <!--<fileset dir="${lib}">-->
+    <!--<include name="*.jar"/>-->
+    <!--</fileset>-->
+    <!--<fileset dir=".">-->
+    <!--<include name="readme.html"/>-->
+    <!--<include name="changehog.txt"/>-->
+    <!--</fileset>-->
+    <!--</copy>-->
+    <!--<copy todir="${dist}/api">-->
+    <!--<fileset dir="api"/>-->
+    <!--</copy>-->
+    <!-- Add version info -->
+    <!--<replace file="${dist}/readme.html">-->
+    <!--<replacefilter token="@version@" value="${version}"/>-->
+    <!--</replace>-->
+    <!-- Build TAR file -->
+    <!--<tar tarfile="${release.file}.tar">-->
+    <!--<tarfileset dir="${dist}">-->
+    <!--<include name="readme.html"/>-->
+    <!--<include name="changehog.txt"/>-->
+    <!--<include name="**/*.jar"/>-->
+    <!--<include name="api/**/*"/>-->
+    <!--</tarfileset>-->
+    <!--</tar>-->
+    <!-- Build TAR.GZ file -->
+    <!--<gzip zipfile="${release.file}.tar.gz" src="${release.file}.tar"/>-->
+    <!-- Remove TAR file -->
+    <!--<delete file="${release.file}.tar"/>-->
+    <!-- Build ZIP file -->
+    <!--<zip zipfile="${release.file}.zip">-->
+    <!--<zipfileset dir="${dist}">-->
+    <!--<include name="readme.html"/>-->
+    <!--<include name="changehog.txt"/>-->
+    <!--<include name="**/*.jar"/>-->
+    <!--<include name="api/**/*"/>-->
+    <!--</zipfileset>-->
+    <!--</zip>-->
+    <!--</target>-->
+
+    <!-- ====================================================================== -->
+    <!-- JAVADOC -->
+    <!-- ====================================================================== -->
+    <target name="javadoc" depends="prepare">
+        <javadoc
+                sourcepath="${src}"
+                destdir="${docs}"
+                packagenames="com.larvalabs.*">
+            <classpath refid="classpath"/>
+        </javadoc>
+    </target>
+
+</project>
