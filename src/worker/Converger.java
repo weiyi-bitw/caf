@@ -57,14 +57,19 @@ public class Converger extends DistributedWorker{
 			float[] r = new float[m];
 			NormalDistributionImpl norm = new NormalDistributionImpl();
 			for(int i = 0; i < m; i++){
-				r[i] = StatOps.pearsonCorr(val[i], val[idx]);
-				float z;
-				if(rankBased){
-					z = StatOps.rsToZ(r[i], n); 
+				if(i == idx){
+					r[i] = 1;
+					p[i] = 0;
 				}else{
-					z = StatOps.rpToZ(r[i], n);
+					r[i] = StatOps.pearsonCorr(val[i], val[idx]);
+					float z;
+					if(rankBased){
+						z = StatOps.rsToZ(r[i], n); 
+					}else{
+						z = StatOps.rpToZ(r[i], n);
+					}
+					p[i] = norm.cumulativeProbability(-z); // we want positive correlation
 				}
-				p[i] = norm.cumulativeProbability(-z); // we want positive correlation
 			}
 			double[] padj = StatOps.pAdjustBonf(p, m);
 			HashSet<Integer> metaIdx = new HashSet<Integer>();
