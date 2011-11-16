@@ -58,7 +58,7 @@ public class GeneSet implements Comparable<GeneSet>{
 			}
 		}
 		int mergeThreshold = Math.min(this.sz, other.sz)/lowestMergeFold;
-		if(cnt < mergeThreshold || cnt == 0){
+		if(cnt < mergeThreshold || cnt <= 1){
 			return false;
 		}else{
 			int[] ngIdx = new int[cnt];
