@@ -28,6 +28,7 @@ public class GeneSetMerger extends DistributedWorker{
 		BufferedReader br;
 		System.out.println("Processing file " + start + " to file " + end );
 		for(int i = start; i < end; i++){
+			System.out.println(i);
 			br = new BufferedReader(new FileReader(path + "caf."+ String.format("%05d", i)+".txt"));
 			String line = br.readLine();
 			// Greedily merge gene set
