@@ -13,6 +13,7 @@ import org.apache.commons.math.distribution.NormalDistributionImpl;
 import obj.DataFile;
 import util.StatOps;
 import worker.Converger;
+import worker.GeneSetMerger;
 import worker.Scheduler;
 
 public class CorrAttractorFinder {
@@ -138,31 +139,6 @@ public class CorrAttractorFinder {
 	    	
 	}
 		
-	private static float[] getMetaGene(float[][] data, HashSet<Integer> idx, int n){
-		int m = idx.size();
-		float[] out = new float[n];
-		for(int j = 0; j < n; j++){
-			for(Integer i : idx){
-				out[j] += data[i][j];
-			}
-			out[j] /= m;
-		}
-		return out;
-	}
-	private static float[] getMetaGene(float[][] data, float[] r, HashSet<Integer> idx, int n){
-		float w = 0;
-		float[] out = new float[n];
-		for(Integer i : idx){
-			for(int j = 0; j < n; j++){
-				out[j] += r[i] * data[i][j];
-			}
-			w += r[i];
-		}
-		for(int j = 0; j < n; j++){
-			out[j] /= w;
-		}
-		return out;
-	}
 	/**
 	 * @param args
 	 * @throws Exception 
@@ -192,29 +168,54 @@ public class CorrAttractorFinder {
 			fileConfiguration();
 		System.out.println("\n===================================================================================\n");
 		
-		if(rowNorm){
-			ma.normalizeRows();
-		}
-		float[][] data = ma.getData();
-		
-		int m = ma.getNumRows();
-		int n = ma.getNumCols();
-		
-		// transform the first data matrix into ranks
-		float[][] val = new float[m][n];
-		if(rankBased){
-			for(int i = 0; i < m; i++){
-				System.arraycopy(StatOps.rank(data[i]), 0, val[i], 0, n);
-			}
-		}else{
-			val = data;
-		}
 		Scheduler scdr = new Scheduler(segment, numSegments, jobID);
 		Converger cvg = new Converger(segment, numSegments, jobID, fdrThreshold, maxIter, corrThreshold, rankBased);
-		cvg.findAttractor(val, data);
+		
+		if(!debugging)
+		{
+			if(rowNorm){
+				ma.normalizeRows();
+			}
+			float[][] data = ma.getData();
+			
+			int m = ma.getNumRows();
+			int n = ma.getNumCols();
+			
+			// transform the first data matrix into ranks
+			float[][] val = new float[m][n];
+			if(rankBased){
+				for(int i = 0; i < m; i++){
+					System.arraycopy(StatOps.rank(data[i]), 0, val[i], 0, n);
+				}
+			}else{
+				val = data;
+			}
+			cvg.findAttractor(val, data);
+			scdr.waitTillFinished(0);
+		}
+		int fold = (int) Math.round(Math.sqrt(numSegments));
+		if(!debugging || breakPoint.equalsIgnoreCase("merge"))
+		{
+			// fold the number of workers to the squre root of the total number of workers
+			if(segment < fold){
+				GeneSetMerger mg = new GeneSetMerger(segment, fold, jobID);
+				mg.mergeGeneSets("tmp/" + jobID + "/geneset/", numSegments, false);
+			}else{
+				System.out.println("Job finished. Exit.");
+				System.exit(0);
+			}
+		}
+		if(!debugging  || breakPoint.equalsIgnoreCase("merge"))
+		{
+			if(scdr.allFinished(fold)|| breakPoint.equalsIgnoreCase("output")){
+				GeneSetMerger mg = new GeneSetMerger(segment, 1, jobID);
+				mg.mergeGeneSets("tmp/" + jobID + "/merge" + GeneSetMerger.mergeCount, fold, true);
+			}
+		}
 		
 		
-		
+		System.out.println("Done in " + (System.currentTimeMillis() - tOrigin) + " msecs.");
+		System.out.println("\n====Thank you!!==================================@ Columbia University 2011=======\n");
 	}
 
 }
