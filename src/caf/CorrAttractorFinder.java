@@ -10,7 +10,9 @@ import java.util.Properties;
 
 import org.apache.commons.math.distribution.NormalDistributionImpl;
 
+import obj.Annotations;
 import obj.DataFile;
+import obj.GeneSet;
 import util.StatOps;
 import worker.Converger;
 import worker.GeneSetMerger;
@@ -34,7 +36,7 @@ public class CorrAttractorFinder {
 	private static float corrThreshold = 0.7f;
 	
 	private static DataFile ma;
-	
+	private static Annotations annot;
 	
 	private static void SystemConfiguration() throws Exception{
 		String numSegmentsProperty = System.getProperty("SGE_TASK_LAST");
@@ -86,8 +88,19 @@ public class CorrAttractorFinder {
 		    } catch (Exception e) {
 		    	throw new RuntimeException("ERROR:Problem parsing data file.\n" + e);
 		    }
+		//=======Annotations for dataset 1====================
+		    annot = null;
+		    confLine = config.getProperty("annot_exp");
+		    if(confLine != null){
+		    	System.out.printf("%-25s%s\n", "GeneExp Annotations:", confLine);
+		    	try {
+	                annot = Annotations.parseAnnotations(confLine);
+	            } catch (Exception e) {
+	                throw new RuntimeException("Couldn't parse annotations file '" + confLine+ "\n" + e);
+	            }
+		    }
 			
-			confLine = config.getProperty("rank_based");
+		    confLine = config.getProperty("rank_based");
 	    	if (confLine != null && confLine.length() > 0) {
 	            try {
 	               rankBased = Boolean.parseBoolean(confLine);
@@ -207,6 +220,8 @@ public class CorrAttractorFinder {
 		}
 		if(!debugging  || breakPoint.equalsIgnoreCase("merge"))
 		{
+			GeneSet.setProbeNames(ma.getProbes());
+			if(annot != null)GeneSet.setAnnotations(annot);
 			if(scdr.allFinished(fold)|| breakPoint.equalsIgnoreCase("output")){
 				GeneSetMerger mg = new GeneSetMerger(segment, 1, jobID);
 				mg.mergeGeneSets("tmp/" + jobID + "/merge" + GeneSetMerger.mergeCount, fold, true);
