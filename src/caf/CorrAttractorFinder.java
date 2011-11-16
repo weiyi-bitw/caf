@@ -224,7 +224,7 @@ public class CorrAttractorFinder {
 			if(annot != null)GeneSet.setAnnotations(annot);
 			if(scdr.allFinished(fold)|| breakPoint.equalsIgnoreCase("output")){
 				GeneSetMerger mg = new GeneSetMerger(segment, 1, jobID);
-				mg.mergeGeneSets("tmp/" + jobID + "/merge" + GeneSetMerger.mergeCount, fold, true);
+				mg.mergeGeneSets("tmp/" + jobID + "/merge" + (GeneSetMerger.mergeCount-1), fold, true);
 			}
 		}
 		
