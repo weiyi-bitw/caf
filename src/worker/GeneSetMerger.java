@@ -43,7 +43,9 @@ public class GeneSetMerger extends DistributedWorker{
 					if(allGeneSets.size() == 0){
 						allGeneSets.add(rookie);
 					}
-					for(GeneSet gs : allGeneSets){
+					int origSize = allGeneSets.size();
+					for(int j = 0; j < origSize; j++){
+						GeneSet gs = allGeneSets.get(j);
 						if(gs.merge(rookie)){
 							break;
 							// gene set merged
