@@ -8,7 +8,7 @@ import java.util.HashSet;
 public class GeneSet implements Comparable<GeneSet>{
 	static ArrayList<String> probeNames;
 	static Annotations annot;
-	static int lowestMergeFold; 
+	static int lowestMergeFold = 2; 
 	
 	int[] geneIdx;
 	String seed;
