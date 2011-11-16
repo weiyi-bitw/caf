@@ -8,7 +8,7 @@ import java.util.HashSet;
 public class GeneSet implements Comparable<GeneSet>{
 	static ArrayList<String> probeNames;
 	static Annotations annot;
-	static int mergeThreshold; 
+	static int lowestMergeFold; 
 	
 	int[] geneIdx;
 	String seed;
@@ -19,7 +19,6 @@ public class GeneSet implements Comparable<GeneSet>{
 		Arrays.sort(idx);
 		this.geneIdx = idx;
 		this.sz = geneIdx.length;
-		mergeThreshold = sz/2;
 	}
 	
 	public static void setProbeNames(ArrayList<String> probeNames){
@@ -29,7 +28,7 @@ public class GeneSet implements Comparable<GeneSet>{
 		GeneSet.annot = annot;
 	}
 	public static void setMergeThreshold(int th){
-		GeneSet.mergeThreshold = th;
+		GeneSet.lowestMergeFold = th;
 	}
 	public int compareTo(GeneSet other) {
 		return Double.compare(this.minIdx, other.minIdx);
@@ -58,8 +57,8 @@ public class GeneSet implements Comparable<GeneSet>{
 				newGeneIdx.add(i);
 			}
 		}
-		
-		if(cnt < mergeThreshold){
+		int mergeThreshold = Math.min(this.sz, other.sz)/lowestMergeFold;
+		if(cnt < mergeThreshold || cnt == 0){
 			return false;
 		}else{
 			int[] ngIdx = new int[cnt];
