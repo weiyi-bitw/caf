@@ -86,7 +86,7 @@ public class Converger extends DistributedWorker{
 			for(Integer i : metaIdx){
 				preMetaIdx.add(i);
 			}
-			System.out.println("Initial gene set size " + metaIdx.size() );
+			//System.out.println("Initial gene set size " + metaIdx.size() );
 			
 			/*
 			 * Step 2: Calculate metagene, find the genes that have correlation exceeding the 

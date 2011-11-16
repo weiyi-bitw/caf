@@ -122,6 +122,43 @@ public class Scheduler extends DistributedWorker{
 		}
 	    }
 	}
+	
+	// job control after fold
+	public void waitTillFinished(int iteration, int fold)throws Exception{
+		this.finishFlag(iteration);
+		File dir = new File(".finish" + iteration + "/" + jobID);
+	    String[] allFiles = dir.list();
+	    int numFlags = allFiles.length;
+	    System.out.println("Waiting for finish...");
+	    Random r = new Random(id);
+	    while(numFlags != fold){
+			if(id!=0){
+				Thread.sleep(100000 + r.nextInt(10000));
+			}else{
+				Thread.sleep(10000);
+				dir = new File(".finish" + iteration + "/" + jobID);
+			}
+			try{
+				allFiles=dir.list();
+				numFlags=allFiles.length;
+				if(id==0){System.out.print(numFlags + " (" + fold + ")\t");}
+			}catch(NullPointerException e){
+				System.out.println("Warning: Can't find folder (probably finished). Proceed...");
+				break;
+			}
+		}
+		System.out.println("Finished. Proceed...");
+	    if(id == 0){
+	    	System.out.println("Wait for 10 sec...");
+	    	Thread.sleep(10000);
+	    	clearDir(dir);
+	    }else{
+	    	while(dir.exists()){
+			Thread.sleep(r.nextInt(10000));
+		}
+	    }
+	}
+	
 // 02/08/2011 waitTillNotified(), createNotify() 
 	public void waitTillNotified() throws Exception{
 		while(!new File(".notify/" + jobID + "/notify-" + String.format("%05d", id)).exists()){}
@@ -159,5 +196,30 @@ public class Scheduler extends DistributedWorker{
 		clearDir(dir);
 		return true;
 	}
-	
+	// job control after fold
+	public boolean allFinished(int fold)throws Exception{
+		this.finishFlag();
+		if(id != 0){
+			System.out.println("Task in this segment is finished. Terminate.");
+			return false;
+		}
+		File dir = new File(".finish/" + jobID);
+	    String[] allFiles = dir.list();
+	    int numFlags = allFiles.length;
+	    System.out.println("Wait other segments to finish...");
+	    Random r = new Random(id);
+	    while(true){
+	    	dir = new File(".finish/" + jobID);
+	    	allFiles = dir.list();
+		    numFlags = allFiles.length;
+		    if(numFlags == fold){
+		    	break;
+		    }
+		    System.out.print(numFlags + " (" + fold + ")\t");
+		    Thread.sleep(r.nextInt(10000));
+		}
+		System.out.println("Spawn finished. Proceed.");
+		clearDir(dir);
+		return true;
+	}
 }
