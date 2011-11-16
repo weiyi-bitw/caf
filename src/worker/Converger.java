@@ -142,7 +142,7 @@ public class Converger extends DistributedWorker{
 				}
 				
 			}
-			if(metaIdx.size() > 0){
+			if(metaIdx.size() > 1){
 				boolean first = true;
 				for(Integer i: metaIdx){
 					if(first){
