@@ -40,6 +40,9 @@ public class GeneSetMerger extends DistributedWorker{
 						gIdx.add(Integer.parseInt(s));
 					}
 					GeneSet rookie = new GeneSet(gIdx); 
+					if(allGeneSets.size() == 0){
+						allGeneSets.add(rookie);
+					}
 					for(GeneSet gs : allGeneSets){
 						if(gs.merge(rookie)){
 							break;
