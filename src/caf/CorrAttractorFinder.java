@@ -181,6 +181,7 @@ public class CorrAttractorFinder {
 			fileConfiguration();
 		System.out.println("\n===================================================================================\n");
 		
+		GeneSet.setProbeNames(ma.getProbes());
 		Scheduler scdr = new Scheduler(segment, numSegments, jobID);
 		Converger cvg = new Converger(segment, numSegments, jobID, fdrThreshold, maxIter, corrThreshold, rankBased);
 		
@@ -206,7 +207,10 @@ public class CorrAttractorFinder {
 			cvg.findAttractor(val, data);
 			scdr.waitTillFinished(0);
 		}
+		
 		int fold = (int) Math.round(Math.sqrt(numSegments));
+		ma = null;
+		
 		if(!debugging || breakPoint.equalsIgnoreCase("merge"))
 		{
 			// fold the number of workers to the squre root of the total number of workers
@@ -220,7 +224,7 @@ public class CorrAttractorFinder {
 		}
 		if(!debugging  || breakPoint.equalsIgnoreCase("merge"))
 		{
-			GeneSet.setProbeNames(ma.getProbes());
+			
 			if(annot != null)GeneSet.setAnnotations(annot);
 			if(scdr.allFinished(fold)|| breakPoint.equalsIgnoreCase("output")){
 				GeneSetMerger mg = new GeneSetMerger(segment, 1, jobID);
