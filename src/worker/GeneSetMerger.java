@@ -35,9 +35,10 @@ public class GeneSetMerger extends DistributedWorker{
 				if(!line.equals("NA"))
 				{
 					String[] tokens = line.split("\t");
-					HashSet<Integer> gIdx = new HashSet<Integer>();
-					for(String s : tokens){
-						gIdx.add(Integer.parseInt(s));
+					int nt = tokens.length;
+					int[] gIdx = new int[nt];
+					for(int j = 0; j < nt; j++){
+						gIdx[j] = Integer.parseInt(tokens[j]);
 					}
 					GeneSet rookie = new GeneSet(gIdx); 
 					if(allGeneSets.size() == 0){

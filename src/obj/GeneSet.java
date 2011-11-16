@@ -1,6 +1,7 @@
 package obj;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
 
@@ -9,14 +10,15 @@ public class GeneSet implements Comparable<GeneSet>{
 	static Annotations annot;
 	static int mergeThreshold; 
 	
-	HashSet<Integer> geneIdx;
+	int[] geneIdx;
 	String seed;
 	int sz;
 	int minIdx; // used as an temporary id
 	
-	public GeneSet(HashSet<Integer> idx){
+	public GeneSet(int[] idx){
+		Arrays.sort(idx);
 		this.geneIdx = idx;
-		this.sz = geneIdx.size();
+		this.sz = geneIdx.length;
 		mergeThreshold = sz/2;
 	}
 	
@@ -47,20 +49,25 @@ public class GeneSet implements Comparable<GeneSet>{
 	
 	// Merging the gene sets using their intersection	
 	public boolean merge(GeneSet other){
-		HashSet<Integer> newGeneIdx = new HashSet<Integer>();
-		HashSet<Integer> otherGeneIdx = other.geneIdx;
+		ArrayList<Integer> newGeneIdx = new ArrayList<Integer>();
+		int[] otherGeneIdx = other.geneIdx;
 		int cnt = 0;
-		for(Integer i : this.geneIdx){
-			if(otherGeneIdx.contains(i)){
+		for(int i : this.geneIdx){
+			if(Arrays.binarySearch(otherGeneIdx, i) >= 0){
 				cnt ++;
 				newGeneIdx.add(i);
 			}
 		}
+		
 		if(cnt < mergeThreshold){
 			return false;
 		}else{
-			this.geneIdx = newGeneIdx;
-			this.sz = newGeneIdx.size();
+			int[] ngIdx = new int[cnt];
+			for(int i = 0; i < cnt; i++){
+				ngIdx[i] = newGeneIdx.get(i);
+			}
+			this.geneIdx = ngIdx;
+			this.sz = cnt;
 			return true;
 		}
 	}
@@ -81,14 +88,9 @@ public class GeneSet implements Comparable<GeneSet>{
 	
 	public String toGenes(){
 		if(annot == null){
-			ArrayList<Integer> idx = new ArrayList<Integer>();
-			for(Integer i : geneIdx){
-				idx.add(i);
-			}
-			Collections.sort(idx);
 			String s = "";
 			boolean first = true;
-			for(Integer i : idx){
+			for(Integer i : geneIdx){
 				if(first){
 					s = probeNames.get(i);
 					first = false;
