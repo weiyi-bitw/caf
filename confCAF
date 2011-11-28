@@ -1,5 +1,5 @@
 # =======Data sets=======
-ge=/home/weiyi/data/gbm/tcga/mergeroom/ge.17814x278.knn.txt
+ge=/home/weiyi/workspace/javaworks/goldilox/testDataFor2.txt
 
 # =======parameters======
 rank_based=false
@@ -7,3 +7,4 @@ rank_based=false
 z_threshold=8
 row_normalization=false
 min_size=20
+attractor_size=4

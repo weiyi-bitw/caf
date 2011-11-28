@@ -34,6 +34,7 @@ public class CorrAttractorFinder {
 	private static boolean rowNorm = false;
 	private static float corrThreshold = 0.7f;
 	private static float zThreshold = -1;
+	private static int attractorSize = 20;
 	
 	private static DataFile ma;
 	private static Annotations annot;
@@ -155,7 +156,7 @@ public class CorrAttractorFinder {
 	            try {
 	               zThreshold = Float.parseFloat(confLine);
 	            } catch (NumberFormatException nfe) {
-	            	System.out.println("WARNING: Couldn't parse Correlation Threshold: " + confLine + ", using variable threshold.");
+	            	System.out.println("WARNING: Couldn't parse Z score Threshold: " + confLine + ", using variable threshold.");
 	            }
 	        }
 	    	if(zThreshold >= 0){
@@ -167,7 +168,17 @@ public class CorrAttractorFinder {
 	            try {
 	               minSize = Integer.parseInt(confLine);
 	            } catch (NumberFormatException nfe) {
-	            	System.out.println("WARNING: Couldn't parse Correlation Threshold: " + confLine + ", using default = " + minSize);
+	            	System.out.println("WARNING: Couldn't parse minimum attractor size : " + confLine + ", using default = " + minSize);
+	            }
+	        }
+	    	System.out.printf("%-25s%s\n", "Min Size:", minSize);
+	    	
+	    	confLine = config.getProperty("attractor_size");
+	    	if (confLine != null && confLine.length() > 0) {
+	            try {
+	               attractorSize = Integer.parseInt(confLine);
+	            } catch (NumberFormatException nfe) {
+	            	System.out.println("WARNING: Couldn't parse fixed attractor size: " + confLine + ", using default = " + attractorSize);
 	            }
 	        }
 	    	
@@ -205,6 +216,7 @@ public class CorrAttractorFinder {
 		GeneSet.setProbeNames(ma.getProbes());
 		Scheduler scdr = new Scheduler(segment, numSegments, jobID);
 		Converger cvg = new Converger(segment, numSegments, jobID, fdrThreshold, maxIter, corrThreshold, rankBased);
+		cvg.setAttractorSize(attractorSize);
 		
 		if(!debugging)
 		{

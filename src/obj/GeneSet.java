@@ -147,7 +147,7 @@ public class GeneSet implements Comparable<GeneSet>{
 				}
 			}
 			int mergeThreshold = Math.min(this.sz, other.sz)/lowestMergeFold;
-			if(cnt < mergeThreshold || cnt <= 1){
+			if(cnt <= mergeThreshold || cnt <= 1){
 				// did not pass merge threshold, skip
 				return false;
 			}else{

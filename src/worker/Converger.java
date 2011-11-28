@@ -93,9 +93,7 @@ public class Converger extends DistributedWorker{
 			
 			int cnt = 0;
 			HashSet<Integer> preMetaIdx = new HashSet<Integer>();
-			for(Integer i : metaIdx){
-				preMetaIdx.add(i);
-			}
+			preMetaIdx.addAll(metaIdx);
 			//System.out.println("Initial gene set size " + metaIdx.size() );
 			
 			/*
