@@ -78,12 +78,14 @@ public class GeneSetMerger extends DistributedWorker{
 			
 			int cnt = 0;
 			for(GeneSet gs : allGeneSets){
-				pw2.print("Attractor" + String.format("%03d", cnt) + "\t" + gs.size() + "\t");
-				pw2.println(gs.getAttractees());
-				
-				pw.print("Attractor" + String.format("%03d", cnt) + "\t" + gs.size() + "\t");
-				pw.println(gs.toGenes());
-				cnt++;
+				if(gs.size() > minSize){
+					pw2.print("Attractor" + String.format("%03d", cnt) + "\t" + gs.size() + "\t");
+					pw2.println(gs.getAttractees());
+					
+					pw.print("Attractor" + String.format("%03d", cnt) + "\t" + gs.size() + "\t");
+					pw.println(gs.toGenes());
+					cnt++;
+				}
 			}
 			pw2.close();
 			pw.close();
@@ -91,16 +93,14 @@ public class GeneSetMerger extends DistributedWorker{
 			prepare("merge" + mergeCount);
 			PrintWriter pw = new PrintWriter(new FileWriter("tmp/" + jobID + "/merge" + mergeCount + "/caf."+ String.format("%05d", id)+".txt"));
 			for(GeneSet gs : allGeneSets){
-				if(gs.size() > minSize){
-					pw.println(gs.toString());
-				}
+				pw.println(gs.toString());
 			}
 			pw.close();
 			mergeCount++;
 		}
 	}
 	public void setMinSize(int minSize){
-		this.minSize = minSize;
+		GeneSetMerger.minSize = minSize;
 	}
 	
 }
