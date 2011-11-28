@@ -6,4 +6,4 @@ rank_based=false
 #fdrThreshold=0.05
 z_threshold=8
 row_normalization=false
-
+min_size=20
