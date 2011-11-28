@@ -243,6 +243,7 @@ public class CorrAttractorFinder {
 			// fold the number of workers to the squre root of the total number of workers
 			if(segment < fold){
 				GeneSetMerger mg = new GeneSetMerger(segment, fold, jobID);
+				mg.setMinSize(minSize);
 				mg.mergeGeneSets("tmp/" + jobID + "/geneset/", numSegments, false);
 			}else{
 				System.out.println("Job finished. Exit.");
