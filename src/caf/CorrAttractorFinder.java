@@ -181,7 +181,7 @@ public class CorrAttractorFinder {
 	            	System.out.println("WARNING: Couldn't parse fixed attractor size: " + confLine + ", using default = " + attractorSize);
 	            }
 	        }
-	    	
+	    	System.out.printf("%-25s%s\n", "Fixed Attractor Size:", attractorSize);
 	}
 		
 	/**
