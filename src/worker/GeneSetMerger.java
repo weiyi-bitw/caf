@@ -8,6 +8,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 
 import obj.GeneSet;
@@ -35,7 +36,7 @@ public class GeneSetMerger extends DistributedWorker{
 			// Greedily merge gene set
 			while(line != null){
 				String[] tokens = line.split("\t");
-				if(!tokens[1].equals("NA")){
+				if(!tokens[2].equals("NA")){
 					//first token: attractees separated by ","
 					HashSet<Integer> attr = new HashSet<Integer>();
 					String[] t2 = tokens[0].split(",");
@@ -43,11 +44,15 @@ public class GeneSetMerger extends DistributedWorker{
 						attr.add(Integer.parseInt(s));
 					}
 					int nt = tokens.length;
-					int[] gIdx = new int[nt-1];
-					for(int j = 1; j < nt; j++){
-						gIdx[j-1] = Integer.parseInt(tokens[j]);
+					int[] gIdx = new int[nt-2];
+					float[] wts = new float[nt-2];
+					int numChild = Integer.parseInt(tokens[1]);
+					for(int j = 2; j < nt; j++){
+						t2 = tokens[j].split(",");
+						gIdx[j-2] = Integer.parseInt(t2[0]);
+						wts[j-2] = Float.parseFloat(t2[1]);
 					}
-					GeneSet rookie = new GeneSet(attr,gIdx); 
+					GeneSet rookie = new GeneSet(attr,gIdx, wts, numChild); 
 					int origSize = allGeneSets.size();
 					if(origSize == 0){
 						allGeneSets.add(rookie);
@@ -73,20 +78,39 @@ public class GeneSetMerger extends DistributedWorker{
 		if(finalOutput){
 			new File("output").mkdir();
 			new File("output/" + jobID).mkdir();
+			new File("output/" + jobID + "/lists").mkdir();
 			PrintWriter pw = new PrintWriter(new FileWriter("output/" + jobID + "/attractors.gct"));
 			PrintWriter pw2 = new PrintWriter(new FileWriter("output/" + jobID + "/attractees.gct"));
+			PrintWriter pw3 = new PrintWriter(new FileWriter("output/" + jobID + "/weights.txt"));
+			
 			
 			int cnt = 0;
 			for(GeneSet gs : allGeneSets){
 				if(gs.size() > minSize){
-					pw2.print("Attractor" + String.format("%03d", cnt) + "\t" + gs.size() + "\t");
+					String name = "Attractor" + String.format("%03d", cnt);
+					
+					gs.sort();
+					pw3.print(name + "\t" + gs.size() + "\t");
+					pw3.println(gs.getWeight());
+					
+					pw2.print(name + "\t" + gs.size() + "\t");
 					pw2.println(gs.getAttractees());
 					
-					pw.print("Attractor" + String.format("%03d", cnt) + "\t" + gs.size() + "\t");
+					pw.print(name + "\t" + gs.size() + "\t");
 					pw.println(gs.toGenes());
+					
+					PrintWriter pw4 = new PrintWriter(new FileWriter("output/" + jobID + "/lists/" + name + ".txt"));
+					pw4.println("Gene\tWeight");
+					ArrayList<String> geneNames = gs.getGeneNames();
+					HashMap<String, Float> geneWeightMap = gs.getGeneWeightMap();
+					for(String s: geneNames){
+						pw4.println(s + "\t" + geneWeightMap.get(s));
+					}
+					pw4.close();
 					cnt++;
 				}
 			}
+			pw3.close();
 			pw2.close();
 			pw.close();
 		}else{

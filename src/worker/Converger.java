@@ -117,9 +117,10 @@ public class Converger extends DistributedWorker{
 			}
 			// first token: attractee index
 			pw.print(idx);
+			pw.print("\t" + 1);
 			if(metaIdx.size() > 1){
 				for(Integer i: metaIdx){
-						pw.print("\t" + i);
+						pw.print("\t" + i + ",1");
 				}
 			}else{
 				pw.print("\tNA");

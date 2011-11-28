@@ -200,7 +200,9 @@ public class Scheduler extends DistributedWorker{
 	}
 	// job control after fold
 	public boolean allFinished(int fold)throws Exception{
-		this.finishFlag();
+		if(id < fold){
+			this.finishFlag();
+		}
 		if(id != 0){
 			System.out.println("Task in this segment is finished. Terminate.");
 			return false;
