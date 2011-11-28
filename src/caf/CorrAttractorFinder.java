@@ -249,7 +249,7 @@ public class CorrAttractorFinder {
 				System.exit(0);
 			}
 		}
-		if(!debugging  || breakPoint.equalsIgnoreCase("merge"))
+		if(!debugging  || breakPoint.equalsIgnoreCase("output"))
 		{
 			if(annot != null)GeneSet.setAnnotations(annot);
 			if(scdr.allFinished(fold)|| (breakPoint.equalsIgnoreCase("output") && segment==0)){
