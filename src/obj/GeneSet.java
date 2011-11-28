@@ -332,4 +332,7 @@ public class GeneSet implements Comparable<GeneSet>{
 	public HashMap<String, Float> getGeneWeightMap(){
 		return geneWeightMap;
 	}
+	public int getAttracteeSize(){
+		return attractees.size();
+	}
 }

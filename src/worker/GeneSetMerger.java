@@ -90,13 +90,13 @@ public class GeneSetMerger extends DistributedWorker{
 					String name = "Attractor" + String.format("%03d", cnt);
 					
 					gs.sort();
-					pw3.print(name + "\t" + gs.size() + "\t");
+					pw3.print(name + "\t" + gs.size() + ":" + gs.getAttracteeSize() + "\t");
 					pw3.println(gs.getWeight());
 					
-					pw2.print(name + "\t" + gs.size() + "\t");
+					pw2.print(name + "\t" + gs.size() + ":" + gs.getAttracteeSize() + "\t");
 					pw2.println(gs.getAttractees());
 					
-					pw.print(name + "\t" + gs.size() + "\t");
+					pw.print(name + "\t" + gs.size() + ":" + gs.getAttracteeSize() + "\t");
 					pw.println(gs.toGenes());
 					
 					PrintWriter pw4 = new PrintWriter(new FileWriter("output/" + jobID + "/lists/" + name + ".txt"));
