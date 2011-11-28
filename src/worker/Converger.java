@@ -2,6 +2,7 @@ package worker;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.HashSet;
 
 import org.apache.commons.math.MathException;
@@ -14,7 +15,21 @@ public class Converger extends DistributedWorker{
 	private static float zThreshold = 3;
 	private static int maxIter = 100;
 	private static float corrThreshold = 0.7f;
-	private static boolean rankBased = true;
+	private static boolean rankBased = false;
+	private static int attractorSize = 20;
+	
+	static class ValIdx implements Comparable<ValIdx>{
+		float val;
+		int idx;
+		ValIdx(int i, float v){
+			this.idx = i;
+			this.val = v;
+		}
+		
+		public int compareTo(ValIdx other) {
+			return -Double.compare(this.val, other.val);
+		}
+	}
 	
 	public Converger(int id, int totalComputers, long jobID){
 		super(id, totalComputers, jobID);
@@ -58,13 +73,24 @@ public class Converger extends DistributedWorker{
 			 */
 			
 			float[] mi = itc.getAllMIWith(val[idx], val);
-			float[] z = StatOps.xToZ(mi, m);
+			ValIdx[] vec = new ValIdx[m];
+			for(int i = 0; i < m; i++){
+				vec[i] = new ValIdx(i, mi[i]);
+			}
+			Arrays.sort(vec);
+			HashSet<Integer> metaIdx = new HashSet<Integer>();
+			for(int i = 0; i < attractorSize; i++){
+				metaIdx.add(vec[i].idx);
+			}
+			
+			/*float[] z = StatOps.xToZ(mi, m);
 			HashSet<Integer> metaIdx = new HashSet<Integer>();
 			for(int i = 0; i < m; i++){
 				if(z[i] > zThreshold){
 					metaIdx.add(i);
 				}
-			}
+			}*/
+			
 			int cnt = 0;
 			HashSet<Integer> preMetaIdx = new HashSet<Integer>();
 			for(Integer i : metaIdx){
@@ -91,19 +117,28 @@ public class Converger extends DistributedWorker{
 					metaGene = StatOps.rank(metaGene);
 				}
 				mi = itc.getAllMIWith(metaGene, val);
-				z = StatOps.xToZ(mi, m);
+				vec = new ValIdx[m];
+				for(int i = 0; i < m; i++){
+					vec[i] = new ValIdx(i, mi[i]);
+				}
+				Arrays.sort(vec);
+				metaIdx = new HashSet<Integer>();
+				for(int i = 0; i < attractorSize; i++){
+					metaIdx.add(vec[i].idx);
+				}
+				/*z = StatOps.xToZ(mi, m);
 				metaIdx = new HashSet<Integer>();
 				for(int i = 0; i < m; i++){
-					/*if(r[i] > corrThreshold){
+					if(r[i] > corrThreshold){
 						metaIdx.add(i);
-					}*/
-					/*if(padj[i] < fdrThreshold){
+					}
+					if(padj[i] < fdrThreshold){
 						metaIdx.add(i);
-					}*/
+					}
 					if(z[i] > zThreshold){
 						metaIdx.add(i);
 					}
-				}
+				}*/
 				if(preMetaIdx.equals(metaIdx)){
 					/*System.out.println("Converged."); 
 					System.out.println("Gene Set Size: " + metaIdx.size());
@@ -138,6 +173,9 @@ public class Converger extends DistributedWorker{
 		NormalDistributionImpl norm = new NormalDistributionImpl();
 		double pth = 0.05/m;
 		Converger.zThreshold = (float) -norm.inverseCumulativeProbability(pth);
+	}
+	public void setAttractorSize(int sz){
+		Converger.attractorSize = sz;
 	}
 	public float getZThreshold(){
 		return zThreshold;

@@ -27,11 +27,11 @@ public class CorrAttractorFinder {
 	private static long jobID;
 	private static int minSize = 0;
 	private static boolean debugging = false;
-	private static boolean rankBased = true;
+	private static boolean rankBased = false;
 	private static double fdrThreshold = 0.05;
 	private static String breakPoint = null;
 	private static int maxIter = 100;
-	private static boolean rowNorm = true;
+	private static boolean rowNorm = false;
 	private static float corrThreshold = 0.7f;
 	private static float zThreshold = -1;
 	

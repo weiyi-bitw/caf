@@ -162,7 +162,7 @@ public class GeneSet implements Comparable<GeneSet>{
 				}
 				this.geneIdx = ngIdx;
 				this.sz = cnt;
-				this.numChild++;
+				this.numChild += other.numChild;
 				this.weightMap = newWeightMap;
 				return true;
 			}
