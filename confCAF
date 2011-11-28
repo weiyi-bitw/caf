@@ -1,8 +1,9 @@
 # =======Data sets=======
-ge=/home/weiyi/workspace/javaworks/goldilox/testDataFor2.txt
+ge=/home/weiyi/data/gbm/tcga/mergeroom/ge.17814x278.knn.txt
 
 # =======parameters======
-#rank_based=true
+rank_based=false
 #fdrThreshold=0.05
-z_threshold=0.2
-
+z_threshold=8
+row_normalization=false
+min_size=20
