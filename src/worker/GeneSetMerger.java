@@ -15,6 +15,7 @@ import obj.GeneSet;
 public class GeneSetMerger extends DistributedWorker{
 	ArrayList<GeneSet> allGeneSets;
 	public static int mergeCount = 0;
+	public static int minSize = 0;
 	
 	public GeneSetMerger(int id, int totalComputers, long jobID){
 		super(id, totalComputers, jobID);
@@ -90,11 +91,16 @@ public class GeneSetMerger extends DistributedWorker{
 			prepare("merge" + mergeCount);
 			PrintWriter pw = new PrintWriter(new FileWriter("tmp/" + jobID + "/merge" + mergeCount + "/caf."+ String.format("%05d", id)+".txt"));
 			for(GeneSet gs : allGeneSets){
-				pw.println(gs.toString());
+				if(gs.size() > minSize){
+					pw.println(gs.toString());
+				}
 			}
 			pw.close();
 			mergeCount++;
 		}
+	}
+	public void setMinSize(int minSize){
+		this.minSize = minSize;
 	}
 	
 }
