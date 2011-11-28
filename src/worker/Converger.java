@@ -4,12 +4,14 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.HashSet;
 
+import org.apache.commons.math.MathException;
 import org.apache.commons.math.distribution.NormalDistributionImpl;
 
 import util.StatOps;
 
 public class Converger extends DistributedWorker{
 	private static double fdrThreshold = 0.05;
+	private static float zThreshold = 3;
 	private static int maxIter = 100;
 	private static float corrThreshold = 0.7f;
 	private static boolean rankBased = true;
@@ -44,6 +46,8 @@ public class Converger extends DistributedWorker{
 		
 		System.out.println("Processing gene " + (start+1) + " to " + end);
 		
+		ITComputer itc = new ITComputer(7, 3, 0, 1);
+		itc.negateMI(true);
 		prepare("geneset");
 		PrintWriter pw = new PrintWriter(new FileWriter("tmp/" + jobID + "/geneset/caf." + String.format("%05d", id)+".txt"));
 		for(int idx = start; idx < end; idx++){
@@ -53,31 +57,11 @@ public class Converger extends DistributedWorker{
 			 *         as the initial metagene
 			 */
 			
-			double[] p = new double[m];
-			float[] r = new float[m];
-			NormalDistributionImpl norm = new NormalDistributionImpl();
-			for(int i = 0; i < m; i++){
-				if(i == idx){
-					r[i] = 1;
-					p[i] = 0;
-				}else{
-					r[i] = StatOps.pearsonCorr(val[i], val[idx]);
-					float z;
-					if(rankBased){
-						z = StatOps.rsToZ(r[i], n); 
-					}else{
-						z = StatOps.rpToZ(r[i], n);
-					}
-					p[i] = norm.cumulativeProbability(-z); // we want positive correlation
-				}
-			}
-			double[] padj = StatOps.pAdjustBonf(p, m);
+			float[] mi = itc.getAllMIWith(val[idx], val);
+			float[] z = StatOps.xToZ(mi, m);
 			HashSet<Integer> metaIdx = new HashSet<Integer>();
 			for(int i = 0; i < m; i++){
-				/*if(r[i] > corrThreshold){
-					metaIdx.add(i);
-				}*/
-				if(padj[i] < fdrThreshold){
+				if(z[i] > zThreshold){
 					metaIdx.add(i);
 				}
 			}
@@ -106,30 +90,19 @@ public class Converger extends DistributedWorker{
 				if(rankBased){
 					metaGene = StatOps.rank(metaGene);
 				}
-				//p = new double[m];
-				r = new float[m];
-				for(int i = 0; i < m; i++){
-					r[i] = StatOps.pearsonCorr(val[i], metaGene);
-					/*float z;
-					if(rankBased){
-						z = StatOps.rsToZ(r[i], n); 
-					}else{
-						z = StatOps.rpToZ(r[i], n);
-					}
-					p[i] = norm.cumulativeProbability(-z); // we want positive correlation
-					*//*if(i < 100){
-						System.out.print(z + "\t" + p[i] + "\t");
-					}*/
-				}
-				//padj = StatOps.pAdjustBonf(p, m);
+				mi = itc.getAllMIWith(metaGene, val);
+				z = StatOps.xToZ(mi, m);
 				metaIdx = new HashSet<Integer>();
 				for(int i = 0; i < m; i++){
-					if(r[i] > corrThreshold){
+					/*if(r[i] > corrThreshold){
 						metaIdx.add(i);
-					}
+					}*/
 					/*if(padj[i] < fdrThreshold){
 						metaIdx.add(i);
 					}*/
+					if(z[i] > zThreshold){
+						metaIdx.add(i);
+					}
 				}
 				if(preMetaIdx.equals(metaIdx)){
 					/*System.out.println("Converged."); 
@@ -142,18 +115,14 @@ public class Converger extends DistributedWorker{
 				}
 				
 			}
+			// first token: attractee index
+			pw.print(idx);
 			if(metaIdx.size() > 1){
-				boolean first = true;
 				for(Integer i: metaIdx){
-					if(first){
-						pw.print(i);
-						first = false;
-					}else{
 						pw.print("\t" + i);
-					}
 				}
 			}else{
-				pw.print("NA");
+				pw.print("\tNA");
 			}
 			pw.println();
 		}
@@ -161,5 +130,16 @@ public class Converger extends DistributedWorker{
 		
 	}
 	
+	public void setZThreshold(float z) throws MathException{
+		Converger.zThreshold = z;
+	}
+	public void setZThreshold(int m) throws MathException{
+		NormalDistributionImpl norm = new NormalDistributionImpl();
+		double pth = 0.05/m;
+		Converger.zThreshold = (float) -norm.inverseCumulativeProbability(pth);
+	}
+	public float getZThreshold(){
+		return zThreshold;
+	}
 	
 }

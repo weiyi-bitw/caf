@@ -277,4 +277,27 @@ public class StatOps {
 	public static float rpToZ(float rp, int n){ 
 		return (float)(Math.sqrt(n-3)*1/2 * Math.log((1+rp)/(1-rp)));
 	}
+	
+	public static float[] xToZ(float[] x, int n){
+		float[] z = new float[n];
+		int k = n;
+		float xMean = 0;
+		float xSq = 0;
+		for(int i = 0; i < n; i++){
+			if(Float.isNaN(x[i])){
+				k--;
+			}else{
+				xMean += x[i];
+				xSq += x[i]*x[i];
+			}
+		}
+		xMean /= k;
+		float xSd = (float) Math.sqrt((xSq - k*xMean*xMean)/(k-1));
+		
+		for(int i = 0; i < n; i++){
+			z[i] = Float.isNaN(x[i])? Float.NaN : (x[i] - xMean) / xSd;
+		}
+		
+		return z;
+	}
 }

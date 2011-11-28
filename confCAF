@@ -1,6 +1,8 @@
 # =======Data sets=======
-ge=/home/weiyi/data/gbm/tcga/mergeroom/geMethMir.superx278.txt
+ge=/home/weiyi/workspace/javaworks/goldilox/testDataFor2.txt
 
 # =======parameters======
-#rank_based=true;
-#fdrThreshold=0.05;
+#rank_based=true
+#fdrThreshold=0.05
+z_threshold=0.2
+

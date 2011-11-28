@@ -26,7 +26,6 @@ public class CorrAttractorFinder {
 	private static int numSegments = 1;
 	private static long jobID;
 	private static int minSize = 0;
-	private static int maxSize = Integer.MAX_VALUE;
 	private static boolean debugging = false;
 	private static boolean rankBased = true;
 	private static double fdrThreshold = 0.05;
@@ -34,6 +33,7 @@ public class CorrAttractorFinder {
 	private static int maxIter = 100;
 	private static boolean rowNorm = true;
 	private static float corrThreshold = 0.7f;
+	private static float zThreshold = -1;
 	
 	private static DataFile ma;
 	private static Annotations annot;
@@ -150,6 +150,27 @@ public class CorrAttractorFinder {
 	        }
 	    	System.out.printf("%-25s%s\n", "Correlation Threshold:", corrThreshold);
 	    	
+	    	confLine = config.getProperty("z_threshold");
+	    	if (confLine != null && confLine.length() > 0) {
+	            try {
+	               zThreshold = Float.parseFloat(confLine);
+	            } catch (NumberFormatException nfe) {
+	            	System.out.println("WARNING: Couldn't parse Correlation Threshold: " + confLine + ", using variable threshold.");
+	            }
+	        }
+	    	if(zThreshold >= 0){
+	    		System.out.printf("%-25s%s\n", "Z Threshold:", zThreshold);
+	    	}
+	    	
+	    	confLine = config.getProperty("min_size");
+	    	if (confLine != null && confLine.length() > 0) {
+	            try {
+	               minSize = Integer.parseInt(confLine);
+	            } catch (NumberFormatException nfe) {
+	            	System.out.println("WARNING: Couldn't parse Correlation Threshold: " + confLine + ", using default = " + minSize);
+	            }
+	        }
+	    	
 	}
 		
 	/**
@@ -204,6 +225,12 @@ public class CorrAttractorFinder {
 			}else{
 				val = data;
 			}
+			if(zThreshold < 0){
+				cvg.setZThreshold(m);
+				System.out.printf("%-25s%s\n", "Z Threshold:", cvg.getZThreshold());
+			}else{
+				cvg.setZThreshold(zThreshold);
+			}
 			cvg.findAttractor(val, data);
 			scdr.waitTillFinished(0);
 		}
@@ -224,7 +251,6 @@ public class CorrAttractorFinder {
 		}
 		if(!debugging  || breakPoint.equalsIgnoreCase("merge"))
 		{
-			
 			if(annot != null)GeneSet.setAnnotations(annot);
 			if(scdr.allFinished(fold)|| (breakPoint.equalsIgnoreCase("output") && segment==0)){
 				GeneSetMerger mg = new GeneSetMerger(segment, 1, jobID);

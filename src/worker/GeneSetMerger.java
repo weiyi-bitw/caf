@@ -33,15 +33,20 @@ public class GeneSetMerger extends DistributedWorker{
 			String line = br.readLine();
 			// Greedily merge gene set
 			while(line != null){
-				if(!line.equals("NA"))
-				{
-					String[] tokens = line.split("\t");
-					int nt = tokens.length;
-					int[] gIdx = new int[nt];
-					for(int j = 0; j < nt; j++){
-						gIdx[j] = Integer.parseInt(tokens[j]);
+				String[] tokens = line.split("\t");
+				if(!tokens[1].equals("NA")){
+					//first token: attractees separated by ","
+					HashSet<Integer> attr = new HashSet<Integer>();
+					String[] t2 = tokens[0].split(",");
+					for(String s: t2){
+						attr.add(Integer.parseInt(s));
 					}
-					GeneSet rookie = new GeneSet(gIdx); 
+					int nt = tokens.length;
+					int[] gIdx = new int[nt-1];
+					for(int j = 1; j < nt; j++){
+						gIdx[j-1] = Integer.parseInt(tokens[j]);
+					}
+					GeneSet rookie = new GeneSet(attr,gIdx); 
 					int origSize = allGeneSets.size();
 					if(origSize == 0){
 						allGeneSets.add(rookie);
@@ -68,12 +73,18 @@ public class GeneSetMerger extends DistributedWorker{
 			new File("output").mkdir();
 			new File("output/" + jobID).mkdir();
 			PrintWriter pw = new PrintWriter(new FileWriter("output/" + jobID + "/attractors.gct"));
+			PrintWriter pw2 = new PrintWriter(new FileWriter("output/" + jobID + "/attractees.gct"));
+			
 			int cnt = 0;
 			for(GeneSet gs : allGeneSets){
-				pw.print("Attractor" + String.format("%03d", cnt) + "\tNA\t");
+				pw2.print("Attractor" + String.format("%03d", cnt) + "\t" + gs.size() + "\t");
+				pw2.println(gs.getAttractees());
+				
+				pw.print("Attractor" + String.format("%03d", cnt) + "\t" + gs.size() + "\t");
 				pw.println(gs.toGenes());
 				cnt++;
 			}
+			pw2.close();
 			pw.close();
 		}else{
 			prepare("merge" + mergeCount);
