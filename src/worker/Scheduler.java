@@ -105,6 +105,7 @@ public class Scheduler extends DistributedWorker{
 			try{
 				allFiles=dir.list();
 				numFlags=allFiles.length;
+				if(numFlags == totalComputers) break;
 				if(id==0){System.out.print(numFlags + "\t");}
 			}catch(NullPointerException e){
 				System.out.println("Warning: Can't find folder (probably finished). Proceed...");
@@ -183,6 +184,7 @@ public class Scheduler extends DistributedWorker{
 	    System.out.println("Wait other segments to finish...");
 	    Random r = new Random(id);
 	    while(true){
+	    	numFlags = 0;
 	    	dir = new File(".finish/" + jobID);
 	    	allFiles = dir.list();
 		    numFlags = allFiles.length;
@@ -209,6 +211,7 @@ public class Scheduler extends DistributedWorker{
 	    System.out.println("Wait other segments to finish...");
 	    Random r = new Random(id);
 	    while(true){
+	    	numFlags = 0;
 	    	dir = new File(".finish/" + jobID);
 	    	allFiles = dir.list();
 		    numFlags = allFiles.length;
