@@ -46,7 +46,7 @@ public class Converger extends DistributedWorker{
 		
 		System.out.println("Processing gene " + (start+1) + " to " + end);
 		
-		ITComputer itc = new ITComputer(7, 3, 0, 1);
+		ITComputer itc = new ITComputer(7, 3, id, totalComputers);
 		itc.negateMI(true);
 		prepare("geneset");
 		PrintWriter pw = new PrintWriter(new FileWriter("tmp/" + jobID + "/geneset/caf." + String.format("%05d", id)+".txt"));
