@@ -59,7 +59,6 @@ public class GeneSet implements Comparable<GeneSet>{
 	}
 	
 	public GeneSet(HashSet<Integer> attractees, int[] idx, float[] wts, int numChild){
-		Arrays.sort(idx);
 		this.geneIdx = idx;
 		this.sz = geneIdx.length;
 		this.attractees = attractees;
@@ -68,6 +67,7 @@ public class GeneSet implements Comparable<GeneSet>{
 			weightMap.put(geneIdx[i], wts[i]);
 		}
 		this.numChild = numChild;
+		Arrays.sort(this.geneIdx);
 	}
 	
 	
