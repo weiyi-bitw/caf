@@ -105,7 +105,7 @@ public class GeneSetMerger extends DistributedWorker{
 					
 					PrintWriter pw4 = new PrintWriter(new FileWriter("output/" + jobID + "/lists/" + name + ".txt"));
 					if(GeneSet.hasAnnot()){
-						pw4.println("Probe\tGene\rWeight");
+						pw4.println("Probe\tGene\tWeight");
 						int[] indices = gs.getGeneIdx();
 						for(Integer i : indices){
 							pw4.println(gs.getOnePair(i) + "\t" + gs.getOneWeight(i));

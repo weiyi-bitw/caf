@@ -197,10 +197,10 @@ public class GeneSet implements Comparable<GeneSet>{
 		boolean first = true;
 		for(int i : geneIdx){
 			if(first){
-				s = probeNames.get(i) + ":" + weightMap.get(i);
+				s = probeNames.get(i) + ":" + weightMap.get(i)/numChild;
 				first = false;
 			}else{
-				s = s + "\t" + probeNames.get(i) + ":" + weightMap.get(i);
+				s = s + "\t" + probeNames.get(i) + ":" + weightMap.get(i)/numChild;
 			}
 		}
 		return s;
@@ -212,7 +212,7 @@ public class GeneSet implements Comparable<GeneSet>{
 		for(Integer i : geneIdx){
 			s = annot.getGene(probeNames.get(i));
 			if(!geneNames.contains(s)){
-				geneNames.add(s + ":" + geneWeightMap.get(s));
+				geneNames.add(s + ":" + geneWeightMap.get(s)/numChild);
 			}
 		}
 		Collections.sort(geneNames);
