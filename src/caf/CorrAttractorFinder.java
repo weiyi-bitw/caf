@@ -192,7 +192,7 @@ public class CorrAttractorFinder {
 	    		}
 	            convergeMethod = confLine;
 	        }
-	    	System.out.printf("%-25s%s\n", "Fixed Attractor Size:", attractorSize);
+	    	System.out.printf("%-25s%s\n", "Converge Method:", convergeMethod);
 	    	
 	}
 		
