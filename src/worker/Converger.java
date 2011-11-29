@@ -17,6 +17,7 @@ public class Converger extends DistributedWorker{
 	private static float corrThreshold = 0.7f;
 	private static boolean rankBased = false;
 	private static int attractorSize = 20;
+	private static String convergeMethod = "FIXEDSIZE";
 	
 	static class ValIdx implements Comparable<ValIdx>{
 		float val;
@@ -73,23 +74,25 @@ public class Converger extends DistributedWorker{
 			 */
 			
 			float[] mi = itc.getAllMIWith(val[idx], val);
-			ValIdx[] vec = new ValIdx[m];
-			for(int i = 0; i < m; i++){
-				vec[i] = new ValIdx(i, mi[i]);
-			}
-			Arrays.sort(vec);
 			HashSet<Integer> metaIdx = new HashSet<Integer>();
-			for(int i = 0; i < attractorSize; i++){
-				metaIdx.add(vec[i].idx);
-			}
 			
-			/*float[] z = StatOps.xToZ(mi, m);
-			HashSet<Integer> metaIdx = new HashSet<Integer>();
-			for(int i = 0; i < m; i++){
-				if(z[i] > zThreshold){
-					metaIdx.add(i);
+			if(convergeMethod.equals("FIXEDSIZE")){
+				ValIdx[] vec = new ValIdx[m];
+				for(int i = 0; i < m; i++){
+					vec[i] = new ValIdx(i, mi[i]);
 				}
-			}*/
+				Arrays.sort(vec);
+				for(int i = 0; i < attractorSize; i++){
+					metaIdx.add(vec[i].idx);
+				}
+			}else if(convergeMethod.equals("ZSCORE")){
+				float[] z = StatOps.xToZ(mi, m);
+				for(int i = 0; i < m; i++){
+					if(z[i] > zThreshold){
+						metaIdx.add(i);
+					}
+				}
+			}
 			
 			int cnt = 0;
 			HashSet<Integer> preMetaIdx = new HashSet<Integer>();
@@ -115,28 +118,32 @@ public class Converger extends DistributedWorker{
 					metaGene = StatOps.rank(metaGene);
 				}
 				mi = itc.getAllMIWith(metaGene, val);
-				vec = new ValIdx[m];
-				for(int i = 0; i < m; i++){
-					vec[i] = new ValIdx(i, mi[i]);
-				}
-				Arrays.sort(vec);
 				metaIdx = new HashSet<Integer>();
-				for(int i = 0; i < attractorSize; i++){
-					metaIdx.add(vec[i].idx);
+				
+				if(convergeMethod.equals("FIXEDSIZE")){
+					ValIdx[] vec = new ValIdx[m];
+					for(int i = 0; i < m; i++){
+						vec[i] = new ValIdx(i, mi[i]);
+					}
+					Arrays.sort(vec);
+					for(int i = 0; i < attractorSize; i++){
+						metaIdx.add(vec[i].idx);
+					}
+				}else if(convergeMethod.equals("ZSCORE")){
+					float[] z = StatOps.xToZ(mi, m);
+					metaIdx = new HashSet<Integer>();
+					for(int i = 0; i < m; i++){
+						/*if(r[i] > corrThreshold){
+							metaIdx.add(i);
+						}
+						if(padj[i] < fdrThreshold){
+							metaIdx.add(i);
+						}*/
+						if(z[i] > zThreshold){
+							metaIdx.add(i);
+						}
+					}
 				}
-				/*z = StatOps.xToZ(mi, m);
-				metaIdx = new HashSet<Integer>();
-				for(int i = 0; i < m; i++){
-					if(r[i] > corrThreshold){
-						metaIdx.add(i);
-					}
-					if(padj[i] < fdrThreshold){
-						metaIdx.add(i);
-					}
-					if(z[i] > zThreshold){
-						metaIdx.add(i);
-					}
-				}*/
 				if(preMetaIdx.equals(metaIdx)){
 					/*System.out.println("Converged."); 
 					System.out.println("Gene Set Size: " + metaIdx.size());

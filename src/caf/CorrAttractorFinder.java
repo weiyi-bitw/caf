@@ -35,6 +35,7 @@ public class CorrAttractorFinder {
 	private static float corrThreshold = 0.7f;
 	private static float zThreshold = -1;
 	private static int attractorSize = 20;
+	private static String convergeMethod = "FIXEDSIZE";
 	
 	private static DataFile ma;
 	private static Annotations annot;
@@ -182,6 +183,17 @@ public class CorrAttractorFinder {
 	            }
 	        }
 	    	System.out.printf("%-25s%s\n", "Fixed Attractor Size:", attractorSize);
+	    	
+	    	confLine = config.getProperty("converge_method");
+	    	confLine.toUpperCase();
+	    	if (confLine != null && confLine.length() > 0) {
+	    		if(!confLine.equals("ZSCORE") && !confLine.equals("FIXEDSIZE")){
+	    			System.out.println("WARNING: Couldn't recognize converge method: " + confLine + ", using default = " + convergeMethod);
+	    		}
+	            convergeMethod = confLine;
+	        }
+	    	System.out.printf("%-25s%s\n", "Fixed Attractor Size:", attractorSize);
+	    	
 	}
 		
 	/**
