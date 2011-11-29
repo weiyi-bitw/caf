@@ -192,42 +192,41 @@ public class GeneSet implements Comparable<GeneSet>{
 		return sz;
 	}
 	
-	public String toGenes(){
-		if(annot == null){
-			String s = "";
-			boolean first = true;
-			for(int i : geneIdx){
-				if(first){
-					s = probeNames.get(i);
-					first = false;
-				}else{
-					s = s + "\t" + probeNames.get(i);
-				}
-			}
-			return s;
-		
-		}else{
-			ArrayList<String> geneNames = new ArrayList<String>();
-			String s;
-			for(int i : geneIdx){
+	public String toProbes(){
+		String s = "";
+		boolean first = true;
+		for(int i : geneIdx){
+			if(first){
 				s = probeNames.get(i);
-				if(!geneNames.contains(s)){
-					geneNames.add(s);
-				}
+				first = false;
+			}else{
+				s = s + "\t" + probeNames.get(i);
 			}
-			Collections.sort(geneNames);
-			s = "";
-			boolean first = true;
-			for(String ss : geneNames){
-				if(first){
-					s = ss;
-					first = false;
-				}else{
-					s = s + "\t" + ss;
-				}
-			}
-			return s;
 		}
+		return s;
+	}
+	
+	public String toGenes(){
+		ArrayList<String> geneNames = new ArrayList<String>();
+		String s;
+		for(Integer i : geneIdx){
+			s = annot.getGene(probeNames.get(i));
+			if(!geneNames.contains(s)){
+				geneNames.add(s);
+			}
+		}
+		Collections.sort(geneNames);
+		s = "";
+		boolean first = true;
+		for(String ss : geneNames){
+			if(first){
+				s = ss;
+				first = false;
+			}else{
+				s = s + "\t" + ss;
+			}
+		}
+		return s;
 	}
 	
 	public String getAttractees(){
@@ -306,7 +305,7 @@ public class GeneSet implements Comparable<GeneSet>{
 					geneNames.add(s);
 					geneWeightMap.put(s, weightMap.get(i));
 				}else{
-					float w = weightMap.get(s);
+					float w = weightMap.get(i);
 					if(w < weightMap.get(i)){
 						geneWeightMap.put(s, weightMap.get(i));
 					}
@@ -334,5 +333,21 @@ public class GeneSet implements Comparable<GeneSet>{
 	}
 	public int getAttracteeSize(){
 		return attractees.size();
+	}
+	public static boolean hasAnnot(){
+		return annot != null;
+	}
+	public int[] getGeneIdx(){
+		return geneIdx;
+	}
+	public float getOneWeight(int i ){
+		return weightMap.get(i)/numChild;
+	}
+	public String getOnePair(int i){
+		String s = probeNames.get(i);
+		if(hasAnnot()){
+			s +=  "\t" + annot.getGene(probeNames.get(i));
+		}
+		return s;
 	}
 }

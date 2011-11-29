@@ -83,7 +83,6 @@ public class GeneSetMerger extends DistributedWorker{
 			PrintWriter pw2 = new PrintWriter(new FileWriter("output/" + jobID + "/attractees.gct"));
 			PrintWriter pw3 = new PrintWriter(new FileWriter("output/" + jobID + "/weights.txt"));
 			
-			
 			int cnt = 0;
 			for(GeneSet gs : allGeneSets){
 				if(gs.size() > minSize){
@@ -97,15 +96,28 @@ public class GeneSetMerger extends DistributedWorker{
 					pw2.println(gs.getAttractees());
 					
 					pw.print(name + "\t" + gs.size() + ":" + gs.getAttracteeSize() + "\t");
-					pw.println(gs.toGenes());
+					if(GeneSet.hasAnnot()){
+						pw.println(gs.toGenes());
+					}else{
+						pw.println(gs.toProbes());
+					}
 					
 					PrintWriter pw4 = new PrintWriter(new FileWriter("output/" + jobID + "/lists/" + name + ".txt"));
-					pw4.println("Gene\tWeight");
-					ArrayList<String> geneNames = gs.getGeneNames();
-					HashMap<String, Float> geneWeightMap = gs.getGeneWeightMap();
-					for(String s: geneNames){
-						pw4.println(s + "\t" + geneWeightMap.get(s));
+					if(GeneSet.hasAnnot()){
+						pw4.println("Probe\tGene\rWeight");
+						int[] indices = gs.getGeneIdx();
+						for(Integer i : indices){
+							pw4.println(gs.getOnePair(i) + "\t" + gs.getOneWeight(i));
+						}
+					}else{
+						pw4.println("Gene\tWeight");
+						ArrayList<String> geneNames = gs.getGeneNames();
+						HashMap<String, Float> geneWeightMap = gs.getGeneWeightMap();
+						for(String s: geneNames){
+							pw4.println(s + "\t" + geneWeightMap.get(s));
+						}
 					}
+					
 					pw4.close();
 					cnt++;
 				}

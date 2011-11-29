@@ -91,7 +91,7 @@ public class CorrAttractorFinder {
 		    }
 		//=======Annotations for dataset 1====================
 		    annot = null;
-		    confLine = config.getProperty("annot_exp");
+		    confLine = config.getProperty("annot");
 		    if(confLine != null){
 		    	System.out.printf("%-25s%s\n", "GeneExp Annotations:", confLine);
 		    	try {
@@ -214,6 +214,7 @@ public class CorrAttractorFinder {
 		System.out.println("\n===================================================================================\n");
 		
 		GeneSet.setProbeNames(ma.getProbes());
+		GeneSet.setAnnotations(annot);
 		Scheduler scdr = new Scheduler(segment, numSegments, jobID);
 		Converger cvg = new Converger(segment, numSegments, jobID, fdrThreshold, maxIter, corrThreshold, rankBased);
 		cvg.setAttractorSize(attractorSize);
