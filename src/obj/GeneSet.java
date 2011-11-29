@@ -197,10 +197,10 @@ public class GeneSet implements Comparable<GeneSet>{
 		boolean first = true;
 		for(int i : geneIdx){
 			if(first){
-				s = probeNames.get(i);
+				s = probeNames.get(i) + ":" + weightMap.get(i);
 				first = false;
 			}else{
-				s = s + "\t" + probeNames.get(i);
+				s = s + "\t" + probeNames.get(i) + ":" + weightMap.get(i);
 			}
 		}
 		return s;
@@ -212,7 +212,7 @@ public class GeneSet implements Comparable<GeneSet>{
 		for(Integer i : geneIdx){
 			s = annot.getGene(probeNames.get(i));
 			if(!geneNames.contains(s)){
-				geneNames.add(s);
+				geneNames.add(s + ":" + geneWeightMap.get(s));
 			}
 		}
 		Collections.sort(geneNames);
@@ -275,6 +275,31 @@ public class GeneSet implements Comparable<GeneSet>{
 		Arrays.sort(vec);
 		for(int i = 0; i < sz; i++){
 			geneIdx[i] = vec[i].idx;
+		}
+	}
+	
+	public void calcWeight(){
+		geneNames = new ArrayList<String>();
+		geneWeightMap = new HashMap<String, Float>();
+		if(annot == null){
+			for(Integer i : geneIdx){
+				geneNames.add(probeNames.get(i));
+				float w = weightMap.get(i)/numChild;
+				geneWeightMap.put(probeNames.get(i), w);
+			}
+		}else{
+			for(Integer i : geneIdx){
+				String s = annot.getGene(probeNames.get(i));
+				if(!geneNames.contains(s)){
+					geneNames.add(s);
+					geneWeightMap.put(s, weightMap.get(i));
+				}else{
+					float w = weightMap.get(i);
+					if(w < weightMap.get(i)){
+						geneWeightMap.put(s, weightMap.get(i));
+					}
+				}
+			}
 		}
 	}
 	

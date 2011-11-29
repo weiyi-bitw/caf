@@ -81,7 +81,7 @@ public class GeneSetMerger extends DistributedWorker{
 			new File("output/" + jobID + "/lists").mkdir();
 			PrintWriter pw = new PrintWriter(new FileWriter("output/" + jobID + "/attractors.gct"));
 			PrintWriter pw2 = new PrintWriter(new FileWriter("output/" + jobID + "/attractees.gct"));
-			PrintWriter pw3 = new PrintWriter(new FileWriter("output/" + jobID + "/weights.txt"));
+			//PrintWriter pw3 = new PrintWriter(new FileWriter("output/" + jobID + "/weights.txt"));
 			
 			int cnt = 0;
 			for(GeneSet gs : allGeneSets){
@@ -89,8 +89,9 @@ public class GeneSetMerger extends DistributedWorker{
 					String name = "Attractor" + String.format("%03d", cnt);
 					
 					gs.sort();
-					pw3.print(name + "\t" + gs.size() + ":" + gs.getAttracteeSize() + "\t");
-					pw3.println(gs.getWeight());
+					gs.calcWeight();
+					/*pw3.print(name + "\t" + gs.size() + ":" + gs.getAttracteeSize() + "\t");
+					pw3.println(gs.getWeight());*/
 					
 					pw2.print(name + "\t" + gs.size() + ":" + gs.getAttracteeSize() + "\t");
 					pw2.println(gs.getAttractees());
@@ -122,7 +123,7 @@ public class GeneSetMerger extends DistributedWorker{
 					cnt++;
 				}
 			}
-			pw3.close();
+			//pw3.close();
 			pw2.close();
 			pw.close();
 		}else{
