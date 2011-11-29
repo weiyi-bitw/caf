@@ -208,17 +208,19 @@ public class GeneSet implements Comparable<GeneSet>{
 	
 	public String toGenes(){
 		ArrayList<String> geneNames = new ArrayList<String>();
+		ArrayList<String> output = new ArrayList<String>();
+		
 		String s;
 		for(Integer i : geneIdx){
 			s = annot.getGene(probeNames.get(i));
 			if(!geneNames.contains(s)){
-				geneNames.add(s + ":" + geneWeightMap.get(s)/numChild);
+				geneNames.add(s);
+				output.add(s +   ":" + geneWeightMap.get(s)/numChild);
 			}
 		}
-		Collections.sort(geneNames);
 		s = "";
 		boolean first = true;
-		for(String ss : geneNames){
+		for(String ss : output){
 			if(first){
 				s = ss;
 				first = false;

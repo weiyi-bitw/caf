@@ -1,5 +1,7 @@
 package caf;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashSet;
 
@@ -88,8 +90,8 @@ public class TestField {
 			for(int i = 0; i < m; i++){
 				/*if(r[i] > corrThreshold){
 					metaIdx.add(i);
-				}*/
-				/*if(padj[i] < fdrThreshold){
+				}
+				if(padj[i] < fdrThreshold){
 					metaIdx.add(i);
 				}*/
 				if(z[i] > zThreshold){
