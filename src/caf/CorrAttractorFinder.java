@@ -185,8 +185,8 @@ public class CorrAttractorFinder {
 	    	System.out.printf("%-25s%s\n", "Fixed Attractor Size:", attractorSize);
 	    	
 	    	confLine = config.getProperty("converge_method");
-	    	confLine.toUpperCase();
 	    	if (confLine != null && confLine.length() > 0) {
+	    		confLine.toUpperCase();
 	    		if(!confLine.equals("ZSCORE") && !confLine.equals("FIXEDSIZE")){
 	    			System.out.println("WARNING: Couldn't recognize converge method: " + confLine + ", using default = " + convergeMethod);
 	    		}
