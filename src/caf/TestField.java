@@ -3,6 +3,7 @@ package caf;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 
 import org.apache.commons.math.distribution.NormalDistributionImpl;
@@ -10,11 +11,10 @@ import org.apache.commons.math.distribution.NormalDistributionImpl;
 import obj.DataFile;
 
 import util.StatOps;
-import worker.Converger;
 import worker.ITComputer;
 
 public class TestField {
-	private static float[] getMetaGene(float[][] data, HashSet<Integer> idx, int n){
+	private static float[] getMetaGene(float[][] data, ArrayList<Integer> idx, int n){
 		int m = idx.size();
 		float[] out = new float[n];
 		for(int j = 0; j < n; j++){
@@ -25,96 +25,108 @@ public class TestField {
 		}
 		return out;
 	}
+	private static ArrayList<Integer> getAttractorIdx(float[][] data, float[][] val, ArrayList<Integer> inputIdx, int m, int n, ITComputer itc, int attractorSize, int maxIter) throws Exception{
+		ArrayList<Integer> metaIdx = inputIdx;
+		ArrayList<Integer> preMetaIdx = new ArrayList<Integer>();
+		ArrayList<Integer> cycMetaIdx = new ArrayList<Integer>();
+		
+		preMetaIdx.addAll(inputIdx);
+		cycMetaIdx.addAll(inputIdx);
+		
+		float[] metagene = getMetaGene(data, metaIdx, n);
+		ValIdx[] vec = new ValIdx[m];
+		int cnt = 0;
+		
+		
+		while(cnt < maxIter){
+			float[] mi = itc.getAllMIWith(metagene, val);
+			for(int i = 0; i < m; i++){
+				vec[i] = new ValIdx(i, mi[i]);
+			}
+			Arrays.sort(vec);
+			
+			System.out.println(cnt + "\t" + vec[0].idx + "\t" + vec[attractorSize/2].idx + "\t" 
+					+ "\t" + vec[attractorSize-1].idx);
+			
+			metaIdx.clear();
+			for(int i = 0; i < attractorSize; i++){
+				metaIdx.add(vec[i].idx);
+			}
+			if(metaIdx.equals(preMetaIdx) || metaIdx.equals(cycMetaIdx)){
+				break;
+			}
+			cycMetaIdx.clear();
+			cycMetaIdx.addAll(preMetaIdx);
+			preMetaIdx.clear();
+			preMetaIdx.addAll(metaIdx);
+			cnt++;
+			metagene = getMetaGene(data, metaIdx, n);
+			
+		}
+		
+		return metaIdx;
+	}
+	static class ValIdx implements Comparable<ValIdx>{
+		float val;
+		int idx;
+		ValIdx(int i, float v){
+			this.idx = i;
+			this.val = v;
+		}
+		
+		public int compareTo(ValIdx other) {
+			return -Double.compare(this.val, other.val);
+		}
+	}
+	
 	/**
 	 * @param args
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String path = "/home/weiyi/workspace/data/gbm/tcga/ge_mir_meth";
+		String path = "/home/weiyi/workspace/data/ov/tcga/mergeroom";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
 		
 		System.out.println("Loading files...");
-		DataFile ma = DataFile.parse(path + "ge.17814x278.knn.txt");
-		ma.normalizeRows();
+		DataFile ma = DataFile.parse(path + "ge.17814x514.common.txt");
+		//ma.normalizeRows();
 		int m = ma.getNumRows();
 		int n = ma.getNumCols();
 		float[][] data = ma.getData();
 		float[][] val = new float[m][n];
+		ArrayList<Integer> metaIdx = new ArrayList<Integer>();
 		for(int i = 0; i < m; i++){
-			val[i] = StatOps.rank(data[i]);
+			System.arraycopy(data[i], 0, val[i], 0, n);
+			metaIdx.add(i);
 		}
-		
-		int idx = ma.getRows().get("C3");
 		ITComputer itc = new ITComputer(7, 3, 0, 1);
 		itc.negateMI(true);
-		NormalDistributionImpl norm = new NormalDistributionImpl();
-		double pth = 0.05/m;
-		float zThreshold = (float) -norm.inverseCumulativeProbability(pth);
-		
-		float[] mi = itc.getAllMIWith(val[idx], val);
-		float[] z = StatOps.xToZ(mi, m);
-		HashSet<Integer> metaIdx = new HashSet<Integer>();
+		float[] allMeta = getMetaGene(data, metaIdx,n);
+		float[] mi = itc.getAllMIWith(allMeta, val);
+		ValIdx[] vec = new ValIdx[m];
 		for(int i = 0; i < m; i++){
-			if(z[i] > zThreshold){
-				metaIdx.add(i);
-			}
+			vec[i] = new ValIdx(i, mi[i]);
 		}
-		int cnt = 0;
-		HashSet<Integer> preMetaIdx = new HashSet<Integer>();
-		for(Integer i : metaIdx){
-			preMetaIdx.add(i);
-		}
-		System.out.println("Initial gene set size " + metaIdx.size() );
-		
-		/*
-		 * Step 2: Calculate metagene, find the genes that have correlation exceeding the 
-		 *         threshold as the new metagene
-		 */
+		Arrays.sort(vec);
+		int idx = 16831;
+		metaIdx.clear();
+		metaIdx.add(idx);
 		int maxIter = 100;
-		while(cnt < maxIter){
-			
-			// cannot find significant associated genes, exit.
-			
-			if(metaIdx.size() == 0){
-				//System.out.println("Empty set, exit.");
-				break;
-			}
-			//System.out.print("Iteration " + cnt + "...");
-			float[] metaGene = getMetaGene(data,metaIdx, n);
-			metaGene = StatOps.rank(metaGene);
-			mi = itc.getAllMIWith(metaGene, val);
-			z = StatOps.xToZ(mi, m);
-			metaIdx = new HashSet<Integer>();
-			for(int i = 0; i < m; i++){
-				/*if(r[i] > corrThreshold){
-					metaIdx.add(i);
-				}
-				if(padj[i] < fdrThreshold){
-					metaIdx.add(i);
-				}*/
-				if(z[i] > zThreshold){
-					metaIdx.add(i);
-				}
-			}
-			if(preMetaIdx.equals(metaIdx)){
-				System.out.println("Converged."); 
-				System.out.println("Gene Set Size: " + metaIdx.size());
-				break;
-			}else{
-				preMetaIdx = metaIdx;
-				System.out.println("Gene Set Size: " + metaIdx.size());
-				cnt++;
-			}
-			
-		}
+		ArrayList<Integer> topMeta = new ArrayList<Integer>();
+		topMeta.addAll(getAttractorIdx(data, val, metaIdx, m, n, itc, m/4, maxIter));
+		
+		/*for(int i = 0; i < m; i++){
+			val[i] = StatOps.rank(data[i]);
+		}*/
+		
 		
 		ArrayList<String> probeNames = ma.getProbes();
-		for(Integer i : metaIdx){
-			System.out.println(probeNames.get(i));
+		System.out.println("Top meta genes");
+		for(int i = 0; i < 20; i++){
+			System.out.println(topMeta.get(i) + "\t" + probeNames.get(topMeta.get(i)));
 		}
-		
 		
 	}
 
