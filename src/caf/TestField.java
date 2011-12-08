@@ -2,8 +2,11 @@ package caf;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 
 import org.apache.commons.math.distribution.NormalDistributionImpl;
@@ -11,6 +14,7 @@ import org.apache.commons.math.distribution.NormalDistributionImpl;
 import obj.DataFile;
 
 import util.StatOps;
+import worker.Converger;
 import worker.ITComputer;
 
 public class TestField {
@@ -95,39 +99,59 @@ public class TestField {
 		int m = ma.getNumRows();
 		int n = ma.getNumCols();
 		float[][] data = ma.getData();
-		float[][] val = new float[m][n];
-		ArrayList<Integer> metaIdx = new ArrayList<Integer>();
-		for(int i = 0; i < m; i++){
-			System.arraycopy(data[i], 0, val[i], 0, n);
-			metaIdx.add(i);
+		
+		ArrayList<String> gs = new ArrayList<String>();
+		BufferedReader br = new BufferedReader(new FileReader("COL11A1_50"));
+		br.readLine();
+		String line = br.readLine();
+		while(line != null){
+			String[] tokens = line.split("\t");
+			gs.add(tokens[0]);
+			line = br.readLine();
 		}
-		ITComputer itc = new ITComputer(7, 3, 0, 1);
-		itc.negateMI(true);
-		float[] allMeta = getMetaGene(data, metaIdx,n);
-		float[] mi = itc.getAllMIWith(allMeta, val);
-		ValIdx[] vec = new ValIdx[m];
-		for(int i = 0; i < m; i++){
-			vec[i] = new ValIdx(i, mi[i]);
+		br.close();
+		
+		long jobID = System.currentTimeMillis();
+		
+		int k = gs.size();
+		
+		
+		Converger cvg = new Converger(0, 1, jobID);
+		HashMap<String, Integer> geneMap = ma.getRows();
+		ArrayList<String> attractees = new ArrayList<String>();
+		ArrayList<HashSet<Integer>> attractors = new ArrayList<HashSet<Integer>>();
+		ArrayList<String> geneNames = ma.getProbes();
+		int cnt = 0;
+		for(String g : gs){
+			System.out.println(g + "...");
+			int idx = geneMap.get(g);
+			HashSet<Integer> out = cvg.findAttractor(data, idx, k);
+			if(attractors.contains(out)){
+				int j = attractors.indexOf(out);
+				String s = attractees.get(j);
+				s = s + "," + g;
+				attractees.set(j, s);
+			}else{
+				attractees.add(g);
+				attractors.add(out);
+			}
+			cnt = cnt + 1;
+			if(cnt == 10){
+				break;
+			}
 		}
-		Arrays.sort(vec);
-		int idx = 16831;
-		metaIdx.clear();
-		metaIdx.add(idx);
-		int maxIter = 100;
-		ArrayList<Integer> topMeta = new ArrayList<Integer>();
-		topMeta.addAll(getAttractorIdx(data, val, metaIdx, m, n, itc, m/4, maxIter));
 		
-		/*for(int i = 0; i < m; i++){
-			val[i] = StatOps.rank(data[i]);
-		}*/
-		
-		
-		ArrayList<String> probeNames = ma.getProbes();
-		System.out.println("Top meta genes");
-		for(int i = 0; i < 20; i++){
-			System.out.println(topMeta.get(i) + "\t" + probeNames.get(topMeta.get(i)));
+		PrintWriter pw = new PrintWriter(new FileWriter("attractors.txt"));
+		int kk = attractors.size();
+		for(int i = 0; i < kk; i++){
+			pw.print(attractees.get(i));
+			for(int j : attractors.get(i)){
+				pw.print("\t" + geneNames.get(j));
+			}
+			pw.println();
 		}
-		
+		pw.close();
+		System.out.println("Done.");
 	}
 
 }

@@ -53,6 +53,64 @@ public class Converger extends DistributedWorker{
 		}
 		return out;
 	}
+	public HashSet<Integer> findAttractor(float[][] data, int idx, int size) throws Exception{
+		int m = data.length;
+		int n = data[0].length;
+		
+		ITComputer itc = new ITComputer(7, 3, id, totalComputers);
+		float[] mi = itc.getAllMIWith(data[idx], data);
+		
+		
+		HashSet<Integer> metaIdx = new HashSet<Integer>();
+		ValIdx[] vec = new ValIdx[m];
+		for(int i = 0; i < m; i++){
+			vec[i] = new ValIdx(i, mi[i]);
+		}
+		Arrays.sort(vec);
+		for(int i = 0; i < size; i++){
+			metaIdx.add(vec[i].idx);
+		}
+		int cnt = 0;
+		HashSet<Integer> preMetaIdx = new HashSet<Integer>();
+		preMetaIdx.addAll(metaIdx);
+		
+		while(cnt < maxIter){
+			
+			// cannot find significant associated genes, exit.
+			
+			if(metaIdx.size() == 0){
+				//System.out.println("Empty set, exit.");
+				break;
+			}
+			//System.out.print("Iteration " + cnt + "...");
+			float[] metaGene = getMetaGene(data,metaIdx, n);
+			mi = itc.getAllMIWith(metaGene, data);
+			metaIdx = new HashSet<Integer>();	
+			vec = new ValIdx[m];
+			for(int i = 0; i < m; i++){
+				vec[i] = new ValIdx(i, mi[i]);
+			}
+			Arrays.sort(vec);
+			for(int i = 0; i < size; i++){
+				metaIdx.add(vec[i].idx);
+			}
+			if(preMetaIdx.equals(metaIdx)){
+				break;
+			}else{
+				preMetaIdx = metaIdx;
+				//System.out.println("Gene Set Size: " + metaIdx.size());
+				cnt++;
+			}
+			
+		}
+		if(cnt == maxIter){
+			System.out.println("Not converged.");
+		}
+		return metaIdx;
+		
+	}
+	
+	
 	public void findAttractor(float[][] val, float[][] data) throws Exception{
 		int m = val.length;
 		int n = val[0].length;
