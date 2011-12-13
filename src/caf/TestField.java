@@ -119,13 +119,13 @@ public class TestField {
 		Converger cvg = new Converger(0, 1, jobID);
 		HashMap<String, Integer> geneMap = ma.getRows();
 		ArrayList<String> attractees = new ArrayList<String>();
-		ArrayList<HashSet<Integer>> attractors = new ArrayList<HashSet<Integer>>();
+		ArrayList<ArrayList<Integer>> attractors = new ArrayList<ArrayList<Integer>>();
 		ArrayList<String> geneNames = ma.getProbes();
 		int cnt = 0;
 		for(String g : gs){
 			System.out.println(g + "...");
 			int idx = geneMap.get(g);
-			HashSet<Integer> out = cvg.findAttractor(data, idx, k);
+			ArrayList<Integer> out = cvg.findAttractor(data, idx, k);
 			if(attractors.contains(out)){
 				int j = attractors.indexOf(out);
 				String s = attractees.get(j);

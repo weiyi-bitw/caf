@@ -2,6 +2,7 @@ package worker;
 
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 
@@ -42,7 +43,7 @@ public class Converger extends DistributedWorker{
 		Converger.corrThreshold = corrTh;
 		Converger.rankBased = rankBased;
 	}
-	private static float[] getMetaGene(float[][] data, HashSet<Integer> idx, int n){
+	private static float[] getMetaGene(float[][] data, ArrayList<Integer> idx, int n){
 		int m = idx.size();
 		float[] out = new float[n];
 		for(int j = 0; j < n; j++){
@@ -53,7 +54,7 @@ public class Converger extends DistributedWorker{
 		}
 		return out;
 	}
-	public HashSet<Integer> findAttractor(float[][] data, int idx, int size) throws Exception{
+	public ArrayList<Integer> findAttractor(float[][] data, int idx, int size) throws Exception{
 		int m = data.length;
 		int n = data[0].length;
 		
@@ -61,7 +62,7 @@ public class Converger extends DistributedWorker{
 		float[] mi = itc.getAllMIWith(data[idx], data);
 		
 		
-		HashSet<Integer> metaIdx = new HashSet<Integer>();
+		ArrayList<Integer> metaIdx = new ArrayList<Integer>();
 		ValIdx[] vec = new ValIdx[m];
 		for(int i = 0; i < m; i++){
 			vec[i] = new ValIdx(i, mi[i]);
@@ -71,7 +72,7 @@ public class Converger extends DistributedWorker{
 			metaIdx.add(vec[i].idx);
 		}
 		int cnt = 0;
-		HashSet<Integer> preMetaIdx = new HashSet<Integer>();
+		ArrayList<Integer> preMetaIdx = new ArrayList<Integer>();
 		preMetaIdx.addAll(metaIdx);
 		
 		while(cnt < maxIter){
@@ -85,7 +86,7 @@ public class Converger extends DistributedWorker{
 			//System.out.print("Iteration " + cnt + "...");
 			float[] metaGene = getMetaGene(data,metaIdx, n);
 			mi = itc.getAllMIWith(metaGene, data);
-			metaIdx = new HashSet<Integer>();	
+			metaIdx = new ArrayList<Integer>();	
 			vec = new ValIdx[m];
 			for(int i = 0; i < m; i++){
 				vec[i] = new ValIdx(i, mi[i]);
@@ -132,8 +133,8 @@ public class Converger extends DistributedWorker{
 			 */
 			
 			float[] mi = itc.getAllMIWith(val[idx], val);
-			HashSet<Integer> metaIdx = new HashSet<Integer>();
-			
+			ArrayList<Integer> metaIdx = new ArrayList<Integer>();
+
 			if(convergeMethod.equals("FIXEDSIZE")){
 				ValIdx[] vec = new ValIdx[m];
 				for(int i = 0; i < m; i++){
@@ -153,7 +154,7 @@ public class Converger extends DistributedWorker{
 			}
 			
 			int cnt = 0;
-			HashSet<Integer> preMetaIdx = new HashSet<Integer>();
+			ArrayList<Integer> preMetaIdx = new ArrayList<Integer>();
 			preMetaIdx.addAll(metaIdx);
 			//System.out.println("Initial gene set size " + metaIdx.size() );
 			
@@ -176,7 +177,7 @@ public class Converger extends DistributedWorker{
 					metaGene = StatOps.rank(metaGene);
 				}
 				mi = itc.getAllMIWith(metaGene, val);
-				metaIdx = new HashSet<Integer>();
+				metaIdx = new ArrayList<Integer>();
 				
 				if(convergeMethod.equals("FIXEDSIZE")){
 					ValIdx[] vec = new ValIdx[m];
@@ -189,7 +190,7 @@ public class Converger extends DistributedWorker{
 					}
 				}else if(convergeMethod.equals("ZSCORE")){
 					float[] z = StatOps.xToZ(mi, m);
-					metaIdx = new HashSet<Integer>();
+					metaIdx = new ArrayList<Integer>();
 					for(int i = 0; i < m; i++){
 						/*if(r[i] > corrThreshold){
 							metaIdx.add(i);
