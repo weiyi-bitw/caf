@@ -6,66 +6,41 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import worker.Converger.ValIdx;
 
 
 public class GeneSet implements Comparable<GeneSet>{
-	static class ValIdx implements Comparable<ValIdx>{
-		float val;
-		int idx;
-		ValIdx(int i, float v){
-			this.idx = i;
-			this.val = v;
-		}
-		
-		public int compareTo(ValIdx other) {
-			return -Double.compare(this.val, other.val);
-		}
-	}
 	static ArrayList<String> probeNames;
 	static Annotations annot;
 	static int lowestMergeFold = 2; 
 	
 	HashSet<Integer> attractees;
-	HashMap<Integer, Float> weightMap; 
 	ArrayList<String> geneNames;
-	HashMap<String, Float> geneWeightMap;
-	int[] geneIdx;
+	ValIdx[] geneIdx;
 	String seed;
 	int sz;
 	int minIdx; // used as an temporary id
 	int numChild;
 	
-	public GeneSet(int[] idx){
+	public GeneSet(ValIdx[] idx){
 		Arrays.sort(idx);
 		this.geneIdx = idx;
 		this.sz = geneIdx.length;
-		weightMap = new HashMap<Integer, Float>();
-		for(Integer i : idx){
-			weightMap.put(i, 1f);
-		}
 		numChild = 1;
 	}
 	
-	public GeneSet(HashSet<Integer> attractees, int[] idx){
+	public GeneSet(HashSet<Integer> attractees, ValIdx[] idx){
 		Arrays.sort(idx);
 		this.geneIdx = idx;
 		this.sz = geneIdx.length;
 		this.attractees = attractees;
-		weightMap = new HashMap<Integer, Float>();
-		for(Integer i : idx){
-			weightMap.put(i, 1f);
-		}
 		numChild = 1;
 	}
 	
-	public GeneSet(HashSet<Integer> attractees, int[] idx, float[] wts, int numChild){
+	public GeneSet(HashSet<Integer> attractees, ValIdx[] idx, int numChild){
 		this.geneIdx = idx;
 		this.sz = geneIdx.length;
 		this.attractees = attractees;
-		weightMap = new HashMap<Integer, Float>();
-		for(int i = 0; i < sz; i++){
-			weightMap.put(geneIdx[i], wts[i]);
-		}
 		this.numChild = numChild;
 		Arrays.sort(this.geneIdx);
 	}
@@ -96,6 +71,14 @@ public class GeneSet implements Comparable<GeneSet>{
         return result;
 	}
 	
+	// merge two gene set when they are identical
+	public void merge(GeneSet other){
+		for(Integer i : other.attractees){
+			this.attractees.add(i);
+		}
+		numChild += other.numChild;
+	}
+	
 	/*// Merging the gene sets using their intersection	
 	public boolean merge(GeneSet other){
 		ArrayList<Integer> newGeneIdx = new ArrayList<Integer>();
@@ -124,11 +107,11 @@ public class GeneSet implements Comparable<GeneSet>{
 		}
 	}*/
 	
-	// Merging the gene sets using their union	
+	/*// Merging the gene sets using their union	
 		public boolean merge(GeneSet other){
 			HashSet<Integer> newGeneIdx = new HashSet<Integer>();
 			HashMap<Integer, Float> newWeightMap = new HashMap<Integer, Float>();
-			int[] otherGeneIdx = other.geneIdx;
+			ValIdx[] otherGeneIdx = other.geneIdx;
 			int cnt = 0;
 			for(int i : this.geneIdx){
 				newGeneIdx.add(i);
@@ -166,7 +149,7 @@ public class GeneSet implements Comparable<GeneSet>{
 				this.weightMap = newWeightMap;
 				return true;
 			}
-		}
+		}*/
 	
 	public String toString(){ // to a string of attractees, numChild, attractors, all in index
 		String s = "";
@@ -182,8 +165,8 @@ public class GeneSet implements Comparable<GeneSet>{
 		}
 		
 		s = s + "\t" + numChild;
-		for(int i : geneIdx){
-				s = s + "\t" + i + "," + weightMap.get(i);
+		for(ValIdx vi : geneIdx){
+				s = s + "\t" + vi.idx() + "," + vi.val();
 		}
 		return s;
 	}
@@ -195,12 +178,12 @@ public class GeneSet implements Comparable<GeneSet>{
 	public String toProbes(){
 		String s = "";
 		boolean first = true;
-		for(int i : geneIdx){
+		for(ValIdx vi : geneIdx){
 			if(first){
-				s = probeNames.get(i) + ":" + weightMap.get(i)/numChild;
+				s = probeNames.get(vi.idx()) + ":" + vi.val();
 				first = false;
 			}else{
-				s = s + "\t" + probeNames.get(i) + ":" + weightMap.get(i)/numChild;
+				s = s + "\t" + probeNames.get(vi.idx()) + ":" + vi.val();
 			}
 		}
 		return s;
@@ -211,11 +194,11 @@ public class GeneSet implements Comparable<GeneSet>{
 		ArrayList<String> output = new ArrayList<String>();
 		
 		String s;
-		for(Integer i : geneIdx){
-			s = annot.getGene(probeNames.get(i));
+		for(ValIdx vi : geneIdx){
+			s = annot.getGene(probeNames.get(vi.idx()));
 			if(!geneNames.contains(s)){
 				geneNames.add(s);
-				output.add(s +   ":" + geneWeightMap.get(s)/numChild);
+				output.add(s);
 			}
 		}
 		s = "";
@@ -270,17 +253,10 @@ public class GeneSet implements Comparable<GeneSet>{
 	}
 	
 	public void sort(){ // sort the indices according to their weights decreasingly
-		ValIdx[] vec = new ValIdx[sz];
-		for(int i = 0; i < sz; i++){
-			vec[i] = new ValIdx(geneIdx[i], weightMap.get(geneIdx[i]));
-		}
-		Arrays.sort(vec);
-		for(int i = 0; i < sz; i++){
-			geneIdx[i] = vec[i].idx;
-		}
+		Arrays.sort(geneIdx);
 	}
 	
-	public void calcWeight(){
+	/*public void calcWeight(){
 		geneNames = new ArrayList<String>();
 		geneWeightMap = new HashMap<String, Float>();
 		if(annot == null){
@@ -303,9 +279,9 @@ public class GeneSet implements Comparable<GeneSet>{
 				}
 			}
 		}
-	}
+	}*/
 	
-	public String getWeight(){
+	/*public String getWeight(){
 		geneNames = new ArrayList<String>();
 		geneWeightMap = new HashMap<String, Float>();
 		if(annot == null){
@@ -351,30 +327,32 @@ public class GeneSet implements Comparable<GeneSet>{
 			}
 			return s;
 		}
-	}
+	}*/
 	public ArrayList<String> getGeneNames(){
 		return geneNames;
 	}
-	public HashMap<String, Float> getGeneWeightMap(){
+	/*public HashMap<String, Float> getGeneWeightMap(){
 		return geneWeightMap;
-	}
+	}*/
 	public int getAttracteeSize(){
 		return attractees.size();
 	}
 	public static boolean hasAnnot(){
 		return annot != null;
 	}
-	public int[] getGeneIdx(){
+	public ValIdx[] getGeneIdx(){
 		return geneIdx;
 	}
-	public float getOneWeight(int i ){
+	/*public float getOneWeight(int i ){
 		return weightMap.get(i)/numChild;
-	}
+	}*/
 	public String getOnePair(int i){
-		String s = probeNames.get(i);
+		String s = probeNames.get(geneIdx[i].idx());
 		if(hasAnnot()){
-			s +=  "\t" + annot.getGene(probeNames.get(i));
+			s +=  "\t" + annot.getGene(probeNames.get(geneIdx[i].idx()));
 		}
+		s += "\t" + geneIdx[i].val();
+		
 		return s;
 	}
 }

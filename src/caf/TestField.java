@@ -15,6 +15,7 @@ import obj.DataFile;
 
 import util.StatOps;
 import worker.Converger;
+import worker.Converger.ValIdx;
 import worker.ITComputer;
 
 public class TestField {
@@ -49,12 +50,12 @@ public class TestField {
 			}
 			Arrays.sort(vec);
 			
-			System.out.println(cnt + "\t" + vec[0].idx + "\t" + vec[attractorSize/2].idx + "\t" 
-					+ "\t" + vec[attractorSize-1].idx);
+			System.out.println(cnt + "\t" + vec[0].idx() + "\t" + vec[attractorSize/2].idx() + "\t" 
+					+ "\t" + vec[attractorSize-1].idx());
 			
 			metaIdx.clear();
 			for(int i = 0; i < attractorSize; i++){
-				metaIdx.add(vec[i].idx);
+				metaIdx.add(vec[i].idx());
 			}
 			if(metaIdx.equals(preMetaIdx) || metaIdx.equals(cycMetaIdx)){
 				break;
@@ -70,7 +71,7 @@ public class TestField {
 		
 		return metaIdx;
 	}
-	static class ValIdx implements Comparable<ValIdx>{
+/*	static class ValIdx implements Comparable<ValIdx>{
 		float val;
 		int idx;
 		ValIdx(int i, float v){
@@ -81,7 +82,7 @@ public class TestField {
 		public int compareTo(ValIdx other) {
 			return -Double.compare(this.val, other.val);
 		}
-	}
+	}*/
 	
 	/**
 	 * @param args
@@ -119,13 +120,13 @@ public class TestField {
 		Converger cvg = new Converger(0, 1, jobID);
 		HashMap<String, Integer> geneMap = ma.getRows();
 		ArrayList<String> attractees = new ArrayList<String>();
-		ArrayList<ArrayList<Integer>> attractors = new ArrayList<ArrayList<Integer>>();
+		ArrayList<ArrayList<ValIdx>> attractors = new ArrayList<ArrayList<ValIdx>>();
 		ArrayList<String> geneNames = ma.getProbes();
 		int cnt = 0;
 		for(String g : gs){
 			System.out.println(g + "...");
 			int idx = geneMap.get(g);
-			ArrayList<Integer> out = cvg.findAttractor(data, idx, k);
+			ArrayList<ValIdx> out = cvg.findAttractor(data, idx, k);
 			if(attractors.contains(out)){
 				int j = attractors.indexOf(out);
 				String s = attractees.get(j);
@@ -145,8 +146,8 @@ public class TestField {
 		int kk = attractors.size();
 		for(int i = 0; i < kk; i++){
 			pw.print(attractees.get(i));
-			for(int j : attractors.get(i)){
-				pw.print("\t" + geneNames.get(j));
+			for(ValIdx vj : attractors.get(i)){
+				pw.print("\t" + geneNames.get(vj.idx()));
 			}
 			pw.println();
 		}

@@ -20,17 +20,36 @@ public class Converger extends DistributedWorker{
 	private static int attractorSize = 20;
 	private static String convergeMethod = "FIXEDSIZE";
 	
-	static class ValIdx implements Comparable<ValIdx>{
+	public static class ValIdx implements Comparable<ValIdx>{
 		float val;
 		int idx;
-		ValIdx(int i, float v){
+		public ValIdx(int i, float v){
 			this.idx = i;
 			this.val = v;
+		}
+		public int hashCode(){
+			return idx;
 		}
 		
 		public int compareTo(ValIdx other) {
 			return -Double.compare(this.val, other.val);
 		}
+		
+		public int idx(){
+			return idx;
+		}
+		public float val(){
+			return val;
+		}
+		public boolean equals(Object other){
+			boolean result = false;
+	        if (other instanceof ValIdx) {
+	        	ValIdx that = (ValIdx) other;
+	            result = (this.idx == that.idx);
+	        }
+	        return result;
+		}
+		
 	}
 	
 	public Converger(int id, int totalComputers, long jobID){
@@ -43,36 +62,35 @@ public class Converger extends DistributedWorker{
 		Converger.corrThreshold = corrTh;
 		Converger.rankBased = rankBased;
 	}
-	private static float[] getMetaGene(float[][] data, ArrayList<Integer> idx, int n){
+	private static float[] getMetaGene(float[][] data, ArrayList<ValIdx> idx, int n){
 		int m = idx.size();
 		float[] out = new float[n];
 		for(int j = 0; j < n; j++){
-			for(Integer i : idx){
-				out[j] += data[i][j];
+			for(ValIdx vi : idx){
+				out[j] += data[vi.idx][j];
 			}
 			out[j] /= m;
 		}
 		return out;
 	}
-	public ArrayList<Integer> findAttractor(float[][] data, int idx, int size) throws Exception{
+	public ArrayList<ValIdx> findAttractor(float[][] data, int idx, int size) throws Exception{
 		int m = data.length;
 		int n = data[0].length;
 		
 		ITComputer itc = new ITComputer(7, 3, id, totalComputers);
 		float[] mi = itc.getAllMIWith(data[idx], data);
 		
-		
-		ArrayList<Integer> metaIdx = new ArrayList<Integer>();
+		ArrayList<ValIdx> metaIdx = new ArrayList<ValIdx>();
 		ValIdx[] vec = new ValIdx[m];
 		for(int i = 0; i < m; i++){
 			vec[i] = new ValIdx(i, mi[i]);
 		}
 		Arrays.sort(vec);
 		for(int i = 0; i < size; i++){
-			metaIdx.add(vec[i].idx);
+			metaIdx.add(vec[i]);
 		}
 		int cnt = 0;
-		ArrayList<Integer> preMetaIdx = new ArrayList<Integer>();
+		ArrayList<ValIdx> preMetaIdx = new ArrayList<ValIdx>();
 		preMetaIdx.addAll(metaIdx);
 		
 		while(cnt < maxIter){
@@ -86,14 +104,14 @@ public class Converger extends DistributedWorker{
 			//System.out.print("Iteration " + cnt + "...");
 			float[] metaGene = getMetaGene(data,metaIdx, n);
 			mi = itc.getAllMIWith(metaGene, data);
-			metaIdx = new ArrayList<Integer>();	
+			metaIdx = new ArrayList<ValIdx>();	
 			vec = new ValIdx[m];
 			for(int i = 0; i < m; i++){
 				vec[i] = new ValIdx(i, mi[i]);
 			}
 			Arrays.sort(vec);
 			for(int i = 0; i < size; i++){
-				metaIdx.add(vec[i].idx);
+				metaIdx.add(vec[i]);
 			}
 			if(preMetaIdx.equals(metaIdx)){
 				break;
@@ -133,28 +151,27 @@ public class Converger extends DistributedWorker{
 			 */
 			
 			float[] mi = itc.getAllMIWith(val[idx], val);
-			ArrayList<Integer> metaIdx = new ArrayList<Integer>();
-
+			ArrayList<ValIdx> metaIdx = new ArrayList<ValIdx>();
+			ValIdx[] vec = new ValIdx[m];
+			for(int i = 0; i < m; i++){
+				vec[i] = new ValIdx(i, mi[i]);
+			}
 			if(convergeMethod.equals("FIXEDSIZE")){
-				ValIdx[] vec = new ValIdx[m];
-				for(int i = 0; i < m; i++){
-					vec[i] = new ValIdx(i, mi[i]);
-				}
 				Arrays.sort(vec);
 				for(int i = 0; i < attractorSize; i++){
-					metaIdx.add(vec[i].idx);
+					metaIdx.add(vec[i]);
 				}
 			}else if(convergeMethod.equals("ZSCORE")){
 				float[] z = StatOps.xToZ(mi, m);
 				for(int i = 0; i < m; i++){
 					if(z[i] > zThreshold){
-						metaIdx.add(i);
+						metaIdx.add(vec[i]);
 					}
 				}
 			}
 			
 			int cnt = 0;
-			ArrayList<Integer> preMetaIdx = new ArrayList<Integer>();
+			ArrayList<ValIdx> preMetaIdx = new ArrayList<ValIdx>();
 			preMetaIdx.addAll(metaIdx);
 			//System.out.println("Initial gene set size " + metaIdx.size() );
 			
@@ -177,20 +194,19 @@ public class Converger extends DistributedWorker{
 					metaGene = StatOps.rank(metaGene);
 				}
 				mi = itc.getAllMIWith(metaGene, val);
-				metaIdx = new ArrayList<Integer>();
-				
+				metaIdx = new ArrayList<ValIdx>();
+				vec = new ValIdx[m];
+				for(int i = 0; i < m; i++){
+					vec[i] = new ValIdx(i, mi[i]);
+				}
 				if(convergeMethod.equals("FIXEDSIZE")){
-					ValIdx[] vec = new ValIdx[m];
-					for(int i = 0; i < m; i++){
-						vec[i] = new ValIdx(i, mi[i]);
-					}
 					Arrays.sort(vec);
 					for(int i = 0; i < attractorSize; i++){
-						metaIdx.add(vec[i].idx);
+						metaIdx.add(vec[i]);
 					}
 				}else if(convergeMethod.equals("ZSCORE")){
 					float[] z = StatOps.xToZ(mi, m);
-					metaIdx = new ArrayList<Integer>();
+					metaIdx = new ArrayList<ValIdx>();
 					for(int i = 0; i < m; i++){
 						/*if(r[i] > corrThreshold){
 							metaIdx.add(i);
@@ -199,7 +215,7 @@ public class Converger extends DistributedWorker{
 							metaIdx.add(i);
 						}*/
 						if(z[i] > zThreshold){
-							metaIdx.add(i);
+							metaIdx.add(vec[i]);
 						}
 					}
 				}
@@ -218,8 +234,8 @@ public class Converger extends DistributedWorker{
 			pw.print(idx);
 			pw.print("\t" + 1);
 			if(metaIdx.size() > 1){
-				for(Integer i: metaIdx){
-						pw.print("\t" + i + ",1");
+				for(ValIdx vi: metaIdx){
+						pw.print("\t" + vi.idx + "," + vi.val);
 				}
 			}else{
 				pw.print("\tNA");

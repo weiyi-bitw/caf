@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import obj.GeneSet;
+import worker.Converger.ValIdx;
 
 public class GeneSetMerger extends DistributedWorker{
 	ArrayList<GeneSet> allGeneSets;
@@ -44,15 +45,19 @@ public class GeneSetMerger extends DistributedWorker{
 						attr.add(Integer.parseInt(s));
 					}
 					int nt = tokens.length;
-					int[] gIdx = new int[nt-2];
-					float[] wts = new float[nt-2];
+					ValIdx[] geneIdx = new ValIdx[nt-2];
+					
+					//int[] gIdx = new int[nt-2];
+					//float[] wts = new float[nt-2]; // mi with metagene
 					int numChild = Integer.parseInt(tokens[1]);
 					for(int j = 2; j < nt; j++){
 						t2 = tokens[j].split(",");
-						gIdx[j-2] = Integer.parseInt(t2[0]);
-						wts[j-2] = Float.parseFloat(t2[1]);
+						geneIdx[j-2] = new ValIdx(Integer.parseInt(t2[0]), Float.parseFloat(t2[1]));
+						//gIdx[j-2] = Integer.parseInt(t2[0]);
+						//wts[j-2] = Float.parseFloat(t2[1]);
 					}
-					GeneSet rookie = new GeneSet(attr,gIdx, wts, numChild); 
+					//GeneSet rookie = new GeneSet(attr,gIdx, wts, numChild); 
+					GeneSet rookie = new GeneSet(attr, geneIdx, numChild);
 					int origSize = allGeneSets.size();
 					if(origSize == 0){
 						allGeneSets.add(rookie);
@@ -60,12 +65,18 @@ public class GeneSetMerger extends DistributedWorker{
 						boolean mergeable = false;
 						for(int j = 0; j < origSize; j++){
 							GeneSet gs = allGeneSets.get(j);
-							if(gs.merge(rookie)){
+							if(gs.equals(rookie)){
+								mergeable = true;
+								gs.merge(rookie);
+								break;
+							}
+							/*if(gs.merge(rookie)){
 								mergeable = true;
 								break;
 								// gene set merged
-							}
+							}*/
 						}
+						
 						if(!mergeable){
 							allGeneSets.add(rookie);
 						}
@@ -89,7 +100,7 @@ public class GeneSetMerger extends DistributedWorker{
 					String name = "Attractor" + String.format("%03d", cnt);
 					
 					gs.sort();
-					gs.calcWeight();
+					//gs.calcWeight();
 					/*pw3.print(name + "\t" + gs.size() + ":" + gs.getAttracteeSize() + "\t");
 					pw3.println(gs.getWeight());*/
 					
@@ -106,16 +117,14 @@ public class GeneSetMerger extends DistributedWorker{
 					PrintWriter pw4 = new PrintWriter(new FileWriter("output/" + jobID + "/lists/" + name + ".txt"));
 					if(GeneSet.hasAnnot()){
 						pw4.println("Probe\tGene\tWeight");
-						int[] indices = gs.getGeneIdx();
-						for(Integer i : indices){
-							pw4.println(gs.getOnePair(i) + "\t" + gs.getOneWeight(i));
+						//int[] indices = gs.getGeneIdx();
+						for(int i = 0; i < gs.size(); i++){
+							pw4.println(gs.getOnePair(i));
 						}
 					}else{
 						pw4.println("Gene\tWeight");
-						ArrayList<String> geneNames = gs.getGeneNames();
-						HashMap<String, Float> geneWeightMap = gs.getGeneWeightMap();
-						for(String s: geneNames){
-							pw4.println(s + "\t" + geneWeightMap.get(s));
+						for(int i = 0; i < gs.size(); i++){
+							pw4.println(gs.getOnePair(i));
 						}
 					}
 					
