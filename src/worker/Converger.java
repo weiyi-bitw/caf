@@ -55,12 +55,13 @@ public class Converger extends DistributedWorker{
 	public Converger(int id, int totalComputers, long jobID){
 		super(id, totalComputers, jobID);
 	}
-	public Converger(int id, int totalComputers, long jobID, double fdrTh, int maxIter, float corrTh, boolean rankBased){
+	public Converger(int id, int totalComputers, long jobID, String method, double fdrTh, int maxIter, float corrTh, boolean rankBased){
 		super(id, totalComputers, jobID);
 		Converger.fdrThreshold = fdrTh;
 		Converger.maxIter = maxIter;
 		Converger.corrThreshold = corrTh;
 		Converger.rankBased = rankBased;
+		Converger.convergeMethod = method;
 	}
 	private static float[] getMetaGene(float[][] data, ArrayList<ValIdx> idx, int n){
 		int m = idx.size();

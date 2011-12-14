@@ -228,7 +228,7 @@ public class CorrAttractorFinder {
 		GeneSet.setProbeNames(ma.getProbes());
 		GeneSet.setAnnotations(annot);
 		Scheduler scdr = new Scheduler(segment, numSegments, jobID);
-		Converger cvg = new Converger(segment, numSegments, jobID, fdrThreshold, maxIter, corrThreshold, rankBased);
+		Converger cvg = new Converger(segment, numSegments, jobID, convergeMethod, fdrThreshold, maxIter, corrThreshold, rankBased);
 		cvg.setAttractorSize(attractorSize);
 		
 		if(!debugging)
