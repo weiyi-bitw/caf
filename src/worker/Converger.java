@@ -4,6 +4,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 
 import org.apache.commons.math.MathException;
@@ -51,6 +52,76 @@ public class Converger extends DistributedWorker{
 		}
 		
 	}
+	// search ValIdx array by its INDICES!
+	public static int biSearch(ValIdx[] x, ValIdx k){
+		int out = -1;
+		int n = x.length;
+		int r = n;
+		int l = 0;
+		int m;
+		while(r > l){
+			System.out.println("(" + l + "\t" + r + ")");
+			m = (r+l)/2;
+			if(k.idx == x[m].idx){
+				return m;
+			}else if(k.idx > x[m].idx){
+				l = m;
+			}else if(k.idx < x[m].idx){
+				r = m;
+			}
+		}
+		return out;
+	}
+	
+	// Sort ValIdx BY INDICES!!! Note: sorting by value can be directly applied Arrays.sort()
+	public static ValIdx[] mergeSort(ValIdx[] x){
+		int n = x.length;
+		if(n <= 1) return x;
+		
+		ValIdx left[], right[],result[];
+		int m = n/2;
+		left = new ValIdx[m];
+		right = new ValIdx[n - m];
+		
+		for(int i = 0; i < m; i++){
+			left[i] = x[i];
+		}
+		for(int i = m; i < n; i++){
+			right[i-m] = x[i];
+		}
+		left = mergeSort(left);
+		right = mergeSort(right);
+		
+		result = merge(left, right);
+		
+		return result;
+	}
+	
+	private static ValIdx[] merge(ValIdx[] left, ValIdx[] right){
+		int nL = left.length;
+		int nR = right.length;
+		ValIdx[] result = new ValIdx[nL + nR];
+		int iL = 0, iR = 0, iOut = 0;;
+		while(iL < nL || iR < nR){
+			if(iL < nL && iR < nR){
+				if(left[iL].idx <= right[iR].idx){
+					result[iOut] = left[iL];
+					iL++; 
+				}else{
+					result[iOut] = right[iR];
+					iR++;
+				}
+			}else if(iL < nL){
+				result[iOut] = left[iL];
+				iL++; 
+			}else if(iR < nR){
+				result[iOut] = right[iR];
+				iR++;
+			}
+			iOut++;
+		}
+		return result;
+	}
 	
 	public Converger(int id, int totalComputers, long jobID){
 		super(id, totalComputers, jobID);
@@ -80,16 +151,26 @@ public class Converger extends DistributedWorker{
 		
 		ITComputer itc = new ITComputer(7, 3, id, totalComputers);
 		float[] mi = itc.getAllMIWith(data[idx], data);
-		
 		ArrayList<ValIdx> metaIdx = new ArrayList<ValIdx>();
 		ValIdx[] vec = new ValIdx[m];
 		for(int i = 0; i < m; i++){
 			vec[i] = new ValIdx(i, mi[i]);
 		}
-		Arrays.sort(vec);
-		for(int i = 0; i < size; i++){
-			metaIdx.add(vec[i]);
+		if(convergeMethod.equals("FIXEDSIZE")){
+			Arrays.sort(vec);
+			for(int i = 0; i < attractorSize; i++){
+				metaIdx.add(vec[i]);
+			}
+		}else if(convergeMethod.equals("ZSCORE")){
+			float[] z = StatOps.xToZ(mi, m);
+			for(int i = 0; i < m; i++){
+				if(z[i] > zThreshold){
+					metaIdx.add(vec[i]);
+				}
+			}
+			Collections.sort(metaIdx);
 		}
+		
 		int cnt = 0;
 		ArrayList<ValIdx> preMetaIdx = new ArrayList<ValIdx>();
 		preMetaIdx.addAll(metaIdx);
@@ -102,7 +183,7 @@ public class Converger extends DistributedWorker{
 				//System.out.println("Empty set, exit.");
 				break;
 			}
-			//System.out.print("Iteration " + cnt + "...");
+			System.out.print("Iteration " + cnt + "...");
 			float[] metaGene = getMetaGene(data,metaIdx, n);
 			mi = itc.getAllMIWith(metaGene, data);
 			metaIdx = new ArrayList<ValIdx>();	
@@ -110,15 +191,33 @@ public class Converger extends DistributedWorker{
 			for(int i = 0; i < m; i++){
 				vec[i] = new ValIdx(i, mi[i]);
 			}
-			Arrays.sort(vec);
-			for(int i = 0; i < size; i++){
-				metaIdx.add(vec[i]);
+			if(convergeMethod.equals("FIXEDSIZE")){
+				Arrays.sort(vec);
+				for(int i = 0; i < attractorSize; i++){
+					metaIdx.add(vec[i]);
+				}
+			}else if(convergeMethod.equals("ZSCORE")){
+				float[] z = StatOps.xToZ(mi, m);
+				metaIdx = new ArrayList<ValIdx>();
+				for(int i = 0; i < m; i++){
+					/*if(r[i] > corrThreshold){
+						metaIdx.add(i);
+					}
+					if(padj[i] < fdrThreshold){
+						metaIdx.add(i);
+					}*/
+					if(z[i] > zThreshold){
+						metaIdx.add(vec[i]);
+					}
+				}
+				Collections.sort(metaIdx);
 			}
 			if(preMetaIdx.equals(metaIdx)){
+				System.out.println("Converged.");
 				break;
 			}else{
 				preMetaIdx = metaIdx;
-				//System.out.println("Gene Set Size: " + metaIdx.size());
+				System.out.println("Gene Set Size: " + metaIdx.size());
 				cnt++;
 			}
 			
@@ -169,6 +268,7 @@ public class Converger extends DistributedWorker{
 						metaIdx.add(vec[i]);
 					}
 				}
+				Collections.sort(metaIdx);
 			}
 			
 			int cnt = 0;
@@ -219,6 +319,7 @@ public class Converger extends DistributedWorker{
 							metaIdx.add(vec[i]);
 						}
 					}
+					Collections.sort(metaIdx);
 				}
 				if(preMetaIdx.equals(metaIdx)){
 					/*System.out.println("Converged."); 
@@ -261,5 +362,7 @@ public class Converger extends DistributedWorker{
 	public float getZThreshold(){
 		return zThreshold;
 	}
-	
+	public void setConvergeMethos(String mthd){
+		Converger.convergeMethod = mthd;
+	}
 }

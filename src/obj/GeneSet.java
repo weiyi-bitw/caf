@@ -17,7 +17,7 @@ public class GeneSet implements Comparable<GeneSet>{
 	HashSet<Integer> attractees;
 	ArrayList<String> geneNames;
 	ValIdx[] geneIdx;
-	String seed;
+	String name;
 	int sz;
 	int minIdx; // used as an temporary id
 	int numChild;
@@ -25,21 +25,45 @@ public class GeneSet implements Comparable<GeneSet>{
 	public GeneSet(ValIdx[] idx){
 		Arrays.sort(idx);
 		this.geneIdx = idx;
-		this.sz = geneIdx.length;
+		if(annot != null){
+			HashSet<String> genes = new HashSet<String>();
+			for(ValIdx vi : geneIdx){
+				genes.add(annot.getGene(probeNames.get(vi.idx())));
+			}
+			this.sz = genes.size();
+		}else{
+			this.sz = geneIdx.length;
+		}
 		numChild = 1;
 	}
 	
 	public GeneSet(HashSet<Integer> attractees, ValIdx[] idx){
 		Arrays.sort(idx);
 		this.geneIdx = idx;
-		this.sz = geneIdx.length;
+		if(annot != null){
+			HashSet<String> genes = new HashSet<String>();
+			for(ValIdx vi : geneIdx){
+				genes.add(annot.getGene(probeNames.get(vi.idx())));
+			}
+			this.sz = genes.size();
+		}else{
+			this.sz = geneIdx.length;
+		}
 		this.attractees = attractees;
 		numChild = 1;
 	}
 	
 	public GeneSet(HashSet<Integer> attractees, ValIdx[] idx, int numChild){
 		this.geneIdx = idx;
-		this.sz = geneIdx.length;
+		if(annot != null){
+			HashSet<String> genes = new HashSet<String>();
+			for(ValIdx vi : geneIdx){
+				genes.add(annot.getGene(probeNames.get(vi.idx())));
+			}
+			this.sz = genes.size();
+		}else{
+			this.sz = geneIdx.length;
+		}
 		this.attractees = attractees;
 		this.numChild = numChild;
 		Arrays.sort(this.geneIdx);
@@ -78,7 +102,32 @@ public class GeneSet implements Comparable<GeneSet>{
 		}
 		numChild += other.numChild;
 	}
-	
+	public boolean overlapWith(GeneSet other){
+		ArrayList<ValIdx> viList = new ArrayList<ValIdx>();
+		for(ValIdx vi: other.geneIdx){
+			viList.add(vi);
+		}
+		for(ValIdx vi : geneIdx){
+			if(viList.contains(vi)){
+				return true;
+			}
+		}
+		return false;
+	}
+	public boolean overlapWith(ArrayList<GeneSet> others){
+		ArrayList<ValIdx> viList = new ArrayList<ValIdx>();
+		for(ValIdx vi: geneIdx){
+			viList.add(vi);
+		}
+		for(GeneSet gs : others){
+			for(ValIdx vi : gs.geneIdx){
+				if(viList.contains(vi)){
+					return true;
+				}
+			}
+		}
+		return false;
+	}
 	/*// Merging the gene sets using their intersection	
 	public boolean merge(GeneSet other){
 		ArrayList<Integer> newGeneIdx = new ArrayList<Integer>();
@@ -213,7 +262,6 @@ public class GeneSet implements Comparable<GeneSet>{
 		}
 		return s;
 	}
-	
 	public String getAttractees(){
 		if(annot == null){
 			String s = "";
@@ -346,6 +394,10 @@ public class GeneSet implements Comparable<GeneSet>{
 	/*public float getOneWeight(int i ){
 		return weightMap.get(i)/numChild;
 	}*/
+	public void setName(String name){
+		this.name = name;
+	}
+	public String getName(){return name;}
 	public String getOnePair(int i){
 		String s = probeNames.get(geneIdx[i].idx());
 		if(hasAnnot()){

@@ -14,20 +14,50 @@ public class StatOps {
 	/**
      * Holds for a gene a value and the corresponding phenotype.
      */
-    private static class IdxVal implements Comparable<IdxVal> {
+    private static class ValdIdx implements Comparable<ValdIdx> {
         double val;
         int idx;
         
-        public IdxVal(int idx, double d){
+        public ValdIdx(int idx, double d){
         	this.val = d;
         	this.idx = idx;
         }
         
-        public int compareTo(IdxVal o) {
+        public int compareTo(ValdIdx o) {
             return Double.compare(val, o.val);
         }
     }
-	
+    public static class ValIdx implements Comparable<ValIdx>{
+		float val;
+		int idx;
+		public ValIdx(int i, float v){
+			this.idx = i;
+			this.val = v;
+		}
+		public int hashCode(){
+			return idx;
+		}
+		
+		public int compareTo(ValIdx other) {
+			return -Double.compare(this.val, other.val);
+		}
+		
+		public int idx(){
+			return idx;
+		}
+		public float val(){
+			return val;
+		}
+		public boolean equals(Object other){
+			boolean result = false;
+	        if (other instanceof ValIdx) {
+	        	ValIdx that = (ValIdx) other;
+	            result = (this.idx == that.idx);
+	        }
+	        return result;
+		}
+		
+	}
 	public static float mean(float[] x){
 		int n = x.length;
 		float mean = 0;
@@ -240,10 +270,10 @@ public class StatOps {
 	}
 	public static double[] pAdjust(double[] p, int m){
 		if(m == 1) return p;
-		IdxVal[] pVals = new IdxVal[m];
+		ValdIdx[] pVals = new ValdIdx[m];
 		double[] padj = new double[m];
 		for(int i = 0; i < m; i++){
-			pVals[i] = new IdxVal(i, p[i]);
+			pVals[i] = new ValdIdx(i, p[i]);
 			padj[i] = 1;
 		}
 		Arrays.sort(pVals);

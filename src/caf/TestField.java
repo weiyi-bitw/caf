@@ -6,11 +6,13 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 
 import org.apache.commons.math.distribution.NormalDistributionImpl;
 
+import obj.Annotations;
 import obj.DataFile;
 
 import util.StatOps;
@@ -89,13 +91,19 @@ public class TestField {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String path = "/home/weiyi/workspace/data/ov/tcga/mergeroom";
+		String path = "/home/weiyi/workspace/data/ov/gse9891/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
 		
-		System.out.println("Loading files...");
-		DataFile ma = DataFile.parse(path + "ge.17814x514.common.txt");
+		ArrayList<ValIdx> vis= new ArrayList<ValIdx>();
+		vis.add(new ValIdx(8, 1f));
+		ValIdx vi2 = new ValIdx(8, 2f);
+		
+		System.out.println(vis.contains(vi2));
+		
+		/*System.out.println("Loading files...");
+		DataFile ma = DataFile.parse(path + "ge.54675x285.txt");
 		//ma.normalizeRows();
 		int m = ma.getNumRows();
 		int n = ma.getNumCols();
@@ -112,12 +120,18 @@ public class TestField {
 		}
 		br.close();
 		
+		gs.add("229497_at");
+		gs.add("237316_at");
 		long jobID = System.currentTimeMillis();
 		
 		int k = gs.size();
 		
+		String annotPath = "/home/weiyi/workspace/data/annot/affy/u133p2/annot.csv";
+		Annotations annot = Annotations.parseAnnotations(annotPath);
 		
 		Converger cvg = new Converger(0, 1, jobID);
+		cvg.setZThreshold(10f);
+		cvg.setConvergeMethos("ZSCORE");
 		HashMap<String, Integer> geneMap = ma.getRows();
 		ArrayList<String> attractees = new ArrayList<String>();
 		ArrayList<ArrayList<ValIdx>> attractors = new ArrayList<ArrayList<ValIdx>>();
@@ -142,16 +156,47 @@ public class TestField {
 			}
 		}
 		
-		PrintWriter pw = new PrintWriter(new FileWriter("attractors.txt"));
+		PrintWriter pw = new PrintWriter(new FileWriter("lala.txt"));
 		int kk = attractors.size();
 		for(int i = 0; i < kk; i++){
 			pw.print(attractees.get(i));
-			for(ValIdx vj : attractors.get(i)){
+			ArrayList<ValIdx> vv = attractors.get(i);
+			//Collections.sort(vv);
+			for(ValIdx vj : vv){
 				pw.print("\t" + geneNames.get(vj.idx()));
+				if(annot != null){
+					pw.print(":" + annot.getGene(geneNames.get(vj.idx())));
+				}
+				pw.print(":" + vj.val());
 			}
 			pw.println();
 		}
+		pw.close();*/
+		
+		/*String path = "/home/weiyi/workspace/javaworks/caf/output/207/";
+		
+		BufferedReader br = new BufferedReader(new FileReader(path + "leadingAttractors.txt"));
+		ArrayList<String> leadingAttractors = new ArrayList<String>();
+		String line = br.readLine();
+		while(line != null){
+			leadingAttractors.add(line.replaceAll(".txt", ""));
+			line = br.readLine();
+		}
+		br.close();
+		
+		br = new BufferedReader(new FileReader(path + "attractors.gwt"));
+		PrintWriter pw = new PrintWriter(new FileWriter(path + "leadingAttractors.detail.txt"));
+		line = br.readLine();
+		while(line != null){
+			String name = line.split("\t")[0];
+			if(leadingAttractors.contains(name)){
+				pw.println(leadingAttractors.indexOf(name) + "\t" + line);
+			}
+			line = br.readLine();
+		}
 		pw.close();
+		br.close();*/
+		
 		System.out.println("Done.");
 	}
 
