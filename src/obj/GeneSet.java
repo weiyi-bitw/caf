@@ -247,7 +247,7 @@ public class GeneSet implements Comparable<GeneSet>{
 			s = annot.getGene(probeNames.get(vi.idx()));
 			if(!geneNames.contains(s)){
 				geneNames.add(s);
-				output.add(s);
+				output.add(s + ":" + vi.val());
 			}
 		}
 		s = "";

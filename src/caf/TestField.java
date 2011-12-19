@@ -96,11 +96,15 @@ public class TestField {
 			path = path + "/";
 		}
 		
-		ArrayList<ValIdx> vis= new ArrayList<ValIdx>();
-		vis.add(new ValIdx(8, 1f));
-		ValIdx vi2 = new ValIdx(8, 2f);
+		ArrayList<Integer> aa= new ArrayList<Integer>();
+		aa.add(1);
+		aa.add(3);
+		aa.add(5);
 		
-		System.out.println(vis.contains(vi2));
+		aa.remove(3);
+		for(Integer i : aa){
+			System.out.println(i);
+		}
 		
 		/*System.out.println("Loading files...");
 		DataFile ma = DataFile.parse(path + "ge.54675x285.txt");

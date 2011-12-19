@@ -20,6 +20,8 @@ public class Converger extends DistributedWorker{
 	private static boolean rankBased = false;
 	private static int attractorSize = 20;
 	private static String convergeMethod = "FIXEDSIZE";
+	private static int bins = 7;
+	private static int splineOrder = 3;
 	
 	public static class ValIdx implements Comparable<ValIdx>{
 		float val;
@@ -149,7 +151,7 @@ public class Converger extends DistributedWorker{
 		int m = data.length;
 		int n = data[0].length;
 		
-		ITComputer itc = new ITComputer(7, 3, id, totalComputers);
+		ITComputer itc = new ITComputer(bins, splineOrder, id, totalComputers);
 		float[] mi = itc.getAllMIWith(data[idx], data);
 		ArrayList<ValIdx> metaIdx = new ArrayList<ValIdx>();
 		ValIdx[] vec = new ValIdx[m];
@@ -239,7 +241,7 @@ public class Converger extends DistributedWorker{
 		
 		System.out.println("Processing gene " + (start+1) + " to " + end);
 		
-		ITComputer itc = new ITComputer(7, 3, id, totalComputers);
+		ITComputer itc = new ITComputer(bins, splineOrder, id, totalComputers);
 		//itc.negateMI(true);
 		prepare("geneset");
 		PrintWriter pw = new PrintWriter(new FileWriter("tmp/" + jobID + "/geneset/caf." + String.format("%05d", id)+".txt"));
@@ -364,5 +366,9 @@ public class Converger extends DistributedWorker{
 	}
 	public void setConvergeMethos(String mthd){
 		Converger.convergeMethod = mthd;
+	}
+	public void setMIParameter(int bins, int so){
+		Converger.bins = bins;
+		Converger.splineOrder = so;
 	}
 }

@@ -41,15 +41,15 @@ public class GroupAttractors {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String path = "/home/weiyi/workspace/javaworks/caf/output/206/";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/207/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
 		
-		boolean annotation = false;
+		boolean annotation = true;
 		
 		System.out.println("Loading files...");
-		DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/tcga/mergeroom/ge.17814x514.common.txt");
+		DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/gse9891/ge.54675x285.txt");
 		//ma.normalizeRows();
 		int m = ma.getNumRows();
 		int n = ma.getNumCols();
@@ -65,230 +65,77 @@ public class GroupAttractors {
 		}
 		GeneSet.setProbeNames(probeNames);
 		
-		System.out.println("Filtering gene sets...");
-		ArrayList<GeneSet> leaders = new ArrayList<GeneSet>();
-		ArrayList<String> clustMembers = new ArrayList<String>();
-		ArrayList<HashSet<Integer>> clustGeneIdx = new ArrayList<HashSet<Integer>>();
+		
+		System.out.print("Loading gene sets...");
+		ArrayList<GeneSet> allGeneSet = new ArrayList<GeneSet>();
+		ArrayList<Integer> deleteIdx = new ArrayList<Integer>();
 		
 		String[] attractorFiles = new File(path + "lists/").list();
 		int na = attractorFiles.length;
 		int progress = 0;
 		for(String f : attractorFiles){
-			progress++;
 			GeneSet gs = parseAttractor(path + "lists/" + f, rowmap);
 			gs.setName(f);
-			
-			int nc = leaders.size();
-			boolean mergeable = false;
-			int replaceIdx = -1;
-			int convergeIdx = -1;
-			int convergeSize = -1;
-			float convergeMI = -1;
-			ArrayList<Integer> deleteIdx = new ArrayList<Integer>();
-			boolean willBeDeleted = false;
-			for(int i = 0; i < nc; i++){
-				GeneSet gs2 = leaders.get(i);
+			allGeneSet.add(gs);
+		}
+		int N = allGeneSet.size();
+		System.out.println(N + " gene sets are loaded.");
+		
+		System.out.println("Filtering gene sets...");
+		for(int i = 0; i < N; i++){
+			progress++;
+			boolean delete = false;
+			GeneSet gs = allGeneSet.get(i);
+			int sz = gs.size();
+			float lastMI = gs.getGeneIdx()[gs.size()-1].val();
+			for(int j = 0; j < N; j++){
+				if(j == i){
+					continue;
+				}
+				GeneSet gs2 = allGeneSet.get(j);
 				if(gs.overlapWith(gs2)){
-					mergeable = true;
-					System.out.println("Find mergeable: " + i);
-					if(gs.size() > gs2.size()){
-						System.out.println("Larger size.");
-						if(replaceIdx >= 0){// already going to replace, delete this position
-							deleteIdx.add(i);
-						}else if(willBeDeleted){ // this gs is already going to be deleted, delete this position also
-							deleteIdx.add(i);
-						}else{
-							replaceIdx = i;
-							convergeIdx = replaceIdx;
-							convergeSize = gs.size();
-							convergeMI = gs.getGeneIdx()[gs.size()-1].val();
-						}
-					}else if(gs.size() == gs2.size()){ // tie; compare the last MI
-						System.out.println("Equal size.");
-						float v1 = gs.getGeneIdx()[gs.size()-1].val();
-						float v2 = gs2.getGeneIdx()[gs2.size()-1].val();
-						if(v1 > v2){
-							System.out.println("higher MI.");
-							if(replaceIdx >= 0){// already going to replace, delete this position
-								deleteIdx.add(i);
-								convergeIdx = replaceIdx;
-							}else if(willBeDeleted){ // this gs is already going to be deleted, delete this position also
-								deleteIdx.add(i);
-							}else{
-								replaceIdx = i;
-								convergeIdx = replaceIdx;
-								convergeSize = gs.size();
-								convergeMI = gs.getGeneIdx()[gs.size()-1].val();
-							}
-						}else{
-							System.out.println("Lower MI");
-							willBeDeleted = true;
-							if(convergeIdx >= 0){ // already set to converge somewhere
-								if(gs2.size() > convergeSize){
-									System.out.println("New convergence.");
-									deleteIdx.add(convergeIdx);
-									convergeIdx = i;
-									convergeSize = gs2.size();
-									convergeMI = gs2.getGeneIdx()[gs.size()-1].val();
-								}else if(gs2.size() == convergeSize){
-									float gs2MI = gs2.getGeneIdx()[gs.size()-1].val();
-									if(gs2MI > convergeMI){
-										System.out.println("New convergence.");
-										deleteIdx.add(convergeIdx);
-										convergeIdx = i;
-										convergeMI = gs2MI;
-									}else{
-										System.out.println("Original convergence.");
-										deleteIdx.add(i);
-									}
-								}else{
-									System.out.println("Original convergence.");
-									deleteIdx.add(i);
-								}
-							}else{ // haven't set to converge anywhere
-								System.out.println("Set original convergence");
-								convergeIdx = i;
-								convergeSize = gs2.size();
-								convergeMI = gs2.getGeneIdx()[gs.size()-1].val();
-							}
-							
-							if(replaceIdx >= 0){ // set to replace someone, send this someone to be deleted
-								deleteIdx.add(replaceIdx);
-								replaceIdx = -1;
-							}
-						}
-					}else{ // cannot replace, going to be deleted
-						System.out.println("Smaller size.");
-						willBeDeleted = true;
-						if(convergeIdx >= 0){ // already set to converge somewhere
-							if(gs2.size() > convergeSize){
-								System.out.println("New convergence.");
-								deleteIdx.add(convergeIdx);
-								convergeIdx = i;
-								convergeSize = gs2.size();
-								convergeMI = gs2.getGeneIdx()[gs.size()-1].val();
-							}else if(gs2.size() == convergeSize){
-								float gs2MI = gs2.getGeneIdx()[gs.size()-1].val();
-								if(gs2MI > convergeMI){
-									System.out.println("New convergence.");
-									deleteIdx.add(convergeIdx);
-									convergeIdx = i;
-									convergeSize = gs2.size();
-									convergeMI = gs2MI;
-								}else{
-									System.out.println("Original convergence.");
-									deleteIdx.add(i);
-								}
-							}else{
-								System.out.println("Original convergence.");
-								deleteIdx.add(i);
-							}
-						}else{ // haven't set to converge anywhere
-							System.out.println("Set original convergence");
-							convergeIdx = i;
-							convergeSize = gs2.size();
-							convergeMI = gs2.getGeneIdx()[gs.size()-1].val();
-						}
-						if(replaceIdx >= 0){ // set to replace someone, send this someone to be deleted
-							deleteIdx.add(replaceIdx);
-							replaceIdx = -1;
+					int sz2 = gs2.size();
+					if(sz2 > sz){
+						delete=true;
+						break;
+					}else if(sz2 == sz){
+						float lastMI2 = gs2.getGeneIdx()[gs2.size()-1].val();
+						if(lastMI2 > lastMI){
+							delete = true;
+							break;
 						}
 					}
-					
 				}
 			}
-			System.out.println("replaceIdx=" + replaceIdx + "\tconvergeIdx=" + convergeIdx + "\tdeleteIdx size=" + deleteIdx.size() + "\tWill be deleted=" + willBeDeleted);
-			if(mergeable){ // if mergeable, there will be a converge Idx
-				ValIdx[] vis;
-				HashSet<Integer> ggg = clustGeneIdx.get(convergeIdx);
-				String origMembers = clustMembers.get(convergeIdx);
-
-				if(replaceIdx >= 0){
-					leaders.set(replaceIdx, gs);
-					// if there is a replace index, the gene idx is already in the first load
-				}
-				if(deleteIdx.size() > 0){
-					Collections.sort(deleteIdx);
-					Collections.reverse(deleteIdx);
-					// delete the gene set reversely
-					for(Integer ii : deleteIdx){
-						// add all genes into the converge gene set
-						vis = leaders.get(ii).getGeneIdx();
-						origMembers = origMembers + "\t" + clustMembers.get(ii);
-						for(ValIdx vi : vis){
-							ggg.add(vi.idx());
-						}
-						// remove this gene set
-						leaders.remove(ii);
-						clustMembers.remove(ii);
-						clustGeneIdx.remove(ii);
-					}
-				}
-				// add the gene set loaded from file into the converge gene set
-				origMembers = origMembers + "\t" + gs.getName();
-				clustMembers.set(convergeIdx, origMembers);
-				vis = gs.getGeneIdx();
-				for(ValIdx vi : vis){
-					ggg.add(vi.idx());
-				}
+			if(delete){
+				deleteIdx.add(i);
 			}
-			// cannot find any overlap, create new list
-			else{
-				System.out.println("Cannot merge.");
-				leaders.add(gs);
-				clustMembers.add(gs.getName());
-				HashSet<Integer> genes = new HashSet<Integer>();
-				for(ValIdx vi : gs.getGeneIdx()){
-					genes.add(vi.idx());
-				}
-				clustGeneIdx.add(genes);
-			}
+			
 			if(progress % 100 == 0) System.out.println(progress + " / " + na);
 		}
-		
-		
+		Collections.sort(deleteIdx);
+		Collections.reverse(deleteIdx);
+		for(Integer i : deleteIdx){
+			allGeneSet.remove(i.intValue());
+		}
+		N = allGeneSet.size();
+		System.out.println(N + " gene sets are left.");
 		System.out.println("Output to files...");
 		
-		int nc = leaders.size();
-		boolean err = false;
-		if(nc != clustGeneIdx.size()){
-			System.out.println("Error: clustGeneIdx size is different from leaders!");
-		}
-		if(nc != clustMembers.size()){
-			System.out.println("Error: clustMembers size is different from leaders!");
-		}
-		if(err){
-			throw new RuntimeException("Error occurs. Exit.");
-		}
-		
 		PrintWriter pw = new PrintWriter(new FileWriter(path + "ClusterLeaders.txt"));
-		PrintWriter pw2 = new PrintWriter(new FileWriter(path + "ClusterGenes.txt"));
-		PrintWriter pw3 = new PrintWriter(new FileWriter(path + "ClusterMembers.txt"));
 		PrintWriter pw4 = new PrintWriter(new FileWriter(path + "forProf.txt"));
+		
 		
 		int numOut = 5;
 		
-		for(int i = 0; i < nc; i++){
-			GeneSet gs = leaders.get(i);
+		for(int i = 0; i < N; i++){
+			GeneSet gs = allGeneSet.get(i);
 			pw.print(gs.getName() + "\t" + gs.size() + "\t");
 			if(annotation){
 				pw.println(gs.toGenes());
 			}else{
 				pw.println(gs.toProbes());
 			}
-			HashSet<Integer> genes = clustGeneIdx.get(i);
-			String name = String.format("Cluster%-3s", i);
-			pw2.print(name + "\t" + genes.size());
-			for(Integer ii : genes){
-				if(annotation){
-					pw2.print("\t" + probeNames.get(ii) + ":" + annot.getGene(probeNames.get(ii)));
-				}else{
-					pw2.print("\t" + probeNames.get(ii));
-				}
-			}
-			pw2.println();
-			pw3.print(name);
-			pw3.println("\t" + clustMembers.get(i));
 			
 			ValIdx[] lala = gs.getGeneIdx();
 			pw4.print(gs.getName() + "\t" + gs.size());
@@ -303,8 +150,6 @@ public class GroupAttractors {
 			
 		}
 		pw.close();
-		pw2.close();
-		pw3.close();
 		pw4.close();
 		/*for(ArrayList<GeneSet> gslist : cluster){
 			String name = "Cluster" + String.format("%03d", cnt) + ".txt";

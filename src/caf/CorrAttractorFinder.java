@@ -37,6 +37,9 @@ public class CorrAttractorFinder {
 	private static int attractorSize = 20;
 	private static String convergeMethod = "FIXEDSIZE";
 	
+	private static int bins = 7;
+	private static int splineOrder = 3;
+	
 	private static DataFile ma;
 	private static Annotations annot;
 	
@@ -194,6 +197,25 @@ public class CorrAttractorFinder {
 	        }
 	    	System.out.printf("%-25s%s\n", "Converge Method:", convergeMethod);
 	    	
+	    	confLine = config.getProperty("bins");
+	    	if (confLine != null && confLine.length() > 0) {
+	           try {
+	               bins = Integer.parseInt(confLine);
+	           } catch (NumberFormatException nfe) {
+	               System.out.println("WARNING: Couldn't parse number of bins property: " + confLine + ", use 7");
+	           }
+	        }
+	    	
+	    	confLine = config.getProperty("spline_order");
+	    	if (confLine != null && confLine.length() > 0) {
+	            try {
+	               splineOrder = Integer.parseInt(confLine);
+	            } catch (NumberFormatException nfe) {
+	               System.out.println("WARNING: Couldn't parse spline order property: " + confLine + ", use 3");
+	            }
+	        }
+	    	System.out.printf("%-25s%s\n", "Bins:", bins);
+	    	System.out.printf("%-25s%s\n", "Spline Order:", splineOrder);
 	}
 		
 	/**
@@ -230,6 +252,7 @@ public class CorrAttractorFinder {
 		Scheduler scdr = new Scheduler(segment, numSegments, jobID);
 		Converger cvg = new Converger(segment, numSegments, jobID, convergeMethod, fdrThreshold, maxIter, corrThreshold, rankBased);
 		cvg.setAttractorSize(attractorSize);
+		cvg.setMIParameter(bins, splineOrder);
 		
 		if(!debugging)
 		{
