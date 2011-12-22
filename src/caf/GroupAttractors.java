@@ -41,15 +41,15 @@ public class GroupAttractors {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String path = "/home/weiyi/workspace/javaworks/caf/output/207/";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/ov.gse9891.6b.size10/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
 		
-		boolean annotation = true;
+		boolean annotation = false;
 		
 		System.out.println("Loading files...");
-		DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/gse9891/ge.54675x285.txt");
+		DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/gse9891/ge.20765x285.var.txt");
 		//ma.normalizeRows();
 		int m = ma.getNumRows();
 		int n = ma.getNumCols();

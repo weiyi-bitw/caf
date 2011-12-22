@@ -155,16 +155,21 @@ public class Converger extends DistributedWorker{
 		float[] mi = itc.getAllMIWith(data[idx], data);
 		ArrayList<ValIdx> metaIdx = new ArrayList<ValIdx>();
 		ValIdx[] vec = new ValIdx[m];
-		for(int i = 0; i < m; i++){
-			vec[i] = new ValIdx(i, mi[i]);
-		}
 		if(convergeMethod.equals("FIXEDSIZE")){
+			
+			for(int i = 0; i < m; i++){
+				vec[i] = new ValIdx(i, mi[i]);
+			}
 			Arrays.sort(vec);
 			for(int i = 0; i < attractorSize; i++){
 				metaIdx.add(vec[i]);
 			}
 		}else if(convergeMethod.equals("ZSCORE")){
 			float[] z = StatOps.xToZ(mi, m);
+			for(int i = 0; i < m; i++){
+				vec[i] = new ValIdx(i, mi[i]);
+			}
+			//Arrays.sort(vec);
 			for(int i = 0; i < m; i++){
 				if(z[i] > zThreshold){
 					metaIdx.add(vec[i]);
@@ -200,14 +205,11 @@ public class Converger extends DistributedWorker{
 				}
 			}else if(convergeMethod.equals("ZSCORE")){
 				float[] z = StatOps.xToZ(mi, m);
-				metaIdx = new ArrayList<ValIdx>();
 				for(int i = 0; i < m; i++){
-					/*if(r[i] > corrThreshold){
-						metaIdx.add(i);
-					}
-					if(padj[i] < fdrThreshold){
-						metaIdx.add(i);
-					}*/
+					vec[i] = new ValIdx(i, mi[i]);
+				}
+				//Arrays.sort(vec);
+				for(int i = 0; i < m; i++){
 					if(z[i] > zThreshold){
 						metaIdx.add(vec[i]);
 					}
@@ -309,6 +311,7 @@ public class Converger extends DistributedWorker{
 					}
 				}else if(convergeMethod.equals("ZSCORE")){
 					float[] z = StatOps.xToZ(mi, m);
+					
 					metaIdx = new ArrayList<ValIdx>();
 					for(int i = 0; i < m; i++){
 						/*if(r[i] > corrThreshold){

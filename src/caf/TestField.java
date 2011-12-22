@@ -91,30 +91,20 @@ public class TestField {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String path = "/home/weiyi/workspace/data/ov/gse9891/";
+		String path = "/home/weiyi/workspace/data/ov/tcga/ge/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
 		
-		ArrayList<Integer> aa= new ArrayList<Integer>();
-		aa.add(1);
-		aa.add(3);
-		aa.add(5);
-		
-		aa.remove(3);
-		for(Integer i : aa){
-			System.out.println(i);
-		}
-		
-		/*System.out.println("Loading files...");
-		DataFile ma = DataFile.parse(path + "ge.54675x285.txt");
+		System.out.println("Loading files...");
+		DataFile ma = DataFile.parse(path + "ge.12042x582.txt");
 		//ma.normalizeRows();
 		int m = ma.getNumRows();
 		int n = ma.getNumCols();
 		float[][] data = ma.getData();
 		
 		ArrayList<String> gs = new ArrayList<String>();
-		BufferedReader br = new BufferedReader(new FileReader("COL11A1_50"));
+		/*BufferedReader br = new BufferedReader(new FileReader("COL11A1_50"));
 		br.readLine();
 		String line = br.readLine();
 		while(line != null){
@@ -122,20 +112,27 @@ public class TestField {
 			gs.add(tokens[0]);
 			line = br.readLine();
 		}
-		br.close();
+		br.close();*/
 		
-		gs.add("229497_at");
-		gs.add("237316_at");
+		gs.add("AGK");
+		gs.add("NDUFS8");
+		gs.add("NOSIP");
+		gs.add("GCDH");
+		gs.add("HSF1");
 		long jobID = System.currentTimeMillis();
 		
 		int k = gs.size();
 		
-		String annotPath = "/home/weiyi/workspace/data/annot/affy/u133p2/annot.csv";
-		Annotations annot = Annotations.parseAnnotations(annotPath);
+		//String annotPath = "/home/weiyi/workspace/data/annot/affy/u133p2/annot.csv";
+		//Annotations annot = Annotations.parseAnnotations(annotPath);
+		Annotations annot = null;
 		
 		Converger cvg = new Converger(0, 1, jobID);
-		cvg.setZThreshold(10f);
+		
+		cvg.setZThreshold(8f);
 		cvg.setConvergeMethos("ZSCORE");
+		cvg.setMIParameter(7, 3);
+		
 		HashMap<String, Integer> geneMap = ma.getRows();
 		ArrayList<String> attractees = new ArrayList<String>();
 		ArrayList<ArrayList<ValIdx>> attractors = new ArrayList<ArrayList<ValIdx>>();
@@ -175,7 +172,7 @@ public class TestField {
 			}
 			pw.println();
 		}
-		pw.close();*/
+		pw.close();
 		
 		/*String path = "/home/weiyi/workspace/javaworks/caf/output/207/";
 		
