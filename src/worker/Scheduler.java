@@ -127,7 +127,7 @@ public class Scheduler extends DistributedWorker{
 	// job control after fold
 	public void waitTillFinished(int iteration, int fold)throws Exception{
 		this.finishFlag(iteration);
-		if(id < fold){
+		if(id >= fold){
 			System.out.println("Job finished. Exit.");
 			return;
 		}
