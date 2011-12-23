@@ -253,7 +253,7 @@ public class CorrAttractorFinder {
 		Converger cvg = new Converger(segment, numSegments, jobID, convergeMethod, fdrThreshold, maxIter, corrThreshold, rankBased);
 		cvg.setAttractorSize(attractorSize);
 		cvg.setMIParameter(bins, splineOrder);
-		
+		int fold = (int) Math.round(Math.sqrt(numSegments));
 		if(!debugging)
 		{
 			if(rowNorm){
@@ -280,15 +280,20 @@ public class CorrAttractorFinder {
 				cvg.setZThreshold(zThreshold);
 			}
 			cvg.findAttractor(val, data);
-			scdr.waitTillFinished(0);
+			if(segment < fold){
+				// fold the number of workers to the squre root of the total number of workers
+				scdr.waitTillFinished(0, fold);
+			}else{
+				System.out.println("Job finished. Exit.");
+				System.exit(0);
+			}
 		}
 		
-		int fold = (int) Math.round(Math.sqrt(numSegments));
+		
 		ma = null;
 		
 		if(!debugging || breakPoint.equalsIgnoreCase("merge"))
 		{
-			// fold the number of workers to the squre root of the total number of workers
 			if(segment < fold){
 				GeneSetMerger mg = new GeneSetMerger(segment, fold, jobID);
 				mg.setMinSize(minSize);
@@ -297,6 +302,7 @@ public class CorrAttractorFinder {
 				System.out.println("Job finished. Exit.");
 				System.exit(0);
 			}
+			
 		}
 		if(!debugging  || breakPoint.equalsIgnoreCase("output"))
 		{
