@@ -65,15 +65,16 @@ public class GroupAttractors {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String path = "/home/weiyi/workspace/javaworks/caf/output/ov.tcga.affyL3.6b/";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/ov.gse9891L3.6b/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
 		
 		boolean annotation = false;
+		int minSize = 10;
 		
 		System.out.println("Loading files...");
-		DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt");
+		DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/gse9891/ge.20765x285.var.txt");
 		//ma.normalizeRows();
 		int m = ma.getNumRows();
 		int n = ma.getNumCols();
@@ -115,29 +116,34 @@ public class GroupAttractors {
 			progress++;
 			boolean delete = false;
 			GeneSet gs = allGeneSet.get(i);
-			//System.out.print(gs.getName());
-			//int sz = gs.size();
-			int sz = gs.getNumChild();
-			float lastMI = gs.getGeneIdx()[gs.size()-1].val();
-			for(int j = 0; j < N; j++){
-				if(j == i){
-					continue;
-				}
-				GeneSet gs2 = allGeneSet.get(j);
-				if(gs.overlapWith(gs2)){
-					//System.out.print("\t" + gs2.getName());
-					//int sz2 = gs2.size();
-					int sz2 = gs2.getNumChild();
-					if(sz2 > sz){
-						delete=true;
-						//break;
-					}else if(sz2 == sz){
-						System.out.print("\t" + "here");
-						float lastMI2 = gs2.getGeneIdx()[gs2.size()-1].val();
-						if(lastMI2 > lastMI){
-							
-							delete = true;
-							//break;
+			if(gs.size() < minSize){
+				delete = true;
+			}else{
+				//System.out.print(gs.getName());
+				int sz = gs.size();
+				//int sz = gs.getNumChild();
+				float lastMI = gs.getGeneIdx()[minSize-1].val();
+				for(int j = 0; j < N; j++){
+					if(j == i){
+						continue;
+					}
+					GeneSet gs2 = allGeneSet.get(j);
+					if(gs2.size() < minSize) continue;
+					if(gs.overlapWith(gs2)){
+						//System.out.print("\t" + gs2.getName());
+						int sz2 = gs2.size();
+						//int sz2 = gs2.getNumChild();
+						if(sz2 > sz){
+							delete=true;
+							break;
+						}else if(sz2 == sz){
+							//System.out.print("\t" + "here");
+							float lastMI2 = gs2.getGeneIdx()[minSize-1].val();
+							if(lastMI2 > lastMI){
+								
+								delete = true;
+								break;
+							}
 						}
 					}
 				}
@@ -146,7 +152,7 @@ public class GroupAttractors {
 				//System.out.print("\tdelete");
 				deleteIdx.add(i);
 			}
-			System.out.println();
+			//System.out.println();
 			
 			if(progress % 100 == 0) System.out.println(progress + " / " + N);
 		}

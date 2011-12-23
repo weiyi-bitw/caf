@@ -127,12 +127,16 @@ public class Scheduler extends DistributedWorker{
 	// job control after fold
 	public void waitTillFinished(int iteration, int fold)throws Exception{
 		this.finishFlag(iteration);
+		if(id < fold){
+			System.out.println("Job finished. Exit.");
+			return;
+		}
 		File dir = new File(".finish" + iteration + "/" + jobID);
 	    String[] allFiles = dir.list();
 	    int numFlags = allFiles.length;
 	    System.out.println("Waiting for finish...");
 	    Random r = new Random(id);
-	    while(numFlags != fold){
+	    while(numFlags != totalComputers){
 			if(id!=0){
 				Thread.sleep(100000 + r.nextInt(10000));
 			}else{

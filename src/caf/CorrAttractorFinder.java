@@ -280,15 +280,9 @@ public class CorrAttractorFinder {
 				cvg.setZThreshold(zThreshold);
 			}
 			cvg.findAttractor(val, data);
-			if(segment < fold){
-				// fold the number of workers to the squre root of the total number of workers
-				scdr.waitTillFinished(0, fold);
-			}else{
-				System.out.println("Job finished. Exit.");
-				System.exit(0);
-			}
+			// fold the number of workers to the squre root of the total number of workers
+			scdr.waitTillFinished(0, fold);
 		}
-		
 		
 		ma = null;
 		
