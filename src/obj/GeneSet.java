@@ -37,6 +37,22 @@ public class GeneSet implements Comparable<GeneSet>{
 		numChild = 1;
 	}
 	
+	public GeneSet(String name, ValIdx[] idx, int numChild){
+		this.name = name;
+		Arrays.sort(idx);
+		this.geneIdx = idx;
+		if(annot != null){
+			HashSet<String> genes = new HashSet<String>();
+			for(ValIdx vi : geneIdx){
+				genes.add(annot.getGene(probeNames.get(vi.idx())));
+			}
+			this.sz = genes.size();
+		}else{
+			this.sz = geneIdx.length;
+		}
+		this.numChild = numChild;
+	}
+	
 	public GeneSet(HashSet<Integer> attractees, ValIdx[] idx){
 		Arrays.sort(idx);
 		this.geneIdx = idx;
@@ -384,6 +400,9 @@ public class GeneSet implements Comparable<GeneSet>{
 	}*/
 	public int getAttracteeSize(){
 		return attractees.size();
+	}
+	public int getNumChild(){
+		return numChild;
 	}
 	public static boolean hasAnnot(){
 		return annot != null;

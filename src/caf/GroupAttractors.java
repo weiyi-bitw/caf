@@ -7,6 +7,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,13 +36,36 @@ public class GroupAttractors {
 		return new GeneSet(viList.toArray(new ValIdx[0]));
 	}
 	
+	static ArrayList<GeneSet> parseAttractorInOneFile(String file, HashMap<String, Integer> rowmap) throws Exception{
+		BufferedReader br = new BufferedReader(new FileReader(file));
+		String line = br.readLine();
+		ArrayList<GeneSet> allAttractors = new ArrayList<GeneSet>();
+		while(line != null){ // each line is an attractor
+			String[] tokens = line.split("\t");
+			String name = tokens[0];
+			int nt = tokens.length;
+			int numChild = Integer.parseInt(tokens[1].split(":")[1]);
+			ArrayList<ValIdx> viList = new ArrayList<ValIdx>();
+			for(int j = 2; j < nt; j++){
+				String[] t2 = tokens[j].split(":");
+				int i = rowmap.get(t2[0]);
+				float v = Float.parseFloat(t2[1]);
+				viList.add(new ValIdx(i, v));
+				
+			}
+			allAttractors.add(new GeneSet(name, viList.toArray(new ValIdx[0]), numChild));
+			line = br.readLine();
+		}
+		br.close();
+		return allAttractors;
+	}
 	
 	/**
 	 * @param args
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String path = "/home/weiyi/workspace/javaworks/caf/output/ov.gse9891.6b.size10/";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/ov.tcga.affyL3.6b/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
@@ -49,7 +73,7 @@ public class GroupAttractors {
 		boolean annotation = false;
 		
 		System.out.println("Loading files...");
-		DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/gse9891/ge.20765x285.var.txt");
+		DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt");
 		//ma.normalizeRows();
 		int m = ma.getNumRows();
 		int n = ma.getNumCols();
@@ -67,26 +91,33 @@ public class GroupAttractors {
 		
 		
 		System.out.print("Loading gene sets...");
-		ArrayList<GeneSet> allGeneSet = new ArrayList<GeneSet>();
-		ArrayList<Integer> deleteIdx = new ArrayList<Integer>();
 		
+		/*ArrayList<GeneSet> allGeneSet = new ArrayList<GeneSet>();
 		String[] attractorFiles = new File(path + "lists/").list();
+		Arrays.sort(attractorFiles);
 		int na = attractorFiles.length;
-		int progress = 0;
 		for(String f : attractorFiles){
 			GeneSet gs = parseAttractor(path + "lists/" + f, rowmap);
 			gs.setName(f);
 			allGeneSet.add(gs);
-		}
+		}*/
+		
+		ArrayList<GeneSet> allGeneSet = parseAttractorInOneFile(path + "attractors.gwt", rowmap);
 		int N = allGeneSet.size();
 		System.out.println(N + " gene sets are loaded.");
 		
+		ArrayList<Integer> deleteIdx = new ArrayList<Integer>();
+		
 		System.out.println("Filtering gene sets...");
+		int progress = 0;
+		
 		for(int i = 0; i < N; i++){
 			progress++;
 			boolean delete = false;
 			GeneSet gs = allGeneSet.get(i);
-			int sz = gs.size();
+			//System.out.print(gs.getName());
+			//int sz = gs.size();
+			int sz = gs.getNumChild();
 			float lastMI = gs.getGeneIdx()[gs.size()-1].val();
 			for(int j = 0; j < N; j++){
 				if(j == i){
@@ -94,24 +125,30 @@ public class GroupAttractors {
 				}
 				GeneSet gs2 = allGeneSet.get(j);
 				if(gs.overlapWith(gs2)){
-					int sz2 = gs2.size();
+					//System.out.print("\t" + gs2.getName());
+					//int sz2 = gs2.size();
+					int sz2 = gs2.getNumChild();
 					if(sz2 > sz){
 						delete=true;
-						break;
+						//break;
 					}else if(sz2 == sz){
+						System.out.print("\t" + "here");
 						float lastMI2 = gs2.getGeneIdx()[gs2.size()-1].val();
 						if(lastMI2 > lastMI){
+							
 							delete = true;
-							break;
+							//break;
 						}
 					}
 				}
 			}
 			if(delete){
+				//System.out.print("\tdelete");
 				deleteIdx.add(i);
 			}
+			System.out.println();
 			
-			if(progress % 100 == 0) System.out.println(progress + " / " + na);
+			if(progress % 100 == 0) System.out.println(progress + " / " + N);
 		}
 		Collections.sort(deleteIdx);
 		Collections.reverse(deleteIdx);
@@ -123,10 +160,10 @@ public class GroupAttractors {
 		System.out.println("Output to files...");
 		
 		PrintWriter pw = new PrintWriter(new FileWriter(path + "ClusterLeaders.txt"));
-		PrintWriter pw4 = new PrintWriter(new FileWriter(path + "forProf.txt"));
+		//PrintWriter pw4 = new PrintWriter(new FileWriter(path + "forProf.txt"));
 		
 		
-		int numOut = 5;
+		//int numOut = 5;
 		
 		for(int i = 0; i < N; i++){
 			GeneSet gs = allGeneSet.get(i);
@@ -137,8 +174,8 @@ public class GroupAttractors {
 				pw.println(gs.toProbes());
 			}
 			
-			ValIdx[] lala = gs.getGeneIdx();
-			pw4.print(gs.getName() + "\t" + gs.size());
+			//ValIdx[] lala = gs.getGeneIdx();
+			/*pw4.print(gs.getName() + "\t" + gs.size());
 			for(int j = 0; j < numOut; j++){
 				if(annotation){
 					pw4.print("\t" + probeNames.get(lala[j].idx()) + " : " + annot.getGene(probeNames.get(lala[j].idx())));
@@ -146,11 +183,11 @@ public class GroupAttractors {
 					pw4.print("\t" + probeNames.get(lala[j].idx()));
 				}
 			}
-			pw4.println();
+			pw4.println();*/
 			
 		}
 		pw.close();
-		pw4.close();
+		//pw4.close();
 		/*for(ArrayList<GeneSet> gslist : cluster){
 			String name = "Cluster" + String.format("%03d", cnt) + ".txt";
 			PrintWriter pw = new PrintWriter(new FileWriter(path + "clusters/" + name));
