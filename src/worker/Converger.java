@@ -357,7 +357,7 @@ public class Converger extends DistributedWorker{
 						
 					}
 					// first token: attractee index
-					pw.print(idx);
+					pw.print(geneIdx.get(idx).idx());
 					pw.print("\t" + 1);
 					if(metaIdx.size() > 1){
 						for(ValIdx vi: metaIdx){

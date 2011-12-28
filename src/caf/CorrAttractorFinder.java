@@ -1,7 +1,10 @@
 package caf;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -11,6 +14,7 @@ import java.util.Properties;
 import org.apache.commons.math.distribution.NormalDistributionImpl;
 
 import obj.Annotations;
+import obj.Chromosome;
 import obj.DataFile;
 import obj.GeneSet;
 import util.StatOps;
@@ -43,6 +47,33 @@ public class CorrAttractorFinder {
 	
 	private static DataFile ma;
 	private static Annotations annot;
+	private static ArrayList<Chromosome> chrs;
+	
+	static ArrayList<Chromosome> parseChromGenes(String file, ArrayList<String> genes, HashMap<String, Integer> geneMap) throws IOException{
+		ArrayList<Chromosome> chrs = new ArrayList<Chromosome>();
+		Chromosome.setGeneMap(geneMap);
+		Chromosome.setGeneNames(genes);
+		BufferedReader br = new BufferedReader(new FileReader(file));
+		br.readLine(); // first line header
+		
+		String line = br.readLine();
+		while(line != null){
+			//System.out.println(line);
+			String[] tokens = line.split("\t");
+			int nt = tokens.length;
+			Chromosome chr = new Chromosome(tokens[nt-1]);
+			float coord = Float.parseFloat(tokens[5]);
+			boolean strand = tokens[2].equals("(+)");
+			if(chrs.contains(chr)){
+				chrs.get(chrs.indexOf(chr)).addGene(tokens[0], coord, strand);
+			}else{
+				chr.addGene(tokens[0], coord, strand);
+				chrs.add(chr);
+			}
+			line = br.readLine();
+		}
+		return chrs;
+	}
 	
 	private static void SystemConfiguration() throws Exception{
 		String numSegmentsProperty = System.getProperty("SGE_TASK_LAST");
@@ -102,10 +133,32 @@ public class CorrAttractorFinder {
 		    	try {
 	                annot = Annotations.parseAnnotations(confLine);
 	            } catch (Exception e) {
-	                throw new RuntimeException("Couldn't parse annotations file '" + confLine+ "\n" + e);
+	                throw new RuntimeException("ERROR: Couldn't parse annotations file '" + confLine+ "\n" + e);
 	            }
 		    }
 			
+		//========gene location file========================
+		    chrs = null;
+		    confLine = config.getProperty("gene_location");
+		    if(confLine != null){
+		    	System.out.printf("%-25s%s\n", "Gene Location:", confLine);
+		    	try {
+	                chrs = parseChromGenes(confLine, ma.getProbes(), ma.getRows());
+	            } catch (Exception e) {
+	                throw new RuntimeException("ERROR: Couldn't parse gene location file '" + confLine+ "\n" + e);
+	            }
+		    }
+		    
+		    confLine = config.getProperty("converge_method");
+	    	if (confLine != null && confLine.length() > 0) {
+	    		confLine.toUpperCase();
+	    		if(!confLine.equals("ZSCORE") && !confLine.equals("FIXEDSIZE")){
+	    			System.out.println("WARNING: Couldn't recognize converge method: " + confLine + ", using default = " + convergeMethod);
+	    		}
+	            convergeMethod = confLine;
+	        }
+	    	System.out.printf("%-25s%s\n", "Converge Method:", convergeMethod);
+		    
 		    confLine = config.getProperty("rank_based");
 	    	if (confLine != null && confLine.length() > 0) {
 	            try {
@@ -188,15 +241,6 @@ public class CorrAttractorFinder {
 	        }
 	    	System.out.printf("%-25s%s\n", "Fixed Attractor Size:", attractorSize);
 	    	
-	    	confLine = config.getProperty("converge_method");
-	    	if (confLine != null && confLine.length() > 0) {
-	    		confLine.toUpperCase();
-	    		if(!confLine.equals("ZSCORE") && !confLine.equals("FIXEDSIZE")){
-	    			System.out.println("WARNING: Couldn't recognize converge method: " + confLine + ", using default = " + convergeMethod);
-	    		}
-	            convergeMethod = confLine;
-	        }
-	    	System.out.printf("%-25s%s\n", "Converge Method:", convergeMethod);
 	    	
 	    	confLine = config.getProperty("bins");
 	    	if (confLine != null && confLine.length() > 0) {
@@ -233,7 +277,7 @@ public class CorrAttractorFinder {
 		if(args.length < 1)	throw new RuntimeException("No configuration file specified!!!");
 		if(args.length < 2) throw new RuntimeException("No command specified!!");
 		
-		if(args.length > 2){
+		if(args.length >= 2){
 			command = args[1];
 			if(command.equalsIgnoreCase("DEBUG")){
 				System.out.println("**** Debugging mode");
@@ -244,9 +288,11 @@ public class CorrAttractorFinder {
 				System.out.printf("%-25s%s\n", "ID:", jobID);
 				System.out.printf("%-25s%s\n", "BreakPoint:", breakPoint);
 			}else if(command.equalsIgnoreCase("CAF")){
-				System.out.println("Attractor finding...");
+				System.out.println("-- Attractor finding");
 			}else if(command.equalsIgnoreCase("CNV")){
-				System.out.println("CNV Finding");
+				System.out.println("-- CNV Finding");
+			}else{
+				throw new RuntimeException("ERROR: Cannot underatand command: " + command);
 			}
 		}
 		
@@ -268,29 +314,36 @@ public class CorrAttractorFinder {
 			if(rowNorm){
 				ma.normalizeRows();
 			}
-			float[][] data = ma.getData();
 			
-			int m = ma.getNumRows();
-			int n = ma.getNumCols();
-			
-			// transform the first data matrix into ranks
-			float[][] val = new float[m][n];
-			if(rankBased){
-				for(int i = 0; i < m; i++){
-					System.arraycopy(StatOps.rank(data[i]), 0, val[i], 0, n);
+			if(command.equalsIgnoreCase("CAF")){
+				float[][] data = ma.getData();
+				
+				int m = ma.getNumRows();
+				int n = ma.getNumCols();
+				
+				// transform the first data matrix into ranks
+				float[][] val = new float[m][n];
+				if(rankBased){
+					for(int i = 0; i < m; i++){
+						System.arraycopy(StatOps.rank(data[i]), 0, val[i], 0, n);
+					}
+				}else{
+					val = data;
 				}
-			}else{
-				val = data;
+				if(zThreshold < 0){
+					cvg.setZThreshold(m);
+					System.out.printf("%-25s%s\n", "Z Threshold:", cvg.getZThreshold());
+				}else{
+					cvg.setZThreshold(zThreshold);
+				}
+				cvg.findAttractor(val, data);
+			}else if(command.equalsIgnoreCase("CNV")){
+				cvg.findCNV(ma, chrs, attractorSize);
 			}
-			if(zThreshold < 0){
-				cvg.setZThreshold(m);
-				System.out.printf("%-25s%s\n", "Z Threshold:", cvg.getZThreshold());
-			}else{
-				cvg.setZThreshold(zThreshold);
-			}
-			cvg.findAttractor(val, data);
+			
 			// fold the number of workers to the squre root of the total number of workers
 			scdr.waitTillFinished(0, fold);
+			
 		}
 		
 		ma = null;
