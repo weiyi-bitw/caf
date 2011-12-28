@@ -11,6 +11,8 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.PrintStream;
 
+import worker.Converger.ValIdx;
+
 /**
  * @author John Watkinson
  * @revision Wei-Yi Cheng
@@ -633,6 +635,23 @@ public class DataFile {
     	}
     	return new DataFile(subData, rows, subCols, probes, subChipNames);
     }
+    public DataFile getSubProbes(ArrayList<ValIdx> probeIdx){
+    	int numProbes = probeIdx.size();
+    	HashMap<String, Integer> subRows = new HashMap<String, Integer>();
+    	ArrayList<String> subProbes = new ArrayList<String>();
+    	int mm = numProbes;
+    	
+    	float[][] subData = new float[mm][n];
+    	for(int i = 0; i < mm; i++){
+    		int idx = probeIdx.get(i).idx();
+    		String p = probes.get(idx);
+    		subProbes.add(p);
+    		subRows.put(p, i);
+    		System.arraycopy(data[idx], 0, subData[i], 0, n);
+    	}
+    	return new DataFile(subData, subRows, cols, subProbes, chipID);
+    }
+    
     public DataFile getSubProbes(String[] probeNames){
     	int numProbes = probeNames.length;
     	HashMap<String, Integer> subRows = new HashMap<String, Integer>();

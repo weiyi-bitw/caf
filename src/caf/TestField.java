@@ -121,8 +121,6 @@ public class TestField {
 		gs.add("HSF1");
 		long jobID = System.currentTimeMillis();
 		
-		int k = gs.size();
-		
 		//String annotPath = "/home/weiyi/workspace/data/annot/affy/u133p2/annot.csv";
 		//Annotations annot = Annotations.parseAnnotations(annotPath);
 		Annotations annot = null;
@@ -141,7 +139,7 @@ public class TestField {
 		for(String g : gs){
 			System.out.println(g + "...");
 			int idx = geneMap.get(g);
-			ArrayList<ValIdx> out = cvg.findAttractor(data, idx, k);
+			ArrayList<ValIdx> out = cvg.findAttractor(data, idx);
 			if(attractors.contains(out)){
 				int j = attractors.indexOf(out);
 				String s = attractees.get(j);

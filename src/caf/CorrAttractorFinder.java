@@ -21,6 +21,7 @@ import worker.Scheduler;
 public class CorrAttractorFinder {
 	private static Properties config;
 	private static String configFile;
+	private static String command;
 	
 	private static int segment = 0;
 	private static int numSegments = 1;
@@ -230,15 +231,23 @@ public class CorrAttractorFinder {
 		System.out.println("\n===================================================================================\n");
 			
 		if(args.length < 1)	throw new RuntimeException("No configuration file specified!!!");
+		if(args.length < 2) throw new RuntimeException("No command specified!!");
 		
-		if(args.length > 1){
-			System.out.println("**** Debugging mode");
-			debugging = true;
-			jobID = Long.parseLong(args[1]);
-			breakPoint = args[2];
-			
-			System.out.printf("%-25s%s\n", "ID:", jobID);
-			System.out.printf("%-25s%s\n", "BreakPoint:", breakPoint);
+		if(args.length > 2){
+			command = args[1];
+			if(command.equalsIgnoreCase("DEBUG")){
+				System.out.println("**** Debugging mode");
+				debugging = true;
+				jobID = Long.parseLong(args[1]);
+				breakPoint = args[2];
+				
+				System.out.printf("%-25s%s\n", "ID:", jobID);
+				System.out.printf("%-25s%s\n", "BreakPoint:", breakPoint);
+			}else if(command.equalsIgnoreCase("CAF")){
+				System.out.println("Attractor finding...");
+			}else if(command.equalsIgnoreCase("CNV")){
+				System.out.println("CNV Finding");
+			}
 		}
 		
 			configFile = args[0];

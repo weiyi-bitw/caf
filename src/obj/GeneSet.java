@@ -118,17 +118,18 @@ public class GeneSet implements Comparable<GeneSet>{
 		}
 		numChild += other.numChild;
 	}
-	public boolean overlapWith(GeneSet other){
+	public int overlapWith(GeneSet other){
 		ArrayList<ValIdx> viList = new ArrayList<ValIdx>();
 		for(ValIdx vi: other.geneIdx){
 			viList.add(vi);
 		}
+		int cnt = 0;
 		for(ValIdx vi : geneIdx){
 			if(viList.contains(vi)){
-				return true;
+				++cnt;
 			}
 		}
-		return false;
+		return cnt;
 	}
 	public boolean overlapWith(ArrayList<GeneSet> others){
 		ArrayList<ValIdx> viList = new ArrayList<ValIdx>();

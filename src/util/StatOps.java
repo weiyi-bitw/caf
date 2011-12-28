@@ -111,6 +111,13 @@ public class StatOps {
 			return in[numIn/2];
 		}
     }
+	public static float quantile(float[] in, float pct){
+		int numIn = in.length;
+		Arrays.sort(in);
+		return in[ (int) (numIn*pct)];
+	}
+	
+	
 	public static float pearsonCorr(float[] x, float[] y){
 		float xMean = 0;
 		float yMean = 0;

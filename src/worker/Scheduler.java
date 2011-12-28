@@ -146,7 +146,7 @@ public class Scheduler extends DistributedWorker{
 			try{
 				allFiles=dir.list();
 				numFlags=allFiles.length;
-				if(id==0){System.out.print(numFlags + " (" + fold + ")\t");}
+				if(id==0){System.out.print(numFlags + "\t");}
 			}catch(NullPointerException e){
 				System.out.println("Warning: Can't find folder (probably finished). Proceed...");
 				break;

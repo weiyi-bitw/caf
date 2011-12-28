@@ -12,6 +12,8 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import org.apache.commons.math.distribution.HypergeometricDistributionImpl;
+
 import obj.Annotations;
 import obj.DataFile;
 import obj.GeneSet;
@@ -59,13 +61,23 @@ public class GroupAttractors {
 		br.close();
 		return allAttractors;
 	}
-	
+	private static float[] getMetaGene(float[][] data, ValIdx[] idx, int n){
+		int m = idx.length;
+		float[] out = new float[n];
+		for(int j = 0; j < n; j++){
+			for(ValIdx vi : idx){
+				out[j] += data[vi.idx()][j];
+			}
+			out[j] /= m;
+		}
+		return out;
+	}
 	/**
 	 * @param args
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String path = "/home/weiyi/workspace/javaworks/caf/output/ov.gse9891L3.6b/";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/bkup/ov.tcga.affyL3.6b.size10/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
@@ -74,7 +86,8 @@ public class GroupAttractors {
 		int minSize = 10;
 		
 		System.out.println("Loading files...");
-		DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/gse9891/ge.20765x285.var.txt");
+		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/gse9891/ge.20765x285.var.txt");
+		DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt");
 		//ma.normalizeRows();
 		int m = ma.getNumRows();
 		int n = ma.getNumCols();
@@ -120,8 +133,8 @@ public class GroupAttractors {
 				delete = true;
 			}else{
 				//System.out.print(gs.getName());
-				int sz = gs.size();
-				//int sz = gs.getNumChild();
+				//int sz = gs.size();
+				int sz = gs.getNumChild();
 				float lastMI = gs.getGeneIdx()[minSize-1].val();
 				for(int j = 0; j < N; j++){
 					if(j == i){
@@ -129,10 +142,15 @@ public class GroupAttractors {
 					}
 					GeneSet gs2 = allGeneSet.get(j);
 					if(gs2.size() < minSize) continue;
-					if(gs.overlapWith(gs2)){
+					int ovlp = gs.overlapWith(gs2);
+					if(ovlp < 1) continue;
+					HypergeometricDistributionImpl phyper = new HypergeometricDistributionImpl(m, gs.size(), gs2.size());
+					double p = phyper.upperCumulativeProbability(ovlp) * N;
+					if(p < 0.05){
+					//else{
 						//System.out.print("\t" + gs2.getName());
-						int sz2 = gs2.size();
-						//int sz2 = gs2.getNumChild();
+						//int sz2 = gs2.size();
+						int sz2 = gs2.getNumChild();
 						if(sz2 > sz){
 							delete=true;
 							break;
@@ -221,6 +239,26 @@ public class GroupAttractors {
 			cnt++;
 			pw.close();
 		}*/
+		
+		int k = allGeneSet.size();
+		
+		float[][] newData = new float[k][n];
+		ArrayList<String> attractorNames = new ArrayList<String>();
+		HashMap<String, Integer> newRowMap = new HashMap<String, Integer>();
+		
+		int cnt = 0;
+		System.out.println("Calculating metagenes...");
+		for(GeneSet gs: allGeneSet){
+			attractorNames.add(gs.getName());
+			newRowMap.put(gs.getName(),cnt);
+			System.arraycopy(getMetaGene(data, gs.getGeneIdx(), n), 0, newData[cnt], 0, n);
+			cnt++;
+		}
+		
+		DataFile out = new DataFile(newData, newRowMap, ma.getCols(), attractorNames, ma.getChipID());
+		System.out.println("Output to files...");
+		out.output2Gct(path + "attractorSpace." + out.getNumRows() + "x" + out.getNumCols() + ".txt");
+		
 		
 		System.out.println("Done.");
 	}
