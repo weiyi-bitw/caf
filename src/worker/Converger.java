@@ -413,7 +413,7 @@ public class Converger extends DistributedWorker{
 					metaIdx.add(vec[i]);
 				}
 				for(int i = attractorSize; i < m; i++){
-					if(z[i] > zThreshold){
+					if(vec[i].val() > zThreshold){
 						metaIdx.add(vec[i]);
 					}else{
 						break;
@@ -463,7 +463,7 @@ public class Converger extends DistributedWorker{
 						metaIdx.add(vec[i]);
 					}
 					for(int i = attractorSize; i < m; i++){
-						if(z[i] > zThreshold){
+						if(vec[i].val() > zThreshold){
 							metaIdx.add(vec[i]);
 						}else{
 							break;
