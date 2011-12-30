@@ -57,7 +57,7 @@ public class CNVFinder {
 		ArrayList<Chromosome> chr2 = new ArrayList<Chromosome>();
 		chr2.add(chrs.get(chrs.size()-1));
 		
-		Converger cvg = new Converger(0, 1, System.currentTimeMillis(), "FIXEDSIZE", 0.05f, 100, 0.7f, false);
+		Converger cvg = new Converger(0, 1, System.currentTimeMillis(), "FIXEDSIZE", 100, false);
 		System.out.println("Finding CNVs...");
 		
 		cvg.findCNV(ma, chr2, 10);

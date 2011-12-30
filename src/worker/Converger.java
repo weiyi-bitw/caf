@@ -16,12 +16,10 @@ import org.apache.commons.math.distribution.NormalDistributionImpl;
 import util.StatOps;
 
 public class Converger extends DistributedWorker{
-	private static double fdrThreshold = 0.05;
-	private static float zThreshold = 3;
+	private static float zThreshold = 10;
 	private static int maxIter = 100;
-	private static float corrThreshold = 0.7f;
 	private static boolean rankBased = false;
-	private static int attractorSize = 20;
+	private static int attractorSize = 10; // minimum size of an attractor
 	private static String convergeMethod = "FIXEDSIZE";
 	private static int bins = 7;
 	private static int splineOrder = 3;
@@ -131,11 +129,9 @@ public class Converger extends DistributedWorker{
 	public Converger(int id, int totalComputers, long jobID){
 		super(id, totalComputers, jobID);
 	}
-	public Converger(int id, int totalComputers, long jobID, String method, double fdrTh, int maxIter, float corrTh, boolean rankBased){
+	public Converger(int id, int totalComputers, long jobID, String method, int maxIter, boolean rankBased){
 		super(id, totalComputers, jobID);
-		Converger.fdrThreshold = fdrTh;
 		Converger.maxIter = maxIter;
-		Converger.corrThreshold = corrTh;
 		Converger.rankBased = rankBased;
 		Converger.convergeMethod = method;
 	}
@@ -398,10 +394,11 @@ public class Converger extends DistributedWorker{
 			float[] mi = itc.getAllMIWith(val[idx], val);
 			ArrayList<ValIdx> metaIdx = new ArrayList<ValIdx>();
 			ValIdx[] vec = new ValIdx[m];
-			for(int i = 0; i < m; i++){
-				vec[i] = new ValIdx(i, mi[i]);
-			}
+			
 			if(convergeMethod.equals("FIXEDSIZE")){
+				for(int i = 0; i < m; i++){
+					vec[i] = new ValIdx(i, mi[i]);
+				}
 				Arrays.sort(vec);
 				for(int i = 0; i < attractorSize; i++){
 					metaIdx.add(vec[i]);
@@ -409,13 +406,20 @@ public class Converger extends DistributedWorker{
 			}else if(convergeMethod.equals("ZSCORE")){
 				float[] z = StatOps.xToZ(mi, m);
 				for(int i = 0; i < m; i++){
+					vec[i] = new ValIdx(i, z[i]);
+				}
+				Arrays.sort(vec);
+				for(int i = 0; i < attractorSize; i++){
+					metaIdx.add(vec[i]);
+				}
+				for(int i = attractorSize; i < m; i++){
 					if(z[i] > zThreshold){
 						metaIdx.add(vec[i]);
+					}else{
+						break;
 					}
 				}
-				Collections.sort(metaIdx);
 			}
-			
 			int cnt = 0;
 			ArrayList<ValIdx> preMetaIdx = new ArrayList<ValIdx>();
 			preMetaIdx.addAll(metaIdx);
@@ -427,9 +431,7 @@ public class Converger extends DistributedWorker{
 			 */
 			
 			while(cnt < maxIter){
-				
 				// cannot find significant associated genes, exit.
-				
 				if(metaIdx.size() == 0){
 					//System.out.println("Empty set, exit.");
 					break;
@@ -442,30 +444,31 @@ public class Converger extends DistributedWorker{
 				mi = itc.getAllMIWith(metaGene, val);
 				metaIdx = new ArrayList<ValIdx>();
 				vec = new ValIdx[m];
-				for(int i = 0; i < m; i++){
-					vec[i] = new ValIdx(i, mi[i]);
-				}
 				if(convergeMethod.equals("FIXEDSIZE")){
+					for(int i = 0; i < m; i++){
+						vec[i] = new ValIdx(i, mi[i]);
+					}
 					Arrays.sort(vec);
 					for(int i = 0; i < attractorSize; i++){
 						metaIdx.add(vec[i]);
 					}
 				}else if(convergeMethod.equals("ZSCORE")){
 					float[] z = StatOps.xToZ(mi, m);
-					
 					metaIdx = new ArrayList<ValIdx>();
 					for(int i = 0; i < m; i++){
-						/*if(r[i] > corrThreshold){
-							metaIdx.add(i);
-						}
-						if(padj[i] < fdrThreshold){
-							metaIdx.add(i);
-						}*/
+						vec[i] = new ValIdx(i, z[i]);
+					}
+					Arrays.sort(vec);
+					for(int i = 0; i < attractorSize; i++){
+						metaIdx.add(vec[i]);
+					}
+					for(int i = attractorSize; i < m; i++){
 						if(z[i] > zThreshold){
 							metaIdx.add(vec[i]);
+						}else{
+							break;
 						}
 					}
-					Collections.sort(metaIdx);
 				}
 				if(preMetaIdx.equals(metaIdx)){
 					/*System.out.println("Converged."); 
@@ -491,9 +494,7 @@ public class Converger extends DistributedWorker{
 			pw.println();
 		}
 		pw.close();
-		
-	}
-	
+	}	
 	public void setZThreshold(float z) throws MathException{
 		Converger.zThreshold = z;
 	}

@@ -30,16 +30,13 @@ public class CorrAttractorFinder {
 	private static int segment = 0;
 	private static int numSegments = 1;
 	private static long jobID;
-	private static int minSize = 0;
+	private static int minSize = 10;
 	private static boolean debugging = false;
 	private static boolean rankBased = false;
-	private static double fdrThreshold = 0.05;
 	private static String breakPoint = null;
 	private static int maxIter = 100;
 	private static boolean rowNorm = false;
-	private static float corrThreshold = 0.7f;
 	private static float zThreshold = -1;
-	private static int attractorSize = 20;
 	private static String convergeMethod = "FIXEDSIZE";
 	
 	private static int bins = 7;
@@ -169,7 +166,7 @@ public class CorrAttractorFinder {
 	        }
 	    	System.out.printf("%-25s%s\n", "Rank-based correlation:", rankBased);
 	    	
-	    	confLine = config.getProperty("fdr");
+	    	/*confLine = config.getProperty("fdr");
 	    	if (confLine != null && confLine.length() > 0) {
 	            try {
 	               fdrThreshold = Double.parseDouble(confLine);
@@ -177,7 +174,7 @@ public class CorrAttractorFinder {
 	            	System.out.println("WARNING: Couldn't parse FDR threshold: " + confLine + ", using default = 0.05.");
 	            }
 	        }
-	    	System.out.printf("%-25s%s\n", "FDR threshold:", fdrThreshold);
+	    	System.out.printf("%-25s%s\n", "FDR threshold:", fdrThreshold);*/
 	    	
 	    	confLine = config.getProperty("max_iter");
 	    	if (confLine != null && confLine.length() > 0) {
@@ -199,7 +196,7 @@ public class CorrAttractorFinder {
 	        }
 	    	System.out.printf("%-25s%s\n", "Row Normalization:", rowNorm);
 	    	
-	    	confLine = config.getProperty("corr_threshold");
+	    	/*confLine = config.getProperty("corr_threshold");
 	    	if (confLine != null && confLine.length() > 0) {
 	            try {
 	               corrThreshold = Float.parseFloat(confLine);
@@ -208,7 +205,7 @@ public class CorrAttractorFinder {
 	            }
 	        }
 	    	System.out.printf("%-25s%s\n", "Correlation Threshold:", corrThreshold);
-	    	
+	    	*/
 	    	confLine = config.getProperty("z_threshold");
 	    	if (confLine != null && confLine.length() > 0) {
 	            try {
@@ -231,7 +228,7 @@ public class CorrAttractorFinder {
 	        }
 	    	System.out.printf("%-25s%s\n", "Min Size:", minSize);
 	    	
-	    	confLine = config.getProperty("attractor_size");
+	    	/*confLine = config.getProperty("attractor_size");
 	    	if (confLine != null && confLine.length() > 0) {
 	            try {
 	               attractorSize = Integer.parseInt(confLine);
@@ -240,7 +237,7 @@ public class CorrAttractorFinder {
 	            }
 	        }
 	    	System.out.printf("%-25s%s\n", "Fixed Attractor Size:", attractorSize);
-	    	
+	    	*/
 	    	
 	    	confLine = config.getProperty("bins");
 	    	if (confLine != null && confLine.length() > 0) {
@@ -305,8 +302,8 @@ public class CorrAttractorFinder {
 		GeneSet.setProbeNames(ma.getProbes());
 		GeneSet.setAnnotations(annot);
 		Scheduler scdr = new Scheduler(segment, numSegments, jobID);
-		Converger cvg = new Converger(segment, numSegments, jobID, convergeMethod, fdrThreshold, maxIter, corrThreshold, rankBased);
-		cvg.setAttractorSize(attractorSize);
+		Converger cvg = new Converger(segment, numSegments, jobID, convergeMethod, maxIter, rankBased);
+		cvg.setAttractorSize(minSize);
 		cvg.setMIParameter(bins, splineOrder);
 		int fold = (int) Math.round(Math.sqrt(numSegments));
 		if(!debugging)
@@ -338,7 +335,7 @@ public class CorrAttractorFinder {
 				}
 				cvg.findAttractor(val, data);
 			}else if(command.equalsIgnoreCase("CNV")){
-				cvg.findCNV(ma, chrs, attractorSize);
+				cvg.findCNV(ma, chrs, minSize);
 			}
 			
 			// fold the number of workers to the squre root of the total number of workers
