@@ -52,7 +52,7 @@ public class Scheduler extends DistributedWorker{
 
 
 	}
-	public void waitTillFinished()throws Exception{
+	/*public void waitTillFinished()throws Exception{
 		this.finishFlag();
 		File dir = new File(".finish/" + jobID);
 	    String[] allFiles = dir.list();
@@ -76,7 +76,7 @@ public class Scheduler extends DistributedWorker{
 		}
 	    System.out.println("Finished. Proceed...");
 	    
-		/*
+		
 		if(id == 0){
 	    	System.out.println("Wait for 20 sec...");
 	    	Thread.sleep(20000);
@@ -84,8 +84,8 @@ public class Scheduler extends DistributedWorker{
 	    }else{
 	    	while(dir.exists());
 	    }
-	    */
-	}
+	    
+	}*/
 	
 // Latest version of waitTillFinished -- Use this!!
 	public void waitTillFinished(int iteration)throws Exception{
