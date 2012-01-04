@@ -96,7 +96,7 @@ public class GeneSetMerger extends DistributedWorker{
 			
 			int cnt = 0;
 			for(GeneSet gs : allGeneSets){
-				if(gs.size() > minSize){
+				//if(gs.size() >= minSize){
 					String name = "Attractor" + String.format("%03d", cnt);
 					
 					gs.sort();
@@ -130,7 +130,7 @@ public class GeneSetMerger extends DistributedWorker{
 					
 					pw4.close();
 					cnt++;
-				}
+				//}
 			}
 			//pw3.close();
 			pw2.close();

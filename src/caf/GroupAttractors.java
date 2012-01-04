@@ -77,7 +77,7 @@ public class GroupAttractors {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String path = "/home/weiyi/workspace/javaworks/caf/output/ov.gse9891L3.rownorm.z11";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/coad.gse17536.rownorm.z6";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
@@ -86,7 +86,7 @@ public class GroupAttractors {
 		int minSize = 10;
 		
 		System.out.println("Loading files...");
-		DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/gse9891/ge.20765x285.var.txt");
+		DataFile ma = DataFile.parse("/home/weiyi/workspace/data/coad/gse17536/ge.20765x177.var.txt");
 		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt");
 		//ma.normalizeRows();
 		int m = ma.getNumRows();
