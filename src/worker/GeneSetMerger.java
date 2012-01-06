@@ -150,5 +150,7 @@ public class GeneSetMerger extends DistributedWorker{
 	public void setMinSize(int minSize){
 		GeneSetMerger.minSize = minSize;
 	}
-	
+	public static void addMergeCount(){
+		mergeCount++;
+	}
 }

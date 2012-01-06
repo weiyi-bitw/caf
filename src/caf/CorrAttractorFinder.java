@@ -363,6 +363,9 @@ public class CorrAttractorFinder {
 			if(scdr.allFinished(fold)|| (breakPoint.equalsIgnoreCase("output") && segment==0)){
 				GeneSetMerger mg = new GeneSetMerger(segment, 1, jobID);
 				mg.setMinSize(minSize);
+				if(breakPoint.equalsIgnoreCase("output")){
+					GeneSetMerger.addMergeCount();
+				}
 				mg.mergeGeneSets("tmp/" + jobID + "/merge" + (GeneSetMerger.mergeCount-1), fold, true);
 			}
 		}
