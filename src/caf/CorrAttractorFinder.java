@@ -357,7 +357,7 @@ public class CorrAttractorFinder {
 			}
 			
 		}
-		if(!debugging  || breakPoint.equalsIgnoreCase("output"))
+		if(!debugging  || breakPoint.equalsIgnoreCase("output") || breakPoint.equalsIgnoreCase("merge"))
 		{
 			if(annot != null)GeneSet.setAnnotations(annot);
 			if(scdr.allFinished(fold)|| (breakPoint.equalsIgnoreCase("output") && segment==0)){
