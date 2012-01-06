@@ -77,16 +77,20 @@ public class GroupAttractors {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String path = "/home/weiyi/workspace/javaworks/caf/output/coad.gse17536.rownorm.z6";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/noMinSize/coad.gse17536.rownorm.z8";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
 		
 		boolean annotation = false;
-		int minSize = 10;
+		int minSize = 2;
 		
 		System.out.println("Loading files...");
+		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/brca/gse2034/ge.13271x286.var.txt");
+		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt");
 		DataFile ma = DataFile.parse("/home/weiyi/workspace/data/coad/gse17536/ge.20765x177.var.txt");
+		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt");
+		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/gse9891/ge.20765x285.var.txt");
 		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt");
 		//ma.normalizeRows();
 		int m = ma.getNumRows();
@@ -135,6 +139,7 @@ public class GroupAttractors {
 				//System.out.print(gs.getName());
 				//int sz = gs.size();
 				int sz = gs.getNumChild();
+				//int sz = minSize;
 				float lastMI = gs.getGeneIdx()[minSize-1].val();
 				for(int j = 0; j < N; j++){
 					if(j == i){
@@ -151,6 +156,7 @@ public class GroupAttractors {
 						//System.out.print("\t" + gs2.getName());
 						//int sz2 = gs2.size();
 						int sz2 = gs2.getNumChild();
+						//int sz2 = minSize;
 						if(sz2 > sz){
 							delete=true;
 							break;
