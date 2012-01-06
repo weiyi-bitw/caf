@@ -279,8 +279,8 @@ public class CorrAttractorFinder {
 			if(command.equalsIgnoreCase("DEBUG")){
 				System.out.println("**** Debugging mode");
 				debugging = true;
-				jobID = Long.parseLong(args[1]);
-				breakPoint = args[2];
+				jobID = Long.parseLong(args[2]);
+				breakPoint = args[3];
 				
 				System.out.printf("%-25s%s\n", "ID:", jobID);
 				System.out.printf("%-25s%s\n", "BreakPoint:", breakPoint);
