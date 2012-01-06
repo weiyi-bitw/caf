@@ -248,8 +248,11 @@ public class GeneSet implements Comparable<GeneSet>{
 		}
 		
 		s = s + "\t" + numChild;
+		int cnt = 0;
 		for(ValIdx vi : geneIdx){
 				s = s + "\t" + vi.idx() + "," + vi.val();
+				if(!Float.isNaN(zScore[cnt])) s = s + "," + zScore[cnt];
+				cnt++;
 		}
 		return s;
 	}
@@ -270,6 +273,7 @@ public class GeneSet implements Comparable<GeneSet>{
 				s = s + "\t" + probeNames.get(vi.idx()) + ":" + vi.val();
 			}
 			if(!Float.isNaN(zScore[cnt])) s = s + ":" + zScore[cnt];
+			cnt++;
 		}
 		return s;
 	}
