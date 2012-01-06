@@ -46,6 +46,7 @@ public class GeneSetMerger extends DistributedWorker{
 					}
 					int nt = tokens.length;
 					ValIdx[] geneIdx = new ValIdx[nt-2];
+					float[] Zs = new float[nt-2];
 					
 					//int[] gIdx = new int[nt-2];
 					//float[] wts = new float[nt-2]; // mi with metagene
@@ -53,11 +54,12 @@ public class GeneSetMerger extends DistributedWorker{
 					for(int j = 2; j < nt; j++){
 						t2 = tokens[j].split(",");
 						geneIdx[j-2] = new ValIdx(Integer.parseInt(t2[0]), Float.parseFloat(t2[1]));
+						Zs[j-2] = Float.parseFloat(t2[2]);
 						//gIdx[j-2] = Integer.parseInt(t2[0]);
 						//wts[j-2] = Float.parseFloat(t2[1]);
 					}
 					//GeneSet rookie = new GeneSet(attr,gIdx, wts, numChild); 
-					GeneSet rookie = new GeneSet(attr, geneIdx, numChild);
+					GeneSet rookie = new GeneSet(attr, geneIdx, Zs, numChild);
 					int origSize = allGeneSets.size();
 					if(origSize == 0){
 						allGeneSets.add(rookie);

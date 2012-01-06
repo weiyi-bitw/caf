@@ -17,6 +17,7 @@ public class GeneSet implements Comparable<GeneSet>{
 	HashSet<Integer> attractees;
 	ArrayList<String> geneNames;
 	ValIdx[] geneIdx;
+	float[] zScore;
 	String name;
 	int sz;
 	int minIdx; // used as an temporary id
@@ -85,6 +86,22 @@ public class GeneSet implements Comparable<GeneSet>{
 		Arrays.sort(this.geneIdx);
 	}
 	
+	public GeneSet(HashSet<Integer> attractees, ValIdx[] idx, float[] zScore, int numChild){
+		this.geneIdx = idx;
+		this.zScore = zScore;
+		if(annot != null){
+			HashSet<String> genes = new HashSet<String>();
+			for(ValIdx vi : geneIdx){
+				genes.add(annot.getGene(probeNames.get(vi.idx())));
+			}
+			this.sz = genes.size();
+		}else{
+			this.sz = geneIdx.length;
+		}
+		this.attractees = attractees;
+		this.numChild = numChild;
+		Arrays.sort(this.geneIdx);
+	}
 	
 	public static void setProbeNames(ArrayList<String> probeNames){
 		GeneSet.probeNames = probeNames;
@@ -244,6 +261,7 @@ public class GeneSet implements Comparable<GeneSet>{
 	public String toProbes(){
 		String s = "";
 		boolean first = true;
+		int cnt = 0;
 		for(ValIdx vi : geneIdx){
 			if(first){
 				s = probeNames.get(vi.idx()) + ":" + vi.val();
@@ -251,6 +269,7 @@ public class GeneSet implements Comparable<GeneSet>{
 			}else{
 				s = s + "\t" + probeNames.get(vi.idx()) + ":" + vi.val();
 			}
+			if(!Float.isNaN(zScore[cnt])) s = s + ":" + zScore[cnt];
 		}
 		return s;
 	}
@@ -260,12 +279,18 @@ public class GeneSet implements Comparable<GeneSet>{
 		ArrayList<String> output = new ArrayList<String>();
 		
 		String s;
+		int cnt = 0;
 		for(ValIdx vi : geneIdx){
 			s = annot.getGene(probeNames.get(vi.idx()));
 			if(!geneNames.contains(s)){
 				geneNames.add(s);
-				output.add(s + ":" + vi.val());
+				if(Float.isNaN(zScore[cnt])){
+					output.add(s + ":" + vi.val());
+				}else{
+					output.add(s + ":" + vi.val() + ":" + zScore[cnt]);
+				}
 			}
+			cnt++;
 		}
 		s = "";
 		boolean first = true;
@@ -424,6 +449,7 @@ public class GeneSet implements Comparable<GeneSet>{
 			s +=  "\t" + annot.getGene(probeNames.get(geneIdx[i].idx()));
 		}
 		s += "\t" + geneIdx[i].val();
+		if(!Float.isNaN(zScore[i])) s = s + "\t" + zScore[i];
 		
 		return s;
 	}

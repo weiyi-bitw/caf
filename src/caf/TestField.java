@@ -96,7 +96,11 @@ public class TestField {
 			path = path + "/";
 		}
 		
-		System.out.println("Loading files...");
+		String s = "NaN";
+		float f= Float.parseFloat(s);
+		System.out.println(f);
+		
+		/*System.out.println("Loading files...");
 		DataFile ma = DataFile.parse(path + "ge.12042x582.txt");
 		//ma.normalizeRows();
 		int m = ma.getNumRows();
@@ -104,7 +108,7 @@ public class TestField {
 		float[][] data = ma.getData();
 		
 		ArrayList<String> gs = new ArrayList<String>();
-		/*BufferedReader br = new BufferedReader(new FileReader("COL11A1_50"));
+		BufferedReader br = new BufferedReader(new FileReader("COL11A1_50"));
 		br.readLine();
 		String line = br.readLine();
 		while(line != null){
@@ -112,7 +116,7 @@ public class TestField {
 			gs.add(tokens[0]);
 			line = br.readLine();
 		}
-		br.close();*/
+		br.close();
 		
 		gs.add("AGK");
 		gs.add("NDUFS8");
@@ -170,7 +174,7 @@ public class TestField {
 			}
 			pw.println();
 		}
-		pw.close();
+		pw.close();*/
 		
 		/*String path = "/home/weiyi/workspace/javaworks/caf/output/207/";
 		
