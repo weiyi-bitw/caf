@@ -360,7 +360,7 @@ public class CorrAttractorFinder {
 		if(!debugging  || breakPoint.equalsIgnoreCase("output") || breakPoint.equalsIgnoreCase("merge"))
 		{
 			if(annot != null)GeneSet.setAnnotations(annot);
-			if(scdr.allFinished(fold)|| (breakPoint.equalsIgnoreCase("output") && segment==0)){
+			if((scdr.allFinished(fold)|| (breakPoint.equalsIgnoreCase("output")) && segment==0)){
 				GeneSetMerger mg = new GeneSetMerger(segment, 1, jobID);
 				mg.setMinSize(minSize);
 				if(breakPoint.equalsIgnoreCase("output")){

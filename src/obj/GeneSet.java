@@ -272,7 +272,9 @@ public class GeneSet implements Comparable<GeneSet>{
 			}else{
 				s = s + "\t" + probeNames.get(vi.idx()) + ":" + vi.val();
 			}
-			if(!Float.isNaN(zScore[cnt])) s = s + ":" + zScore[cnt];
+			if(zScore != null){
+				if(!Float.isNaN(zScore[cnt])) s = s + ":" + zScore[cnt];
+			}
 			cnt++;
 		}
 		return s;
@@ -288,10 +290,12 @@ public class GeneSet implements Comparable<GeneSet>{
 			s = annot.getGene(probeNames.get(vi.idx()));
 			if(!geneNames.contains(s)){
 				geneNames.add(s);
-				if(Float.isNaN(zScore[cnt])){
-					output.add(s + ":" + vi.val());
-				}else{
-					output.add(s + ":" + vi.val() + ":" + zScore[cnt]);
+				if(zScore != null){
+					if(Float.isNaN(zScore[cnt])){
+						output.add(s + ":" + vi.val());
+					}else{
+						output.add(s + ":" + vi.val() + ":" + zScore[cnt]);
+					}
 				}
 			}
 			cnt++;

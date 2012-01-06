@@ -77,7 +77,7 @@ public class GroupAttractors {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String path = "/home/weiyi/workspace/javaworks/caf/output/noMinSize/coad.gse17536.rownorm.z8";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/coad.tcga.rownorm.z12";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
@@ -87,8 +87,8 @@ public class GroupAttractors {
 		
 		System.out.println("Loading files...");
 		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/brca/gse2034/ge.13271x286.var.txt");
-		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt");
-		DataFile ma = DataFile.parse("/home/weiyi/workspace/data/coad/gse17536/ge.20765x177.var.txt");
+		DataFile ma = DataFile.parse("/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt");
+		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/coad/gse17536/ge.20765x177.var.txt");
 		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt");
 		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/gse9891/ge.20765x285.var.txt");
 		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt");
