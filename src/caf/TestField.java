@@ -96,9 +96,9 @@ public class TestField {
 			path = path + "/";
 		}
 		
-		String s = "NaN";
-		float f= Float.parseFloat(s);
-		System.out.println(f);
+		String s = null;
+		boolean b = s.equalsIgnoreCase("a");
+		System.out.println(b);
 		
 		/*System.out.println("Loading files...");
 		DataFile ma = DataFile.parse(path + "ge.12042x582.txt");

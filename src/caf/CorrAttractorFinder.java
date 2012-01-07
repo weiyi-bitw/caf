@@ -33,7 +33,7 @@ public class CorrAttractorFinder {
 	private static int minSize = 10;
 	private static boolean debugging = false;
 	private static boolean rankBased = false;
-	private static String breakPoint = null;
+	private static String breakPoint = "";
 	private static int maxIter = 100;
 	private static boolean rowNorm = false;
 	private static float zThreshold = -1;
