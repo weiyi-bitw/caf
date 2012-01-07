@@ -20,7 +20,7 @@ import obj.GeneSet;
 import worker.Converger.ValIdx;
 
 public class GroupAttractors {
-	
+	static boolean miAndZscore = false;
 	static GeneSet parseAttractor(String file, HashMap<String, Integer> rowmap) throws Exception{
 		BufferedReader br = new BufferedReader(new FileReader(file));
 		br.readLine();
@@ -48,14 +48,22 @@ public class GroupAttractors {
 			int nt = tokens.length;
 			int numChild = Integer.parseInt(tokens[1].split(":")[1]);
 			ArrayList<ValIdx> viList = new ArrayList<ValIdx>();
+			float[] zscores = new float[nt-2];
 			for(int j = 2; j < nt; j++){
 				String[] t2 = tokens[j].split(":");
 				int i = rowmap.get(t2[0]);
 				float v = Float.parseFloat(t2[1]);
 				viList.add(new ValIdx(i, v));
-				
+				if(t2.length>2){
+					miAndZscore = true;
+					zscores[j-2] = Float.parseFloat(t2[2]);
+				}
 			}
-			allAttractors.add(new GeneSet(name, viList.toArray(new ValIdx[0]), numChild));
+			if(miAndZscore){
+				allAttractors.add(new GeneSet(name, viList.toArray(new ValIdx[0]), zscores, numChild));
+			}else{
+				allAttractors.add(new GeneSet(name, viList.toArray(new ValIdx[0]), numChild));
+			}
 			line = br.readLine();
 		}
 		br.close();
@@ -77,18 +85,20 @@ public class GroupAttractors {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String path = "/home/weiyi/workspace/javaworks/caf/output/coad.tcga.rownorm.z12";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/freeRun/coad.gse17536.rownorm.z7";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
 		
 		boolean annotation = false;
-		int minSize = 2;
+		boolean attracteeFilter = false;
+		boolean compareByMI = false; // compare by MI or z-score if tied
+		int minSize = 10;
 		
 		System.out.println("Loading files...");
 		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/brca/gse2034/ge.13271x286.var.txt");
-		DataFile ma = DataFile.parse("/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt");
-		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/coad/gse17536/ge.20765x177.var.txt");
+		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt");
+		DataFile ma = DataFile.parse("/home/weiyi/workspace/data/coad/gse17536/ge.20765x177.var.txt");
 		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt");
 		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/gse9891/ge.20765x285.var.txt");
 		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt");
@@ -138,9 +148,8 @@ public class GroupAttractors {
 			}else{
 				//System.out.print(gs.getName());
 				//int sz = gs.size();
-				int sz = gs.getNumChild();
-				//int sz = minSize;
-				float lastMI = gs.getGeneIdx()[minSize-1].val();
+				int sz = attracteeFilter? gs.getNumChild() : minSize;
+				float lastMI = compareByMI? gs.getGeneIdx()[minSize-1].val() : gs.getZ(minSize-1);
 				for(int j = 0; j < N; j++){
 					if(j == i){
 						continue;
@@ -155,14 +164,13 @@ public class GroupAttractors {
 					//else{
 						//System.out.print("\t" + gs2.getName());
 						//int sz2 = gs2.size();
-						int sz2 = gs2.getNumChild();
-						//int sz2 = minSize;
+						int sz2 = attracteeFilter? gs2.getNumChild() : minSize;
 						if(sz2 > sz){
 							delete=true;
 							break;
 						}else if(sz2 == sz){
 							//System.out.print("\t" + "here");
-							float lastMI2 = gs2.getGeneIdx()[minSize-1].val();
+							float lastMI2 = compareByMI? gs2.getGeneIdx()[minSize-1].val(): gs2.getZ(minSize-1);
 							if(lastMI2 > lastMI){
 								
 								delete = true;

@@ -53,7 +53,22 @@ public class GeneSet implements Comparable<GeneSet>{
 		}
 		this.numChild = numChild;
 	}
-	
+	public GeneSet(String name, ValIdx[] idx, float[] zScore, int numChild){
+		this.name = name;
+		Arrays.sort(idx);
+		this.geneIdx = idx;
+		if(annot != null){
+			HashSet<String> genes = new HashSet<String>();
+			for(ValIdx vi : geneIdx){
+				genes.add(annot.getGene(probeNames.get(vi.idx())));
+			}
+			this.sz = genes.size();
+		}else{
+			this.sz = geneIdx.length;
+		}
+		this.numChild = numChild;
+		this.zScore = zScore;
+	}
 	public GeneSet(HashSet<Integer> attractees, ValIdx[] idx){
 		Arrays.sort(idx);
 		this.geneIdx = idx;
@@ -443,6 +458,9 @@ public class GeneSet implements Comparable<GeneSet>{
 	}
 	public ValIdx[] getGeneIdx(){
 		return geneIdx;
+	}
+	public float getZ(int i ){
+		return zScore[i];
 	}
 	/*public float getOneWeight(int i ){
 		return weightMap.get(i)/numChild;
