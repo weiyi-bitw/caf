@@ -4,8 +4,9 @@ annot=/home/weiyi/workspace/javaworks/goldilox/testAnnot.csv
 
 # =======parameters======
 rank_based=false
-#fdrThreshold=0.05
-z_threshold=8
-row_normalization=false
+z_threshold=2
+row_normalization=true
 min_size=0
-attractor_size=4
+converge_method=ZSCORE
+bins=6
+spline_order=3
