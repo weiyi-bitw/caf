@@ -136,9 +136,39 @@ public class GroupAttractors {
 		
 		ArrayList<Integer> deleteIdx = new ArrayList<Integer>();
 		
-		System.out.println("Filtering gene sets...");
+		System.out.println("Merging gene sets...");
 		int progress = 0;
+		int numGroups = 0;
+		for(int i = 0; i < N; i++){
+			progress++;
+			GeneSet gs = allGeneSet.get(i);
+			int group = numGroups;
+			if(gs.grouped()){
+				group = gs.getGroup();
+			}
+			int maximumOvlp = 0;
+			int maximumOvlpIdx = -1;
+			for(int j = 0; j < N; j++){
+				if(i==j){continue;}
+				GeneSet gs2 = allGeneSet.get(j);
+				if(gs2.size() < minSize) continue;
+				int ovlp = gs.overlapWith(gs2);
+				if(ovlp > maximumOvlp){
+					maximumOvlp = ovlp;
+					maximumOvlpIdx = j;
+				}
+			}
+			GeneSet gsMax = allGeneSet.get(maximumOvlpIdx);
+			if(gsMax.grouped()){
+				group = gsMax.getGroup();
+			}else{
+				
+			}
+		}
 		
+		
+		
+		/*
 		for(int i = 0; i < N; i++){
 			progress++;
 			boolean delete = false;
@@ -194,7 +224,8 @@ public class GroupAttractors {
 			allGeneSet.remove(i.intValue());
 		}
 		N = allGeneSet.size();
-		System.out.println(N + " gene sets are left.");
+		System.out.println(N + " gene sets are left.");*/
+		
 		System.out.println("Output to files...");
 		
 		PrintWriter pw = new PrintWriter(new FileWriter(path + "ClusterLeaders.txt"));

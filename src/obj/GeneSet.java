@@ -22,6 +22,8 @@ public class GeneSet implements Comparable<GeneSet>{
 	int sz;
 	int minIdx; // used as an temporary id
 	int numChild;
+	int group;
+	boolean grouped = false;
 	
 	public GeneSet(ValIdx[] idx){
 		Arrays.sort(idx);
@@ -478,5 +480,15 @@ public class GeneSet implements Comparable<GeneSet>{
 		if(!Float.isNaN(zScore[i])) s = s + "\t" + zScore[i];
 		
 		return s;
+	}
+	public void setGroup(int i){
+		this.grouped = true;
+		this.group = i;
+	}
+	public int getGroup(){
+		return this.group;
+	}
+	public boolean grouped(){
+		return this.grouped;
 	}
 }

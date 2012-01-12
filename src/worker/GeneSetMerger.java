@@ -54,7 +54,7 @@ public class GeneSetMerger extends DistributedWorker{
 					for(int j = 2; j < nt; j++){
 						t2 = tokens[j].split(",");
 						geneIdx[j-2] = new ValIdx(Integer.parseInt(t2[0]), Float.parseFloat(t2[1]));
-						Zs[j-2] = Float.parseFloat(t2[2]);
+						Zs[j-2] = t2.length > 2 ? Float.parseFloat(t2[2]) : Float.NaN;
 						//gIdx[j-2] = Integer.parseInt(t2[0]);
 						//wts[j-2] = Float.parseFloat(t2[1]);
 					}
