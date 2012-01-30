@@ -241,20 +241,17 @@ public class Converger extends DistributedWorker{
 		return metaIdx;
 		
 	}
-	public void findCNV(DataFile ma, ArrayList<Chromosome> chrs, int winsize) throws Exception{
-		int n = ma.getNumCols();
+	public void findCNV(float[][] data, float[][] val, ArrayList<Chromosome> chrs, float zth) throws Exception{
+		int n = data[0].length;
+		int m = data.length;
 		
-		int numTasks = 0;
-		// Calculate total number of tasks
+		int mm = 0;
 		for(Chromosome chr : chrs){
-			int sz = chr.size() - winsize + 1;
-			if (sz > 0){
-				numTasks += sz;
-			}
+			mm += chr.size();
 		}
+		int start = id * mm / totalComputers;
+		int end = (id+1) * mm / totalComputers;
 		
-		int start = id * numTasks / totalComputers;
-		int end = (id+1) * numTasks / totalComputers;
 		
 		System.out.println("Processing task " + (start+1) + " to " + end);
 		
@@ -266,47 +263,41 @@ public class Converger extends DistributedWorker{
 		for(Chromosome chr : chrs){
 			System.out.println("At chromosome " + chr.name() + "...");
 			ArrayList<ValIdx> geneIdx = chr.geneIdx();
-			// sort gene idx ascendantly
+			/*// sort gene idx ascendantly
 			Collections.sort(geneIdx);
 			Collections.reverse(geneIdx);
+			*/
+			int k = geneIdx.size();
 			
-			float[][] data = ma.getSubProbes(geneIdx).getData();
-			int mm = data.length;
-			
-			System.out.println("Genes: " + mm);
-			
-			float[][] val = rankBased? new float[mm][n] : data;
-			if(rankBased){
-				for(int i = 0; i < mm; i++){
-					val[i] = StatOps.rank(data[i]);
-				}
-			}
-			
-			for(int idx = 0; idx < mm-winsize+1; idx++){
+			for(int i = 0; i < k; i++){
 				if(tt >= start && tt < end){
-					System.out.println("Processing " + tt + "...");
+					int idx = geneIdx.get(i).idx;
+					System.out.print("Processing " + tt + "...");
 					/*
 					 * Step 1: find the genes that are significantly associated with the seed gene 
 					 *         as the initial metagene
 					 */
-					float[] row = getMetaGene(data, idx, winsize, n);
-					if(rankBased){
-						row = StatOps.rank(row);
-					}
-					float[] mi = itc.getAllMIWith(row, val);
+					float[] mi = itc.getAllMIWith(val[idx], val);
 					ArrayList<ValIdx> metaIdx = new ArrayList<ValIdx>();
 					
-					float[] z = StatOps.xToZ(mi, mm);
-					ValIdx[] vec = new ValIdx[mm];
-					for(int i = 0; i < mm; i++){
-						vec[i] = new ValIdx(i, z[i]);
+					float[] z = StatOps.xToZ(mi, m);
+					ValIdx[] vec = new ValIdx[m];
+					for(int j = 0; j < m; j++){
+						vec[j] = new ValIdx(j, z[j]);
 					}
 					Arrays.sort(vec);
-					for(int i = 0; i < winsize; i++){
-						metaIdx.add(vec[i]);
+					for(int j = 0; j < m; j++){
+						if(vec[j].val > zth){
+							if(geneIdx.contains(vec[j])){
+								metaIdx.add(vec[j]);
+							}
+						}else{
+							break;
+						}
 					}
 					
 					int cnt = 0;
+					ArrayList<ValIdx> prepreMetaIdx = new ArrayList<ValIdx>();
 					ArrayList<ValIdx> preMetaIdx = new ArrayList<ValIdx>();
 					preMetaIdx.addAll(metaIdx);
 					//System.out.println("Initial gene set size " + metaIdx.size() );
@@ -331,33 +322,52 @@ public class Converger extends DistributedWorker{
 						}
 						mi = itc.getAllMIWith(metaGene, val);
 						metaIdx = new ArrayList<ValIdx>();
-						vec = new ValIdx[mm];
-						z = StatOps.xToZ(mi, mm);
-						for(int i = 0; i < mm; i++){
-							vec[i] = new ValIdx(i, z[i]);
+						vec = new ValIdx[m];
+						z = StatOps.xToZ(mi, m);
+						for(int j = 0; j < m; j++){
+							vec[j] = new ValIdx(j, z[j]);
 						}
 						Arrays.sort(vec);
 						metaIdx = new ArrayList<ValIdx>();
-						for(int i = 0; i < winsize; i++){
-							metaIdx.add(vec[i]);
+						for(int j = 0; j < m; j++){
+							if(vec[j].val > zth){
+								if(geneIdx.contains(vec[j])){
+									metaIdx.add(vec[j]);
+								}
+							}else{
+								break;
+							}
 						}
 						if(preMetaIdx.equals(metaIdx)){
-							/*System.out.println("Converged."); 
+							System.out.print("Converged. "); 
 							System.out.println("Gene Set Size: " + metaIdx.size());
-							*/break;
-						}else{
+							break;
+						}else if (prepreMetaIdx.equals(metaIdx)){
+							System.out.println("Cycled.");
+							if(metaIdx.size() >= preMetaIdx.size()){
+								break;
+							}else{
+								metaIdx = preMetaIdx;
+								break;
+							}
+						}
+						else{
+							prepreMetaIdx = preMetaIdx;
 							preMetaIdx = metaIdx;
 							//System.out.println("Gene Set Size: " + metaIdx.size());
 							cnt++;
 						}
 						
 					}
+					if(cnt == maxIter){
+						System.out.println("Not converged.");
+					}
 					// first token: attractee index
-					pw.print(geneIdx.get(idx).idx());
+					pw.print(geneIdx.get(i).idx());
 					pw.print("\t" + 1);
 					if(metaIdx.size() > 1){
 						for(ValIdx vi: metaIdx){
-								pw.print("\t" + geneIdx.get(vi.idx).idx() + "," + vi.val);
+								pw.print("\t" + idx + "," + vi.val);
 						}
 					}else{
 						pw.print("\tNA");
@@ -370,7 +380,122 @@ public class Converger extends DistributedWorker{
 		}
 		pw.close();
 	}
-		
+	public ArrayList<ValIdx> findAttractor(float[][] data, float[] vec)throws Exception{
+		int m = data.length;
+		int n = data[0].length;
+		ITComputer itc = new ITComputer(bins, splineOrder, id, totalComputers);
+			/*
+			 * Step 1: find the genes that are significantly associated with the seed gene 
+			 *         as the initial metagene
+			 */
+			
+			float[] mi = itc.getAllMIWith(vec, data);
+			ArrayList<ValIdx> metaIdx = new ArrayList<ValIdx>();
+			ValIdx[] vecMI = new ValIdx[m];
+			for(int i = 0; i < m; i++){
+				vecMI[i] = new ValIdx(i, mi[i]);
+			}
+			ValIdx[] vecZ = new ValIdx[m];
+			
+			if(convergeMethod.equals("FIXEDSIZE")){
+				Arrays.sort(vecMI);
+				for(int i = 0; i < attractorSize; i++){
+					metaIdx.add(vecMI[i]);
+				}
+			}else if(convergeMethod.equals("ZSCORE")){
+				float[] z = StatOps.xToZ(mi, m);
+				for(int i = 0; i < m; i++){
+					vecZ[i] = new ValIdx(i, z[i]);
+				}
+				Arrays.sort(vecZ);
+				/*for(int i = 0; i < attractorSize; i++){
+					metaIdx.add(vecZ[i]);
+				}*/
+				for(int i = 0; i < m; i++){
+					if(vecZ[i].val() > zThreshold){
+						metaIdx.add(vecZ[i]);
+					}else{
+						break;
+					}
+				}
+			}
+			int cnt = 0;
+			ArrayList<ValIdx> prepreMetaIdx = new ArrayList<ValIdx>();
+			ArrayList<ValIdx> preMetaIdx = new ArrayList<ValIdx>();
+			preMetaIdx.addAll(metaIdx);
+			System.out.println("Initial gene set size " + metaIdx.size() );
+			
+			/*
+			 * Step 2: Calculate metagene, find the genes that have correlation exceeding the 
+			 *         threshold as the new metagene
+			 */
+			
+			while(cnt < maxIter){
+				// cannot find significant associated genes, exit.
+				if(metaIdx.size() == 0){
+					//System.out.println("Empty set, exit.");
+					break;
+				}
+				//System.out.print("Iteration " + cnt + "...");
+				float[] metaGene = getMetaGene(data,metaIdx, n);
+				if(rankBased){
+					metaGene = StatOps.rank(metaGene);
+				}
+				mi = itc.getAllMIWith(metaGene, data);
+				vecMI = new ValIdx[m];
+				for(int i = 0; i < m; i++){
+					vecMI[i] = new ValIdx(i, mi[i]);
+				}
+				metaIdx = new ArrayList<ValIdx>();
+				if(convergeMethod.equals("FIXEDSIZE")){
+					Arrays.sort(vecMI);
+					for(int i = 0; i < attractorSize; i++){
+						metaIdx.add(vecMI[i]);
+					}
+				}else if(convergeMethod.equals("ZSCORE")){
+					vecZ = new ValIdx[m];
+					float[] z = StatOps.xToZ(mi, m);
+					for(int i = 0; i < m; i++){
+						vecZ[i] = new ValIdx(i, z[i]);
+					}
+					Arrays.sort(vecZ);
+					/*for(int i = 0; i < attractorSize; i++){
+						metaIdx.add(vecZ[i]);
+					}*/
+					for(int i = 0; i < m; i++){
+						if(vecZ[i].val() > zThreshold){
+							metaIdx.add(vecZ[i]);
+						}else{
+							break;
+						}
+					}
+				}
+				if(preMetaIdx.equals(metaIdx)){
+					System.out.println("Converged."); 
+					System.out.println("Gene Set Size: " + metaIdx.size());
+					break;
+				}else if (prepreMetaIdx.equals(metaIdx)){
+					System.out.println("Cycled.");
+					if(metaIdx.size() >= preMetaIdx.size()){
+						break;
+					}else{
+						metaIdx = preMetaIdx;
+						break;
+					}
+				}
+				else{
+					prepreMetaIdx = preMetaIdx;
+					preMetaIdx = metaIdx;
+					System.out.println("Gene Set Size: " + metaIdx.size());
+					cnt++;
+				}
+				
+			}
+			if(cnt == maxIter){
+				System.out.println("Not converged.");
+			}
+			return metaIdx;
+	}
 	public void findAttractor(float[][] val, float[][] data) throws Exception{
 		int m = val.length;
 		int n = val[0].length;
@@ -385,7 +510,7 @@ public class Converger extends DistributedWorker{
 		prepare("geneset");
 		PrintWriter pw = new PrintWriter(new FileWriter("tmp/" + jobID + "/geneset/caf." + String.format("%05d", id)+".txt"));
 		for(int idx = start; idx < end; idx++){
-			System.out.println("Processing " + idx + "...");
+			System.out.print("Processing " + idx + "...");
 			/*
 			 * Step 1: find the genes that are significantly associated with the seed gene 
 			 *         as the initial metagene
@@ -422,6 +547,7 @@ public class Converger extends DistributedWorker{
 				}
 			}
 			int cnt = 0;
+			ArrayList<ValIdx> prepreMetaIdx = new ArrayList<ValIdx>();
 			ArrayList<ValIdx> preMetaIdx = new ArrayList<ValIdx>();
 			preMetaIdx.addAll(metaIdx);
 			//System.out.println("Initial gene set size " + metaIdx.size() );
@@ -472,15 +598,28 @@ public class Converger extends DistributedWorker{
 					}
 				}
 				if(preMetaIdx.equals(metaIdx)){
-					/*System.out.println("Converged."); 
-					System.out.println("Gene Set Size: " + metaIdx.size());
-					*/break;
-				}else{
+					System.out.println("Converged."); 
+					//System.out.println("Gene Set Size: " + metaIdx.size());
+					break;
+				}else if (prepreMetaIdx.equals(metaIdx)){
+					System.out.println("Cycled.");
+					if(metaIdx.size() >= preMetaIdx.size()){
+						break;
+					}else{
+						metaIdx = preMetaIdx;
+						break;
+					}
+				}
+				else{
+					prepreMetaIdx = preMetaIdx;
 					preMetaIdx = metaIdx;
 					//System.out.println("Gene Set Size: " + metaIdx.size());
 					cnt++;
 				}
 				
+			}
+			if(cnt == maxIter){
+				System.out.println("Not converged.");
 			}
 			// first token: attractee index
 			pw.print(idx);

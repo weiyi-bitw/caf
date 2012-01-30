@@ -13,6 +13,7 @@ public class GeneSet implements Comparable<GeneSet>{
 	static ArrayList<String> probeNames;
 	static Annotations annot;
 	static int lowestMergeFold = 2; 
+	static float overlapRatio = 0.9f;
 	
 	HashSet<Integer> attractees;
 	ArrayList<String> geneNames;
@@ -129,6 +130,9 @@ public class GeneSet implements Comparable<GeneSet>{
 	public static void setMergeThreshold(int th){
 		GeneSet.lowestMergeFold = th;
 	}
+	public static void setOverlapRatio(float f){
+		GeneSet.overlapRatio = f;
+	}
 	public int compareTo(GeneSet other) {
 		return Double.compare(this.minIdx, other.minIdx);
 	}
@@ -171,9 +175,14 @@ public class GeneSet implements Comparable<GeneSet>{
 			viList.add(vi);
 		}
 		for(GeneSet gs : others){
+			int cnt = 0;
+			int th = (int) (Math.min(this.sz, gs.size()) * overlapRatio);
 			for(ValIdx vi : gs.geneIdx){
 				if(viList.contains(vi)){
-					return true;
+					cnt++;
+					if(cnt > th){
+						return true;
+					}
 				}
 			}
 		}

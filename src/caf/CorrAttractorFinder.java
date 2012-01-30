@@ -311,31 +311,30 @@ public class CorrAttractorFinder {
 			if(rowNorm){
 				ma.normalizeRows();
 			}
+			float[][] data = ma.getData();
 			
+			int m = ma.getNumRows();
+			int n = ma.getNumCols();
+			
+			// transform the first data matrix into ranks
+			float[][] val = new float[m][n];
+			if(rankBased){
+				for(int i = 0; i < m; i++){
+					System.arraycopy(StatOps.rank(data[i]), 0, val[i], 0, n);
+				}
+			}else{
+				val = data;
+			}
+			if(zThreshold < 0){
+				cvg.setZThreshold(m);
+				System.out.printf("%-25s%s\n", "Z Threshold:", cvg.getZThreshold());
+			}else{
+				cvg.setZThreshold(zThreshold);
+			}
 			if(command.equalsIgnoreCase("CAF")){
-				float[][] data = ma.getData();
-				
-				int m = ma.getNumRows();
-				int n = ma.getNumCols();
-				
-				// transform the first data matrix into ranks
-				float[][] val = new float[m][n];
-				if(rankBased){
-					for(int i = 0; i < m; i++){
-						System.arraycopy(StatOps.rank(data[i]), 0, val[i], 0, n);
-					}
-				}else{
-					val = data;
-				}
-				if(zThreshold < 0){
-					cvg.setZThreshold(m);
-					System.out.printf("%-25s%s\n", "Z Threshold:", cvg.getZThreshold());
-				}else{
-					cvg.setZThreshold(zThreshold);
-				}
 				cvg.findAttractor(val, data);
 			}else if(command.equalsIgnoreCase("CNV")){
-				cvg.findCNV(ma, chrs, minSize);
+				cvg.findCNV(data, val, chrs, zThreshold);
 			}
 			
 			// fold the number of workers to the squre root of the total number of workers

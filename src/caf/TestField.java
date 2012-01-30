@@ -96,9 +96,8 @@ public class TestField {
 			path = path + "/";
 		}
 		
-		String s = null;
-		boolean b = s.equalsIgnoreCase("a");
-		System.out.println(b);
+		int th = (int) (Math.min(51, 21) * 0.9);
+		System.out.println(th);
 		
 		/*System.out.println("Loading files...");
 		DataFile ma = DataFile.parse(path + "ge.12042x582.txt");
