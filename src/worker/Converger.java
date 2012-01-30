@@ -367,7 +367,7 @@ public class Converger extends DistributedWorker{
 					pw.print("\t" + 1);
 					if(metaIdx.size() > 1){
 						for(ValIdx vi: metaIdx){
-								pw.print("\t" + idx + "," + vi.val);
+								pw.print("\t" + vi.idx + "," + vi.val);
 						}
 					}else{
 						pw.print("\tNA");
