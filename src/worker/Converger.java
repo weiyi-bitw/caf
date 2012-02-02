@@ -23,6 +23,8 @@ public class Converger extends DistributedWorker{
 	private static String convergeMethod = "FIXEDSIZE";
 	private static int bins = 7;
 	private static int splineOrder = 3;
+	private static boolean miNorm = false;
+	
 	
 	public static class ValIdx implements Comparable<ValIdx>{
 		float val;
@@ -160,7 +162,7 @@ public class Converger extends DistributedWorker{
 		int m = data.length;
 		int n = data[0].length;
 		
-		ITComputer itc = new ITComputer(bins, splineOrder, id, totalComputers);
+		ITComputer itc = new ITComputer(bins, splineOrder, id, totalComputers, miNorm);
 		float[] mi = itc.getAllMIWith(data[idx], data);
 		ArrayList<ValIdx> metaIdx = new ArrayList<ValIdx>();
 		ValIdx[] vec = new ValIdx[m];
@@ -255,7 +257,7 @@ public class Converger extends DistributedWorker{
 		
 		System.out.println("Processing task " + (start+1) + " to " + end);
 		
-		ITComputer itc = new ITComputer(bins, splineOrder, id, totalComputers);
+		ITComputer itc = new ITComputer(bins, splineOrder, id, totalComputers, miNorm);
 		//itc.negateMI(true);
 		prepare("geneset");
 		PrintWriter pw = new PrintWriter(new FileWriter("tmp/" + jobID + "/geneset/caf." + String.format("%05d", id)+".txt"));
@@ -380,10 +382,113 @@ public class Converger extends DistributedWorker{
 		}
 		pw.close();
 	}
+	public ArrayList<ValIdx> findCNV(float[][] data, float[] v, Chromosome chr) throws Exception{
+		int n = data[0].length;
+		int m = data.length;
+		
+		ITComputer itc = new ITComputer(bins, splineOrder, id, totalComputers, miNorm);
+		//itc.negateMI(true);
+		prepare("geneset");
+		PrintWriter pw = new PrintWriter(new FileWriter("tmp/" + jobID + "/geneset/caf." + String.format("%05d", id)+".txt"));
+		int tt = 0;
+		System.out.println("At chromosome " + chr.name() + "...");
+		ArrayList<ValIdx> geneIdx = chr.geneIdx();
+			/*// sort gene idx ascendantly
+			Collections.sort(geneIdx);
+			Collections.reverse(geneIdx);
+			*/
+			/*
+			 * Step 1: find the genes that are significantly associated with the seed gene 
+			 *         as the initial metagene
+			 */
+			float[] mi = itc.getAllMIWith(v, data);
+			ArrayList<ValIdx> metaIdx = new ArrayList<ValIdx>();
+					
+			float[] z = StatOps.xToZ(mi, m);
+			ValIdx[] vec = new ValIdx[m];
+			for(int j = 0; j < m; j++){
+				vec[j] = new ValIdx(j, z[j]);
+			}
+			Arrays.sort(vec);
+			for(int j = 0; j < m; j++){
+				if(vec[j].val > zThreshold){
+					if(geneIdx.contains(vec[j])){
+						metaIdx.add(vec[j]);
+					}
+				}else{
+					break;
+				}
+			}
+					
+			int cnt = 0;
+			ArrayList<ValIdx> prepreMetaIdx = new ArrayList<ValIdx>();
+			ArrayList<ValIdx> preMetaIdx = new ArrayList<ValIdx>();
+			preMetaIdx.addAll(metaIdx);
+			//System.out.println("Initial gene set size " + metaIdx.size() );
+					
+			/*
+			 * Step 2: Calculate metagene, find the genes that have correlation exceeding the 
+			 *         threshold as the new metagene
+			 */
+				
+			while(cnt < maxIter){
+						
+				// cannot find significant associated genes, exit.
+						
+				if(metaIdx.size() == 0){
+					//System.out.println("Empty set, exit.");
+					break;
+				}
+				//System.out.print("Iteration " + cnt + "...");
+				float[] metaGene = getMetaGene(data,metaIdx, n);
+				mi = itc.getAllMIWith(metaGene, data);
+				metaIdx = new ArrayList<ValIdx>();
+				vec = new ValIdx[m];
+				z = StatOps.xToZ(mi, m);
+				for(int j = 0; j < m; j++){
+					vec[j] = new ValIdx(j, z[j]);
+				}
+				Arrays.sort(vec);
+				metaIdx = new ArrayList<ValIdx>();
+				for(int j = 0; j < m; j++){
+					if(vec[j].val > zThreshold){
+						if(geneIdx.contains(vec[j])){
+							metaIdx.add(vec[j]);
+						}
+					}else{
+						break;
+					}
+				}
+				if(preMetaIdx.equals(metaIdx)){
+					System.out.print("Converged. "); 
+					System.out.println("Gene Set Size: " + metaIdx.size());
+					break;
+				}else if (prepreMetaIdx.equals(metaIdx)){
+					System.out.println("Cycled.");
+					if(metaIdx.size() >= preMetaIdx.size()){
+						break;
+					}else{
+						metaIdx = preMetaIdx;
+						break;
+					}
+				}
+				else{
+					prepreMetaIdx = preMetaIdx;
+					preMetaIdx = metaIdx;
+					//System.out.println("Gene Set Size: " + metaIdx.size());
+					cnt++;
+				}
+				
+			}
+			if(cnt == maxIter){
+				System.out.println("Not converged.");
+			}
+			return metaIdx;
+	}
 	public ArrayList<ValIdx> findAttractor(float[][] data, float[] vec)throws Exception{
 		int m = data.length;
 		int n = data[0].length;
-		ITComputer itc = new ITComputer(bins, splineOrder, id, totalComputers);
+		ITComputer itc = new ITComputer(bins, splineOrder, id, totalComputers, miNorm);
 			/*
 			 * Step 1: find the genes that are significantly associated with the seed gene 
 			 *         as the initial metagene
@@ -505,7 +610,7 @@ public class Converger extends DistributedWorker{
 		
 		System.out.println("Processing gene " + (start+1) + " to " + end);
 		
-		ITComputer itc = new ITComputer(bins, splineOrder, id, totalComputers);
+		ITComputer itc = new ITComputer(bins, splineOrder, id, totalComputers, miNorm);
 		//itc.negateMI(true);
 		prepare("geneset");
 		PrintWriter pw = new PrintWriter(new FileWriter("tmp/" + jobID + "/geneset/caf." + String.format("%05d", id)+".txt"));
@@ -661,5 +766,8 @@ public class Converger extends DistributedWorker{
 	public void setMIParameter(int bins, int so){
 		Converger.bins = bins;
 		Converger.splineOrder = so;
+	}
+	public void miNormalization(boolean miNorm){
+		Converger.miNorm = miNorm;
 	}
 }

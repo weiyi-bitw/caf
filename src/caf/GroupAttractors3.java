@@ -6,7 +6,6 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,10 +13,10 @@ import java.util.HashSet;
 import obj.Chromosome;
 import obj.DataFile;
 import obj.GeneSet;
-import worker.Converger.ValIdx;
 import worker.Converger;
+import worker.Converger.ValIdx;
 
-public class GroupAttractors2 {
+public class GroupAttractors3 {
 	static class DistPair implements Comparable<DistPair>{
 		static int n = 10000;
 		String x;
@@ -255,7 +254,7 @@ public class GroupAttractors2 {
 	 */
 	public static void main(String[] arg) throws Exception {
 		// TODO Auto-generated method stub
-		String path = "/home/weiyi/workspace/javaworks/caf/output/coad.gse14333.cnv/";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/ov.tcga.cnv/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
@@ -263,16 +262,16 @@ public class GroupAttractors2 {
 		int minSize = 10;
 		float zScore = 8f;
 		float ovlpTh = 0.5f; // overlap threshold
-		boolean rowNormalization = false;
+		boolean rowNormalization = true;
 		boolean CNV = true;
 		
 		System.out.println("Loading files...");
 		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/brca/gse2034/ge.13271x286.var.txt");
 		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt");
-		DataFile ma = DataFile.parse("/home/weiyi/workspace/data/coad/gse14333/ge.20765x290.var.txt");
+		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/coad/gse14333/ge.20765x290.var.txt");
 		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt");
 		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/gse9891/ge.20765x285.var.txt");
-		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt");
+		DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt");
 		int m = ma.getNumRows();
 		int n = ma.getNumCols();
 		if(rowNormalization) ma.normalizeRows();
@@ -316,6 +315,12 @@ public class GroupAttractors2 {
 		}
 		Collections.sort(allDist);
 		
+		Converger cvg = new Converger(0, 1, System.currentTimeMillis(), "ZSCORE", 100, false);
+		cvg.setZThreshold(zScore);
+		cvg.setAttractorSize(minSize);
+		cvg.setMIParameter(6, 3);
+		GeneSet.setOverlapRatio(ovlpTh);
+		
 		while(allDist.size() > 0){
 			DistPair target = allDist.get(0); // merge the most similar pair
 			System.out.print(target.toString());
@@ -332,6 +337,8 @@ public class GroupAttractors2 {
 			allGeneSet.get(xIdx).merge(allGeneSet.get(yIdx));
 			String mergedName = allGeneSet.get(xIdx).name;
 			System.out.println(" into " + mergedName + " (" + xIdx + ").");
+			
+			
 			
 		// 2. remove merged gene set, remove keys
 			allGeneSet.remove(yIdx);
@@ -370,108 +377,9 @@ public class GroupAttractors2 {
 		
 		N = allGeneSet.size();
 		System.out.println(N + " meta-attractors left.");
-		/*
-		// Merging using parent concept
-		System.out.println("Merging gene sets...");
-		ArrayList<Attractor> metaAttractors = new ArrayList<Attractor>();
-		for(int i = 0; i < N; i++){
-			Attractor aa = allGeneSet.get(i);
-			Attractor aaParent = aa.parent==null? new Attractor(aa) : aa.parent;
-			int maxOvlp = 0;
-			int maxIdx = -1;
-			for(int j = N - 1; j >= 0; j--){
-				if(i== j) continue;
-				Attractor ab = allGeneSet.get(j);
-				int ovlp = aa.getOverlap(ab);
-				if(ovlp > maxOvlp){
-					maxIdx = j;
-					maxOvlp = ovlp;
-				}
-			}
-			if(maxIdx == -1){
-				metaAttractors.add(aaParent);
-			}else{
-				Attractor ab = allGeneSet.get(maxIdx);
-				if(ab.parent == null){
-					aaParent.addChild(ab);
-					metaAttractors.add(aaParent);
-				}else{
-					ab.parent.combine(aa.parent);
-				}
-			}
-			System.out.println(i + " / " + N);
-		}
-		int N2 = metaAttractors.size();
-		for(int i = N2-1; i > -1; i--){
-			Attractor a = metaAttractors.get(i);
-			a.cronus();
-			if(a.sz < minSize){
-				metaAttractors.remove(i);
-			}
-		}
-		N2 = metaAttractors.size();
-		System.out.println(N2 + " meta-attractors pass min size.");
-		
-		PrintWriter pw = new PrintWriter(new FileWriter(path + "MetaAttractors.gwt"));
-		for(Attractor a: metaAttractors){
-			pw.println(a);
-		}
-		pw.close();
-		*/	
-		
-		/*
-		// Merging sequencially from strongest
-		boolean stillOverlap = false;
-		do{
-		stillOverlap = false;
-		for(int i = 0; i < allGeneSet.size(); i++){
-			Attractor aa = allGeneSet.get(i);
-			for(int j = allGeneSet.size() - 1; j >= 0; j--){
-				if(i== j) continue;
-				Attractor ab = allGeneSet.get(j);
-				int szz = Math.min(aa.sz, ab.sz);
-				int ovlp = aa.getOverlap(ab);
-				if(ovlp > szz/2){
-					stillOverlap = true;
-					//System.out.println("\t" + j);
-					aa.merge(ab);
-					allGeneSet.remove(j);
-				}
-			}
-		}
-		N = allGeneSet.size();
-		System.out.println(N + " meta-attractors left.");
-		
-		}while(stillOverlap);
-		
-		for(int i = allGeneSet.size()-1; i >= 0; i--){
-			Attractor aa = allGeneSet.get(i);
-			for(int j = allGeneSet.size()-1; j >= 0; j--){
-				if(j == i) continue;
-				Attractor ab = allGeneSet.get(j);
-				if(aa.overlap(ab)){
-					System.out.println(i + "\t" + aa.getName() + " overlap with " + j + "\t" + ab.getName());
-				}
-			}
-			if(aa.sz < minSize){
-				allGeneSet.remove(i);
-			}
-		}
-		N = allGeneSet.size();
-		System.out.println(N + " meta-attractors pass min size.");
-		Collections.sort(allGeneSet);
-		PrintWriter pw = new PrintWriter(new FileWriter(path + "MetaAttractors.gwt"));
-		for(Attractor a: allGeneSet){
-			pw.println(a);
-		}
-		pw.close();*/
 		
 		System.out.println("Reconverging...");
-		Converger cvg = new Converger(0, 1, System.currentTimeMillis(), "ZSCORE", 100, false);
-		cvg.setZThreshold(zScore);
-		cvg.setAttractorSize(minSize);
-		cvg.setMIParameter(6, 3);
-		GeneSet.setOverlapRatio(ovlpTh);
+		
 		ArrayList<GeneSet> convergedGeneSets = new ArrayList<GeneSet>();
 		for(int i = 0; i < N; i++){
 			Attractor a = allGeneSet.get(i);
@@ -507,5 +415,4 @@ public class GroupAttractors2 {
 		pw.close();
 	}
 
-	
 }

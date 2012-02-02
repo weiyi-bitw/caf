@@ -33,6 +33,7 @@ public class CorrAttractorFinder {
 	private static int minSize = 10;
 	private static boolean debugging = false;
 	private static boolean rankBased = false;
+	private static boolean normMI = false;
 	private static String breakPoint = "";
 	private static int maxIter = 100;
 	private static boolean rowNorm = false;
@@ -196,6 +197,15 @@ public class CorrAttractorFinder {
 	        }
 	    	System.out.printf("%-25s%s\n", "Row Normalization:", rowNorm);
 	    	
+	    	confLine = config.getProperty("MI_normalization");
+	    	if (confLine != null && confLine.length() > 0) {
+	            try {
+	               normMI = Boolean.parseBoolean(confLine);
+	            } catch (NumberFormatException nfe) {
+	            	System.out.println("WARNING: Couldn't parse Row Normalization: " + confLine + ", using default = false");
+	            }
+	        }
+	    	System.out.printf("%-25s%s\n", "MI Normalization:", normMI);
 	    	/*confLine = config.getProperty("corr_threshold");
 	    	if (confLine != null && confLine.length() > 0) {
 	            try {
@@ -303,6 +313,7 @@ public class CorrAttractorFinder {
 		GeneSet.setAnnotations(annot);
 		Scheduler scdr = new Scheduler(segment, numSegments, jobID);
 		Converger cvg = new Converger(segment, numSegments, jobID, convergeMethod, maxIter, rankBased);
+		cvg.miNormalization(normMI);
 		cvg.setAttractorSize(minSize);
 		cvg.setMIParameter(bins, splineOrder);
 		int fold = (int) Math.round(Math.sqrt(numSegments));
