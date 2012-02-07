@@ -254,7 +254,7 @@ public class GroupAttractors3 {
 	 */
 	public static void main(String[] arg) throws Exception {
 		// TODO Auto-generated method stub
-		String path = "/home/weiyi/workspace/javaworks/caf/output/ov.tcga.cnv/";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/caf/brca.gse2034.rownorm.z8/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
@@ -262,16 +262,17 @@ public class GroupAttractors3 {
 		int minSize = 10;
 		float zScore = 8f;
 		float ovlpTh = 0.5f; // overlap threshold
-		boolean rowNormalization = true;
-		boolean CNV = true;
+		boolean rowNormalization = false;
+		boolean MINormalization = false;
+		boolean CNV = false;
 		
 		System.out.println("Loading files...");
-		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/brca/gse2034/ge.13271x286.var.txt");
+		DataFile ma = DataFile.parse("/home/weiyi/workspace/data/brca/gse2034/ge.13271x286.var.txt");
 		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt");
 		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/coad/gse14333/ge.20765x290.var.txt");
 		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt");
 		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/gse9891/ge.20765x285.var.txt");
-		DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt");
+		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt");
 		int m = ma.getNumRows();
 		int n = ma.getNumCols();
 		if(rowNormalization) ma.normalizeRows();
@@ -316,6 +317,7 @@ public class GroupAttractors3 {
 		Collections.sort(allDist);
 		
 		Converger cvg = new Converger(0, 1, System.currentTimeMillis(), "ZSCORE", 100, false);
+		cvg.miNormalization(MINormalization);
 		cvg.setZThreshold(zScore);
 		cvg.setAttractorSize(minSize);
 		cvg.setMIParameter(6, 3);
@@ -391,7 +393,12 @@ public class GroupAttractors3 {
 			System.out.println(i + "\t" + a.getName() + "...");
 			float[] vec = getMetaGene(data, a.geneIdx, n);
 			ArrayList<ValIdx> metaIdx = CNV? cvg.findCNV(data, vec, chr):cvg.findAttractor(data, vec);
-			GeneSet gs = new GeneSet(a.getName() + "_" + chr.name(), metaIdx.toArray(new ValIdx[0]), a.strength);
+			GeneSet gs;
+			if(CNV){
+				gs = new GeneSet(a.getName() + "_" + chr.name(), metaIdx.toArray(new ValIdx[0]), a.strength);
+			}else{
+				gs = new GeneSet(a.getName(), metaIdx.toArray(new ValIdx[0]), a.strength);
+			}
 			if(gs.size() < minSize){
 				System.out.println("Too small, filtered.");
 				continue;
