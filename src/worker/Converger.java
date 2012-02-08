@@ -293,6 +293,10 @@ public class Converger extends DistributedWorker{
 							if(geneIdx.contains(vec[j])){
 								metaIdx.add(vec[j]);
 							}
+						}else if(metaIdx.size() < attractorSize){
+							if(geneIdx.contains(vec[j])){
+								metaIdx.add(vec[j]);
+							}
 						}else{
 							break;
 						}
@@ -331,8 +335,13 @@ public class Converger extends DistributedWorker{
 						}
 						Arrays.sort(vec);
 						metaIdx = new ArrayList<ValIdx>();
+						
 						for(int j = 0; j < m; j++){
 							if(vec[j].val > zth){
+								if(geneIdx.contains(vec[j])){
+									metaIdx.add(vec[j]);
+								}
+							}else if(metaIdx.size() < attractorSize){
 								if(geneIdx.contains(vec[j])){
 									metaIdx.add(vec[j]);
 								}
@@ -340,6 +349,8 @@ public class Converger extends DistributedWorker{
 								break;
 							}
 						}
+						
+						
 						if(preMetaIdx.equals(metaIdx)){
 							System.out.print("Converged. "); 
 							System.out.println("Gene Set Size: " + metaIdx.size());
@@ -415,6 +426,10 @@ public class Converger extends DistributedWorker{
 					if(geneIdx.contains(vec[j])){
 						metaIdx.add(vec[j]);
 					}
+				}else if(metaIdx.size() < attractorSize){
+					if(geneIdx.contains(vec[j])){
+						metaIdx.add(vec[j]);
+					}
 				}else{
 					break;
 				}
@@ -452,6 +467,10 @@ public class Converger extends DistributedWorker{
 				metaIdx = new ArrayList<ValIdx>();
 				for(int j = 0; j < m; j++){
 					if(vec[j].val > zThreshold){
+						if(geneIdx.contains(vec[j])){
+							metaIdx.add(vec[j]);
+						}
+					}else if(metaIdx.size() < attractorSize){
 						if(geneIdx.contains(vec[j])){
 							metaIdx.add(vec[j]);
 						}
@@ -528,7 +547,7 @@ public class Converger extends DistributedWorker{
 			ArrayList<ValIdx> prepreMetaIdx = new ArrayList<ValIdx>();
 			ArrayList<ValIdx> preMetaIdx = new ArrayList<ValIdx>();
 			preMetaIdx.addAll(metaIdx);
-			System.out.println("Initial gene set size " + metaIdx.size() );
+			//System.out.println("Initial gene set size " + metaIdx.size() );
 			
 			/*
 			 * Step 2: Calculate metagene, find the genes that have correlation exceeding the 
@@ -591,7 +610,7 @@ public class Converger extends DistributedWorker{
 				else{
 					prepreMetaIdx = preMetaIdx;
 					preMetaIdx = metaIdx;
-					System.out.println("Gene Set Size: " + metaIdx.size());
+					//System.out.println("Gene Set Size: " + metaIdx.size());
 					cnt++;
 				}
 				

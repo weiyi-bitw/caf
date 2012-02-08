@@ -254,7 +254,7 @@ public class GroupAttractors3 {
 	 */
 	public static void main(String[] arg) throws Exception {
 		// TODO Auto-generated method stub
-		String path = "/home/weiyi/workspace/javaworks/caf/output/caf/brca.gse2034.rownorm.z8/";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/brca.gse2034.rownorm.cnv.sz10/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
@@ -262,7 +262,7 @@ public class GroupAttractors3 {
 		int minSize = 10;
 		float zScore = 8f;
 		float ovlpTh = 0.5f; // overlap threshold
-		boolean rowNormalization = false;
+		boolean rowNormalization = true;
 		boolean MINormalization = false;
 		boolean CNV = false;
 		
