@@ -288,17 +288,26 @@ public class Converger extends DistributedWorker{
 						vec[j] = new ValIdx(j, z[j]);
 					}
 					Arrays.sort(vec);
-					for(int j = 0; j < m; j++){
-						if(vec[j].val > zth){
+					
+					if(convergeMethod.equals("FIXEDSIZE")){
+						for(int j = 0; j < attractorSize; j++){
 							if(geneIdx.contains(vec[j])){
 								metaIdx.add(vec[j]);
 							}
-						}else if(metaIdx.size() < attractorSize){
-							if(geneIdx.contains(vec[j])){
-								metaIdx.add(vec[j]);
+						}
+					}else if(convergeMethod.equals("ZSCORE")){
+						for(int j = 0; j < m; j++){
+							if(vec[j].val > zth){
+								if(geneIdx.contains(vec[j])){
+									metaIdx.add(vec[j]);
+								}
+							}else if(metaIdx.size() < attractorSize){
+								if(geneIdx.contains(vec[j])){
+									metaIdx.add(vec[j]);
+								}
+							}else{
+								break;
 							}
-						}else{
-							break;
 						}
 					}
 					
@@ -335,21 +344,27 @@ public class Converger extends DistributedWorker{
 						}
 						Arrays.sort(vec);
 						metaIdx = new ArrayList<ValIdx>();
-						
-						for(int j = 0; j < m; j++){
-							if(vec[j].val > zth){
+						if(convergeMethod.equals("FIXEDSIZE")){
+							for(int j = 0; j < attractorSize; j++){
 								if(geneIdx.contains(vec[j])){
 									metaIdx.add(vec[j]);
 								}
-							}else if(metaIdx.size() < attractorSize){
-								if(geneIdx.contains(vec[j])){
-									metaIdx.add(vec[j]);
+							}
+						}else if(convergeMethod.equals("ZSCORE")){
+							for(int j = 0; j < m; j++){
+								if(vec[j].val > zth){
+									if(geneIdx.contains(vec[j])){
+										metaIdx.add(vec[j]);
+									}
+								}else if(metaIdx.size() < attractorSize){
+									if(geneIdx.contains(vec[j])){
+										metaIdx.add(vec[j]);
+									}
+								}else{
+									break;
 								}
-							}else{
-								break;
 							}
 						}
-						
 						
 						if(preMetaIdx.equals(metaIdx)){
 							System.out.print("Converged. "); 
@@ -421,20 +436,27 @@ public class Converger extends DistributedWorker{
 				vec[j] = new ValIdx(j, z[j]);
 			}
 			Arrays.sort(vec);
-			for(int j = 0; j < m; j++){
-				if(vec[j].val > zThreshold){
+			if(convergeMethod.equals("FIXEDSIZE")){
+				for(int j = 0; j < attractorSize; j++){
 					if(geneIdx.contains(vec[j])){
 						metaIdx.add(vec[j]);
 					}
-				}else if(metaIdx.size() < attractorSize){
-					if(geneIdx.contains(vec[j])){
-						metaIdx.add(vec[j]);
-					}
-				}else{
-					break;
 				}
-			}
-					
+			}else if(convergeMethod.equals("ZSCORE")){
+				for(int j = 0; j < m; j++){
+					if(vec[j].val > zThreshold){
+						if(geneIdx.contains(vec[j])){
+							metaIdx.add(vec[j]);
+						}
+					}else if(metaIdx.size() < attractorSize){
+						if(geneIdx.contains(vec[j])){
+							metaIdx.add(vec[j]);
+						}
+					}else{
+						break;
+					}
+				}
+			}	
 			int cnt = 0;
 			ArrayList<ValIdx> prepreMetaIdx = new ArrayList<ValIdx>();
 			ArrayList<ValIdx> preMetaIdx = new ArrayList<ValIdx>();

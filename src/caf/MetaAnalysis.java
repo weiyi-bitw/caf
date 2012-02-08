@@ -228,7 +228,7 @@ public class MetaAnalysis {
 		float CNVTh = 150;
 		int minSize = 10;
 		
-		String path = "/home/weiyi/workspace/javaworks/caf/output/cnv/metaana/";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/caf/metaana/";
 		Genome gn = Genome.parseGeneLocation("/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3");
 		
 		String[] targets = parseTarget(path + "targets.txt");

@@ -254,7 +254,7 @@ public class GroupAttractors3 {
 	 */
 	public static void main(String[] arg) throws Exception {
 		// TODO Auto-generated method stub
-		String path = "/home/weiyi/workspace/javaworks/caf/output/brca.gse2034.rownorm.cnv.sz10/";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/caf/brca.gse2034.rownorm.z8/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
@@ -408,7 +408,7 @@ public class GroupAttractors3 {
 				continue;
 			}
 			convergedGeneSets.add(gs);
-			/*if(convergedGeneSets.size() >= 15){
+			/*if(convergedGeneSets.size() >= 10){
 				break;
 			}*/
 		}
