@@ -269,7 +269,7 @@ public class ITComputer extends DistributedWorker{
 		}
 		
 		float e2fix = (float)SplineMI.entropy2d(weightFix, weightFix, n, bins);
-		float miMax = 2 * e1fix - e2fix;
+		//float miMax = 2 * e1fix - e2fix;
 		
 		float[] mi = new float[m];
 		for(int i = 0; i < m; i++){
@@ -319,11 +319,11 @@ public class ITComputer extends DistributedWorker{
 			}
 			
 		}
-		if(normalizeMI){
+		/*if(normalizeMI){
 			for(int i = 0; i < m; i++){
 				mi[i] = mi[i]/miMax;
 			}
-		}
+		}*/
 		return mi;
 	}
 	public float[] getAllMIWith(float[] vec, DataFile ma)throws Exception{
