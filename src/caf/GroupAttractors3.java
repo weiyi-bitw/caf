@@ -254,7 +254,7 @@ public class GroupAttractors3 {
 	 */
 	public static void main(String[] arg) throws Exception {
 		// TODO Auto-generated method stub
-		String path = "/home/weiyi/workspace/javaworks/caf/output/caf/coad.tcga.rownorm.z8/";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/caf/ov.gse9891.rownorm.z8/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
@@ -270,8 +270,8 @@ public class GroupAttractors3 {
 		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/brca/gse2034/ge.13271x286.var.txt");
 		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt");
 		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/coad/gse14333/ge.20765x290.var.txt");
-		DataFile ma = DataFile.parse("/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt");
-		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/gse9891/ge.20765x285.var.txt");
+		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt");
+		DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/gse9891/ge.20765x285.var.txt");
 		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt");
 		int m = ma.getNumRows();
 		int n = ma.getNumCols();

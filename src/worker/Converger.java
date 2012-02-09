@@ -291,10 +291,11 @@ public class Converger extends DistributedWorker{
 					
 					if(convergeMethod.equals("FIXEDSIZE")){
 						for(int j = 0; j < m; j++){
-							if(geneIdx.contains(vec[j])){
-								metaIdx.add(vec[j]);
-							}
-							if(metaIdx.size() > attractorSize){
+							if(metaIdx.size() < attractorSize){
+								if(geneIdx.contains(vec[j])){
+									metaIdx.add(vec[j]);
+								}
+							}else{
 								break;
 							}
 						}
@@ -349,10 +350,11 @@ public class Converger extends DistributedWorker{
 						metaIdx = new ArrayList<ValIdx>();
 						if(convergeMethod.equals("FIXEDSIZE")){
 							for(int j = 0; j < m; j++){
-								if(geneIdx.contains(vec[j])){
-									metaIdx.add(vec[j]);
-								}
-								if(metaIdx.size() > attractorSize){
+								if(metaIdx.size() < attractorSize){
+									if(geneIdx.contains(vec[j])){
+										metaIdx.add(vec[j]);
+									}
+								}else{
 									break;
 								}
 							}
@@ -444,10 +446,11 @@ public class Converger extends DistributedWorker{
 			Arrays.sort(vec);
 			if(convergeMethod.equals("FIXEDSIZE")){
 				for(int j = 0; j < m; j++){
-					if(geneIdx.contains(vec[j])){
-						metaIdx.add(vec[j]);
-					}
-					if(metaIdx.size() > attractorSize){
+					if(metaIdx.size() < attractorSize){
+						if(geneIdx.contains(vec[j])){
+							metaIdx.add(vec[j]);
+						}
+					}else{
 						break;
 					}
 				}
@@ -498,10 +501,11 @@ public class Converger extends DistributedWorker{
 				metaIdx = new ArrayList<ValIdx>();
 				if(convergeMethod.equals("FIXEDSIZE")){
 					for(int j = 0; j < m; j++){
-						if(geneIdx.contains(vec[j])){
-							metaIdx.add(vec[j]);
-						}
-						if(metaIdx.size() > attractorSize){
+						if(metaIdx.size() < attractorSize){
+							if(geneIdx.contains(vec[j])){
+								metaIdx.add(vec[j]);
+							}
+						}else{
 							break;
 						}
 					}
