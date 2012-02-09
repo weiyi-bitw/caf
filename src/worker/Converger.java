@@ -771,7 +771,7 @@ public class Converger extends DistributedWorker{
 				}
 				if(preMetaIdx.equals(metaIdx)){
 					System.out.println("Converged."); 
-					//System.out.println("Gene Set Size: " + metaIdx.size());
+					System.out.println("Gene Set Size: " + metaIdx.size());
 					break;
 				}else if (prepreMetaIdx.equals(metaIdx)){
 					System.out.println("Cycled.");
