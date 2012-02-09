@@ -243,20 +243,44 @@ public class ITComputer extends DistributedWorker{
 		int n = data[0].length;
 		int m = data.length;
 		
+	// calculate the MI of fixVec to itself (for normalization)
+		
 		float[][] weightFix = new float[bins][n];
 		SplineMI.findWeights(fixVec, knots, weightFix, n, splineOrder, bins);
+		float[] histValtf = new float[bins];
+		int numSamples = n;
+		float e1fix = 0;
+		
+		for(int curSample = 0; curSample < n; curSample++){
+			
+			if(!Float.isNaN(weightFix[0][curSample])){
+				for (int curBin = 0; curBin < bins; curBin++) {
+					histValtf[curBin] += weightFix[curBin][curSample];
+	            }
+        	}else{
+        		numSamples--;
+        	}
+        }
+		for (int curBin = 0; curBin < bins; curBin++){
+			histValtf[curBin] /= numSamples;
+			if (histValtf[curBin] > 0) {
+        		e1fix -= histValtf[curBin] * SplineMI.log2d(histValtf[curBin]);
+        	}
+		}
+		
+		float e2fix = (float)SplineMI.entropy2d(weightFix, weightFix, n, bins);
+		float miMax = 2 * e1fix - e2fix;
 		
 		float[] mi = new float[m];
-		float miMax = 0;
 		for(int i = 0; i < m; i++){
 			
 			float[][] weightTg = new float[bins][n];
 			SplineMI.findWeights(data[i], knots, weightTg, n, splineOrder, bins);
 			
 			float e1tf = 0, e1tg = 0;
-			float[] histValtf = new float[bins];
+			histValtf = new float[bins];
 			float[] histValtg = new float[bins];
-			int numSamples = n;
+			numSamples = n;
 			
 			for(int curSample = 0; curSample < n; curSample++){
 				
@@ -290,9 +314,7 @@ public class ITComputer extends DistributedWorker{
 				float e2tg = (float)SplineMI.entropy2d(weightTg, weightTg, n, bins);
 				float mitf = 2*e1tf - e2tf;
 				float mitg = 2*e1tg - e2tg;
-				
 				mi[i] = (e1tf + e1tg - e2) / Math.max(mitf, mitg);
-				if(miMax < mi[i]) miMax = mi[i];
 				if(negateMI) mi[i] = mi[i] * getMomentSign(fixVec, data[i], n);
 			}
 			
