@@ -290,9 +290,12 @@ public class Converger extends DistributedWorker{
 					Arrays.sort(vec);
 					
 					if(convergeMethod.equals("FIXEDSIZE")){
-						for(int j = 0; j < attractorSize; j++){
+						for(int j = 0; j < m; j++){
 							if(geneIdx.contains(vec[j])){
 								metaIdx.add(vec[j]);
+							}
+							if(metaIdx.size() > attractorSize){
+								break;
 							}
 						}
 					}else if(convergeMethod.equals("ZSCORE")){
@@ -345,9 +348,12 @@ public class Converger extends DistributedWorker{
 						Arrays.sort(vec);
 						metaIdx = new ArrayList<ValIdx>();
 						if(convergeMethod.equals("FIXEDSIZE")){
-							for(int j = 0; j < attractorSize; j++){
+							for(int j = 0; j < m; j++){
 								if(geneIdx.contains(vec[j])){
 									metaIdx.add(vec[j]);
+								}
+								if(metaIdx.size() > attractorSize){
+									break;
 								}
 							}
 						}else if(convergeMethod.equals("ZSCORE")){
@@ -437,9 +443,12 @@ public class Converger extends DistributedWorker{
 			}
 			Arrays.sort(vec);
 			if(convergeMethod.equals("FIXEDSIZE")){
-				for(int j = 0; j < attractorSize; j++){
+				for(int j = 0; j < m; j++){
 					if(geneIdx.contains(vec[j])){
 						metaIdx.add(vec[j]);
+					}
+					if(metaIdx.size() > attractorSize){
+						break;
 					}
 				}
 			}else if(convergeMethod.equals("ZSCORE")){
@@ -487,18 +496,31 @@ public class Converger extends DistributedWorker{
 				}
 				Arrays.sort(vec);
 				metaIdx = new ArrayList<ValIdx>();
-				for(int j = 0; j < m; j++){
-					if(vec[j].val > zThreshold){
+				if(convergeMethod.equals("FIXEDSIZE")){
+					for(int j = 0; j < m; j++){
 						if(geneIdx.contains(vec[j])){
 							metaIdx.add(vec[j]);
 						}
-					}else if(metaIdx.size() < attractorSize){
-						if(geneIdx.contains(vec[j])){
-							metaIdx.add(vec[j]);
+						if(metaIdx.size() > attractorSize){
+							break;
 						}
-					}else{
-						break;
 					}
+				}else if(convergeMethod.equals("ZSCORE")){
+				
+					for(int j = 0; j < m; j++){
+						if(vec[j].val > zThreshold){
+							if(geneIdx.contains(vec[j])){
+								metaIdx.add(vec[j]);
+							}
+						}else if(metaIdx.size() < attractorSize){
+							if(geneIdx.contains(vec[j])){
+								metaIdx.add(vec[j]);
+							}
+						}else{
+							break;
+						}
+					}
+				
 				}
 				if(preMetaIdx.equals(metaIdx)){
 					System.out.print("Converged. "); 
