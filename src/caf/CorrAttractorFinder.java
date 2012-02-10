@@ -374,9 +374,12 @@ public class CorrAttractorFinder {
 				ag.mergeAndReconverge(attractorFolder, ma, cvg);
 			}
 			
-			// fold the number of workers to the squre root of the total number of workers
-			scdr.waitTillFinished(0, fold);
-			
+			if(command.equalsIgnoreCase("MRC")){
+				scdr.waitTillFinished(0);
+			}else{
+				// fold the number of workers to the squre root of the total number of workers
+				scdr.waitTillFinished(0, fold);
+			}
 		}
 		
 		
