@@ -371,7 +371,7 @@ public class CorrAttractorFinder {
 			}else if(command.equalsIgnoreCase("CNV")){
 				cvg.findCNV(data, val, chrs, zThreshold);
 			}else if(command.equalsIgnoreCase("MRC")){
-				ag.mergeAndReconverge(attractorFolder, ma, cvg);
+				ag.mergeAndReconverge(attractorFolder, ma, cvg, minSize);
 			}
 			
 			if(command.equalsIgnoreCase("MRC")){

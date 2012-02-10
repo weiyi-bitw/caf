@@ -17,7 +17,7 @@ public class GroupCNV {
 	 */
 	public static void main(String[] args) throws Exception{
 		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3";
-		String path = "/home/weiyi/workspace/javaworks/caf/output/cnv/coad.gse14333.rownorm.sz10.cnv";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/cnv/ov.gse9891.rowMiNorm.sz10";
 		
 		System.out.println("Loading gene location file...");
 		Genome gn = Genome.parseGeneLocation(geneLocFile);
@@ -36,7 +36,9 @@ public class GroupCNV {
 		String line = br.readLine();
 		while(line != null){
 			Attractor a = Attractor.parseAttractor(line);
-			attractors.add(a);
+			if(a.chr().equals("chr8")){
+				attractors.add(a);
+			}
 			line = br.readLine();
 		}
 		
@@ -63,13 +65,13 @@ public class GroupCNV {
 		N = attractors.size();
 		System.out.println( N + " attractors left.");
 		
-		PrintWriter pw = new PrintWriter(new FileWriter(path + "attractors.filtered.gwt"));
+		PrintWriter pw = new PrintWriter(new FileWriter(path + "attractorsInChr8.filtered.gwt"));
 		for(Attractor a : attractors){
 			pw.println(a);
 		}
 		pw.close();
 		
-		pw = new PrintWriter(new FileWriter(path + "attractors.filtered.gwt.detail"));
+		pw = new PrintWriter(new FileWriter(path + "attractorsInChr8.filtered.gwt.detail"));
 		for(Attractor a : attractors){
 			pw.println(a.toStringInDetail());
 		}

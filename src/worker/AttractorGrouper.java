@@ -193,7 +193,7 @@ public class AttractorGrouper extends DistributedWorker {
 	}
 
 	private static ArrayList<Attractor> parseAttractorInOneFile(
-			String file, HashMap<String, Integer> rowmap) throws IOException {
+			String file, HashMap<String, Integer> rowmap, int minSize) throws IOException {
 		
 		BufferedReader br = new BufferedReader(new FileReader(file));
 		String line = br.readLine();
@@ -202,6 +202,10 @@ public class AttractorGrouper extends DistributedWorker {
 			String[] tokens = line.split("\t");
 			String name = tokens[0];
 			int nt = tokens.length;
+			if(nt-2 < minSize){
+				line = br.readLine();
+				continue;
+			}
 			int numChild = Integer.parseInt(tokens[1].split(":")[1]);
 			HashSet<Integer> gidx = new HashSet<Integer>();
 			for(int j = 2; j < nt; j++){
@@ -251,12 +255,12 @@ public class AttractorGrouper extends DistributedWorker {
 		return out;
 	}
 	
-	public void mergeAndReconverge(String path, DataFile ma, Converger cvg) throws Exception{
+	public void mergeAndReconverge(String path, DataFile ma, Converger cvg, int minSize) throws Exception{
 		ArrayList<String> probeNames = ma.getProbes();
 		Attractor.setGeneNames(probeNames);
 		System.out.print("Loading gene sets...");
 		
-		ArrayList<Attractor> allGeneSet = parseAttractorInOneFile(path + "attractors.gwt", ma.getRows());
+		ArrayList<Attractor> allGeneSet = parseAttractorInOneFile(path + "attractors.gwt", ma.getRows(), minSize);
 		int N = allGeneSet.size();
 		
 		System.out.println(N + " gene sets are loaded.");
