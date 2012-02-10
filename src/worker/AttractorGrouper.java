@@ -277,7 +277,7 @@ public class AttractorGrouper extends DistributedWorker {
 		
 		while(allDist.size() > 0){
 			DistPair target = allDist.get(0); // merge the most similar pair
-			System.out.print(target.toString());
+			//System.out.print(target.toString());
 			
 			int xIdx = allGeneSet.indexOf(new Attractor(target.x));
 			int yIdx = allGeneSet.indexOf(new Attractor(target.y));
@@ -290,7 +290,7 @@ public class AttractorGrouper extends DistributedWorker {
 		// 1. merge gene set, put in new key
 			allGeneSet.get(xIdx).merge(allGeneSet.get(yIdx));
 			String mergedName = allGeneSet.get(xIdx).name;
-			System.out.println(" into " + mergedName + " (" + xIdx + ").");
+			//System.out.println(" into " + mergedName + " (" + xIdx + ").");
 			
 			
 			
