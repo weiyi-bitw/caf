@@ -18,6 +18,7 @@ import obj.Chromosome;
 import obj.DataFile;
 import obj.GeneSet;
 import util.StatOps;
+import worker.AttractorGrouper;
 import worker.Converger;
 import worker.GeneSetMerger;
 import worker.Scheduler;
@@ -39,8 +40,10 @@ public class CorrAttractorFinder {
 	private static boolean rowNorm = false;
 	private static float zThreshold = -1;
 	private static String convergeMethod = "FIXEDSIZE";
+	private static String attractorFolder = "";
+	private static float ovlpTh = 0.5f;
 	
-	private static int bins = 7;
+	private static int bins = 6;
 	private static int splineOrder = 3;
 	
 	private static DataFile ma;
@@ -228,16 +231,19 @@ public class CorrAttractorFinder {
 	    		System.out.printf("%-25s%s\n", "Z Threshold:", zThreshold);
 	    	}
 	    	
-	    	confLine = config.getProperty("min_size");
-	    	if (confLine != null && confLine.length() > 0) {
-	            try {
-	               minSize = Integer.parseInt(confLine);
-	            } catch (NumberFormatException nfe) {
-	            	System.out.println("WARNING: Couldn't parse minimum attractor size : " + confLine + ", using default = " + minSize);
-	            }
-	        }
-	    	System.out.printf("%-25s%s\n", "Min Size:", minSize);
+	    	if(!command.equalsIgnoreCase("MRC")){
 	    	
+		    	confLine = config.getProperty("min_size");
+		    	if (confLine != null && confLine.length() > 0) {
+		            try {
+		               minSize = Integer.parseInt(confLine);
+		            } catch (NumberFormatException nfe) {
+		            	System.out.println("WARNING: Couldn't parse minimum attractor size : " + confLine + ", using default = " + minSize);
+		            }
+		        }
+		    	System.out.printf("%-25s%s\n", "Min Size:", minSize);
+	    	
+	    	}
 	    	/*confLine = config.getProperty("attractor_size");
 	    	if (confLine != null && confLine.length() > 0) {
 	            try {
@@ -298,8 +304,23 @@ public class CorrAttractorFinder {
 				System.out.println("-- Attractor finding");
 			}else if(command.equalsIgnoreCase("CNV")){
 				System.out.println("-- CNV Finding");
+			}else if(command.equalsIgnoreCase("MRC")){
+				System.out.println("-- Merge and reconverge");
+				attractorFolder = args[2];
+				if(!attractorFolder.endsWith("/")){
+					attractorFolder += "/";
+				}
+				System.out.printf("%-25s%s\n", "Attractor Folder:", attractorFolder);
+				minSize = Integer.parseInt(args[3]);
+				System.out.printf("%-25s%s\n", "Min size:", minSize);
+				ovlpTh = Float.parseFloat(args[4]);
+				System.out.printf("%-25s%s\n", "Overlap Threshold:", ovlpTh);
+				
+				
+				System.out.println("\n===================================================================================\n");
+				
 			}else{
-				throw new RuntimeException("ERROR: Cannot underatand command: " + command);
+				throw new RuntimeException("ERROR: Cannot understand command: " + command);
 			}
 		}
 		
@@ -311,8 +332,11 @@ public class CorrAttractorFinder {
 		
 		GeneSet.setProbeNames(ma.getProbes());
 		GeneSet.setAnnotations(annot);
+		AttractorGrouper.setOvlpTh(ovlpTh);
+		
 		Scheduler scdr = new Scheduler(segment, numSegments, jobID);
 		Converger cvg = new Converger(segment, numSegments, jobID, convergeMethod, maxIter, rankBased);
+		AttractorGrouper ag = new AttractorGrouper(segment, numSegments, jobID);
 		cvg.miNormalization(normMI);
 		cvg.setAttractorSize(minSize);
 		cvg.setMIParameter(bins, splineOrder);
@@ -346,6 +370,8 @@ public class CorrAttractorFinder {
 				cvg.findAttractor(val, data);
 			}else if(command.equalsIgnoreCase("CNV")){
 				cvg.findCNV(data, val, chrs, zThreshold);
+			}else if(command.equalsIgnoreCase("MRC")){
+				ag.mergeAndReconverge(attractorFolder, ma, cvg);
 			}
 			
 			// fold the number of workers to the squre root of the total number of workers
@@ -353,34 +379,40 @@ public class CorrAttractorFinder {
 			
 		}
 		
-		ma = null;
 		
-		if(!debugging || breakPoint.equalsIgnoreCase("merge"))
-		{
-			if(segment < fold){
-				GeneSetMerger mg = new GeneSetMerger(segment, fold, jobID);
-				mg.setMinSize(minSize);
-				mg.mergeGeneSets("tmp/" + jobID + "/geneset/", numSegments, false);
-			}else{
-				System.out.println("Job finished. Exit.");
-				System.exit(0);
+		if(command.equalsIgnoreCase("MRC")){
+			if(segment == 0){
+				ag.outputConvergedAttractors("tmp/" + jobID + "/geneset/", ma, minSize);
 			}
-			
-		}
-		if(!debugging  || breakPoint.equalsIgnoreCase("output") || breakPoint.equalsIgnoreCase("merge"))
-		{
-			if(annot != null)GeneSet.setAnnotations(annot);
-			if((scdr.allFinished(fold)|| breakPoint.equalsIgnoreCase("output")) && segment==0){
-				GeneSetMerger mg = new GeneSetMerger(segment, 1, jobID);
-				mg.setMinSize(minSize);
-				if(breakPoint.equalsIgnoreCase("output")){
-					GeneSetMerger.addMergeCount();
+		}else{
+			ma = null;
+		
+			if(!debugging || breakPoint.equalsIgnoreCase("merge"))
+			{
+				if(segment < fold){
+					GeneSetMerger mg = new GeneSetMerger(segment, fold, jobID);
+					mg.setMinSize(minSize);
+					mg.mergeGeneSets("tmp/" + jobID + "/geneset/", numSegments, false);
+				}else{
+					System.out.println("Job finished. Exit.");
+					System.exit(0);
 				}
-				mg.mergeGeneSets("tmp/" + jobID + "/merge" + (GeneSetMerger.mergeCount-1), fold, true);
+				
 			}
+			if(!debugging  || breakPoint.equalsIgnoreCase("output") || breakPoint.equalsIgnoreCase("merge"))
+			{
+				if(annot != null)GeneSet.setAnnotations(annot);
+				if((scdr.allFinished(fold)|| breakPoint.equalsIgnoreCase("output")) && segment==0){
+					GeneSetMerger mg = new GeneSetMerger(segment, 1, jobID);
+					mg.setMinSize(minSize);
+					if(breakPoint.equalsIgnoreCase("output")){
+						GeneSetMerger.addMergeCount();
+					}
+					mg.mergeGeneSets("tmp/" + jobID + "/merge" + (GeneSetMerger.mergeCount-1), fold, true);
+				}
+			}
+		
 		}
-		
-		
 		System.out.println("Done in " + (System.currentTimeMillis() - tOrigin) + " msecs.");
 		System.out.println("\n====Thank you!!==================================@ Columbia University 2011=======\n");
 	}

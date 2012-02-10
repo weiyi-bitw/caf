@@ -1,22 +1,27 @@
-package caf;
+package worker;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 
+
 import obj.Chromosome;
 import obj.DataFile;
 import obj.GeneSet;
-import worker.Converger;
 import worker.Converger.ValIdx;
 
-public class GroupAttractors3 {
+public class AttractorGrouper extends DistributedWorker {
+	static float ovlpTh = 0.5f;
+	
+	
 	static class DistPair implements Comparable<DistPair>{
 		static int n = 10000;
 		String x;
@@ -180,37 +185,15 @@ public class GroupAttractors3 {
 			return -Double.compare(this.strength, other.strength);
 		}
 	}
-	static ArrayList<Chromosome> parseChromGenes(String file, ArrayList<String> genes, HashMap<String, Integer> geneMap, HashMap<Integer, Chromosome> chromap) throws IOException{
-		ArrayList<Chromosome> chrs = new ArrayList<Chromosome>();
-		Chromosome.setGeneMap(geneMap);
-		Chromosome.setGeneNames(genes);
-		BufferedReader br = new BufferedReader(new FileReader(file));
-		br.readLine(); // first line header
-		
-		String line = br.readLine();
-		while(line != null){
-			//System.out.println(line);
-			String[] tokens = line.split("\t");
-			int nt = tokens.length;
-			Chromosome chr = new Chromosome(tokens[nt-1]);
-			float coord = Float.parseFloat(tokens[5]);
-			boolean strand = tokens[2].equals("(+)");
-			if(chrs.contains(chr)){
-				chrs.get(chrs.indexOf(chr)).addGene(tokens[0], coord, strand);
-			}else{
-				chr.addGene(tokens[0], coord, strand);
-				chrs.add(chr);
-				
-			}
-			if(geneMap.get(tokens[0]) != null){
-				chromap.put(geneMap.get(tokens[0]), chrs.get(chrs.indexOf(chr)));
-			}
-			line = br.readLine();
-		}
-		return chrs;
+	
+	public AttractorGrouper(int segment, int numSegments, long jobID) {
+		id = segment;
+		totalComputers = numSegments;
+		AttractorGrouper.jobID = jobID;
 	}
+
 	private static ArrayList<Attractor> parseAttractorInOneFile(
-			String file, HashMap<String, Integer> rowmap, int minSize) throws IOException {
+			String file, HashMap<String, Integer> rowmap) throws IOException {
 		
 		BufferedReader br = new BufferedReader(new FileReader(file));
 		String line = br.readLine();
@@ -219,10 +202,6 @@ public class GroupAttractors3 {
 			String[] tokens = line.split("\t");
 			String name = tokens[0];
 			int nt = tokens.length;
-			/*if(nt - 2 < minSize) {
-				line = br.readLine();
-				continue;
-			}*/
 			int numChild = Integer.parseInt(tokens[1].split(":")[1]);
 			HashSet<Integer> gidx = new HashSet<Integer>();
 			for(int j = 2; j < nt; j++){
@@ -236,7 +215,30 @@ public class GroupAttractors3 {
 		br.close();
 		return allAttractors;
 	}
-	
+	private static ArrayList<GeneSet> parseGeneSetInOneFile(
+			String file, HashMap<String, Integer> rowmap) throws IOException {
+		
+		BufferedReader br = new BufferedReader(new FileReader(file));
+		String line = br.readLine();
+		ArrayList<GeneSet> allAttractors = new ArrayList<GeneSet>();
+		while(line != null){ // each line is an attractor
+			String[] tokens = line.split("\t");
+			String name = tokens[0];
+			int nt = tokens.length;
+			int numChild = Integer.parseInt(tokens[1].split(":")[1]);
+			ArrayList<ValIdx> gidx = new ArrayList<ValIdx>();
+			for(int j = 2; j < nt; j++){
+				String[] t2 = tokens[j].split(":");
+				int i = rowmap.get(t2[0]);
+				float f = Float.parseFloat(t2[1]);
+				gidx.add(new ValIdx(i, f));
+			}
+			allAttractors.add(new GeneSet(name, gidx.toArray(new ValIdx[0]), numChild));
+			line = br.readLine();
+		}
+		br.close();
+		return allAttractors;
+	}
 	private static float[] getMetaGene(float[][] data, HashSet<Integer> idx, int n){
 		int m = idx.size();
 		float[] out = new float[n];
@@ -249,61 +251,17 @@ public class GroupAttractors3 {
 		return out;
 	}
 	
-	/**
-	 * @param args
-	 * @throws Exception 
-	 */
-	public static void main(String[] arg) throws Exception {
-		// TODO Auto-generated method stub
-		String path = "/home/weiyi/workspace/javaworks/caf/output/caf/brca.tcga.rowMiNorm.z8/";
-		if(!path.endsWith("/")){
-			path = path + "/";
-		}
-		
-		int minSize = 10;
-		float zScore = 8f;
-		float ovlpTh = 0.5f; // overlap threshold
-		boolean rowNormalization = true;
-		boolean MINormalization = true;
-		boolean CNV = false;
-		
-		System.out.println("Loading files...");
-		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/brca/gse2034/ge.13271x286.var.txt");
-		DataFile ma = DataFile.parse("/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt");
-		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/coad/gse14333/ge.20765x290.var.txt");
-		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt");
-		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/gse9891/ge.20765x285.var.txt");
-		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt");
-		int m = ma.getNumRows();
-		int n = ma.getNumCols();
-		if(rowNormalization) ma.normalizeRows();
-		float[][] data = ma.getData();
-		
-		HashMap<String, Integer> rowmap = ma.getRows();
-		HashMap<Integer, Chromosome> chromap = new HashMap<Integer, Chromosome>();
-		ArrayList<Chromosome> chrs = new ArrayList<Chromosome>();
-		
-		if(CNV){
-				chrs = parseChromGenes("/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3", 
-				ma.getProbes(), ma.getRows(), chromap);
-		}
-		
+	public void mergeAndReconverge(String path, DataFile ma, Converger cvg) throws Exception{
 		ArrayList<String> probeNames = ma.getProbes();
 		Attractor.setGeneNames(probeNames);
 		System.out.print("Loading gene sets...");
 		
-		ArrayList<Attractor> allGeneSet = parseAttractorInOneFile(path + "attractors.gwt", rowmap, minSize);
+		ArrayList<Attractor> allGeneSet = parseAttractorInOneFile(path + "attractors.gwt", ma.getRows());
 		int N = allGeneSet.size();
 		
 		System.out.println(N + " gene sets are loaded.");
 		Collections.sort(allGeneSet);
-		/*PrintWriter pw2 = new PrintWriter(new FileWriter(path + "SortedAttractors.gwt"));
-		for(Attractor a: allGeneSet){
-			pw2.println(a);
-		}
-		pw2.close();
-		*/
-		// Merging using UPGMA
+		
 		ArrayList<DistPair> allDist = new ArrayList<DistPair>();
 		for(int i = 0; i < N-1; i++){
 			Attractor ai = allGeneSet.get(i);
@@ -316,13 +274,6 @@ public class GroupAttractors3 {
 			}
 		}
 		Collections.sort(allDist);
-		
-		Converger cvg = new Converger(0, 1, System.currentTimeMillis(), "ZSCORE", 100, false);
-		cvg.miNormalization(MINormalization);
-		cvg.setZThreshold(zScore);
-		cvg.setAttractorSize(minSize);
-		cvg.setMIParameter(6, 3);
-		GeneSet.setOverlapRatio(ovlpTh);
 		
 		while(allDist.size() > 0){
 			DistPair target = allDist.get(0); // merge the most similar pair
@@ -365,56 +316,43 @@ public class GroupAttractors3 {
 			Collections.sort(allDist);
 		}
 		N = allGeneSet.size();
-		
 		Collections.sort(allGeneSet);
-		PrintWriter pw2 = new PrintWriter(new FileWriter(path + "MetaAttractors.gwt"));
-		for(int i = N-1; i >= 0; i-- ){
-			Attractor a = allGeneSet.get(i);
-			if(a.sz < minSize){
-				allGeneSet.remove(i);
-			}else{
+		
+		if(this.id == 0){
+			new File("output").mkdir();
+			new File("output/" + jobID).mkdir();
+			PrintWriter pw2 = new PrintWriter(new FileWriter("output/" + jobID + "/MetaAttractors.gwt"));
+			for(int i = N-1; i >= 0; i-- ){
+				Attractor a = allGeneSet.get(i);
 				pw2.println(a);
 			}
+			pw2.close();
 		}
-		pw2.close();
 		
 		N = allGeneSet.size();
 		System.out.println(N + " meta-attractors left.");
 		
 		System.out.println("Reconverging...");
 		
-		ArrayList<GeneSet> convergedGeneSets = new ArrayList<GeneSet>();
-		for(int i = 0; i < N; i++){
-			Attractor a = allGeneSet.get(i);
-			int k = 0;
-			for(Integer ii : a.geneIdx){
-				k = ii; break;
-			}
-			Chromosome chr = chromap.get(k);
-			System.out.println(i + "\t" + a.getName() + "...");
-			float[] vec = getMetaGene(data, a.geneIdx, n);
-			ArrayList<ValIdx> metaIdx = CNV? cvg.findCNV(data, vec, chr):cvg.findAttractor(data, vec);
-			GeneSet gs;
-			if(CNV){
-				gs = new GeneSet(a.getName() + "_" + chr.name(), metaIdx.toArray(new ValIdx[0]), a.strength);
-			}else{
-				gs = new GeneSet(a.getName(), metaIdx.toArray(new ValIdx[0]), a.strength);
-			}
-			if(gs.size() < minSize){
-				System.out.println("Too small, filtered.");
-				continue;
-			}
-			if(gs.overlapWith(convergedGeneSets)){
-				System.out.println("Overlap, filtered.");
-				continue;
-			}
-			convergedGeneSets.add(gs);
-			/*if(convergedGeneSets.size() >= 10){
-				break;
-			}*/
-		}
 		
-		PrintWriter pw = new PrintWriter(new FileWriter(path + "ConvergedMetaAttractors.gwt"));
+		ArrayList<GeneSet> convergedGeneSets = new ArrayList<GeneSet>();
+		float[][] data = ma.getData();
+		int start = N * id / totalComputers;
+		int end = N * (id + 1) / totalComputers;
+		
+		for(int i = 0; i < N; i++){
+			if(i >= start && i < end){
+				Attractor a = allGeneSet.get(i);
+				System.out.println(i + "\t" + a.getName() + "...");
+				float[] vec = getMetaGene(data, a.geneIdx, ma.getNumCols());
+				ArrayList<ValIdx> metaIdx = cvg.findAttractor(data, vec);
+				GeneSet gs;
+				gs = new GeneSet(a.getName(), metaIdx.toArray(new ValIdx[0]), a.strength);
+				convergedGeneSets.add(gs);
+			}
+		}
+		prepare("geneset");
+		PrintWriter pw = new PrintWriter(new FileWriter("tmp/" + jobID + "/geneset/caf." + String.format("%05d", id)+".txt"));
 		GeneSet.setProbeNames(probeNames);
 		for(GeneSet gs : convergedGeneSets){
 			pw.print(gs.getName() + "\t" + gs.size() + ":" + gs.getNumChild() + "\t");
@@ -422,5 +360,53 @@ public class GroupAttractors3 {
 		}
 		pw.close();
 	}
-
+	
+	public void outputConvergedAttractors(String path, DataFile ma, int minSize) throws Exception{
+		ArrayList<GeneSet> allAttractors = new ArrayList<GeneSet>();
+		String[] files = new File(path).list();
+		Arrays.sort(files);
+		
+		for(String s : files){
+			allAttractors.addAll(parseGeneSetInOneFile(path + s, ma.getRows()));
+		}
+		int N = allAttractors.size();
+		
+		System.out.println(N + " attractors loaded.");
+		System.out.println("Examine for overlapping...");
+		Collections.sort(allAttractors);
+		for(int i = N-1; i >= 0; i--){
+			GeneSet gs = allAttractors.get(i);
+			if(gs.size() < minSize){
+				allAttractors.remove(i);
+				continue;
+			}
+			for(int j = 0; j < i; j++){
+				GeneSet gs2 = allAttractors.get(j);
+				
+				int th = (int) (Math.min(gs2.size(), gs.size()) * ovlpTh);
+				int k = gs2.overlapWith(gs);
+				if(k > th){
+					allAttractors.remove(i);
+					break;
+				}
+			}
+		}
+		
+		N = allAttractors.size();
+		System.out.println(N + " attractors left.");
+		
+		new File("output").mkdir();
+		new File("output/" + jobID).mkdir();
+		PrintWriter pw = new PrintWriter(new FileWriter("output/" + jobID + "/ConvergedAttractors.gwt"));
+		GeneSet.setProbeNames(ma.getProbes());
+		for(GeneSet gs : allAttractors){
+			pw.print(gs.getName() + "\t" + gs.size() + ":" + gs.getNumChild() + "\t");
+			pw.println(gs.toProbes());
+		}
+		pw.close();
+	}
+	public static void setOvlpTh(float ovlpTh){
+		AttractorGrouper.ovlpTh = ovlpTh;
+	}
+	
 }

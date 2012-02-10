@@ -91,7 +91,7 @@ public class GeneSetMerger extends DistributedWorker{
 		if(finalOutput){
 			new File("output").mkdir();
 			new File("output/" + jobID).mkdir();
-			new File("output/" + jobID + "/lists").mkdir();
+			//new File("output/" + jobID + "/lists").mkdir();
 			PrintWriter pw = new PrintWriter(new FileWriter("output/" + jobID + "/attractors.gwt"));
 			PrintWriter pw2 = new PrintWriter(new FileWriter("output/" + jobID + "/attractees.gwt"));
 			//PrintWriter pw3 = new PrintWriter(new FileWriter("output/" + jobID + "/weights.txt"));
