@@ -375,7 +375,7 @@ public class CorrAttractorFinder {
 			}
 			
 			if(command.equalsIgnoreCase("MRC")){
-				scdr.waitTillFinished(0);
+				scdr.waitTillFinished(0, 1);
 			}else{
 				// fold the number of workers to the squre root of the total number of workers
 				scdr.waitTillFinished(0, fold);
