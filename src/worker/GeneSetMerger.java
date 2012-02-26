@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import obj.GeneSet;
-import worker.Converger.ValIdx;
+import obj.ValIdx;
 
 public class GeneSetMerger extends DistributedWorker{
 	ArrayList<GeneSet> allGeneSets;

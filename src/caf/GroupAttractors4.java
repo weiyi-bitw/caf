@@ -1,5 +1,4 @@
 package caf;
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -10,15 +9,15 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import obj.Attractor;
 import obj.Chromosome;
 import obj.DataFile;
 import obj.GeneSet;
 import obj.ValIdx;
 import worker.Converger;
-
-public class GroupAttractors3 {
+public class GroupAttractors4 {
 	static class DistPair implements Comparable<DistPair>{
-		static int n = 10000;
+		static int n = 1000000;
 		String x;
 		String y;
 		float sim; // similarities
@@ -59,170 +58,6 @@ public class GroupAttractors3 {
 		}
 	}
 	
-	static class Attractor implements Comparable<Attractor>{
-		static int counter = 0;
-		static ArrayList<String> geneNames;
-		String name;
-		HashSet<Integer> geneIdx;
-		int sz;
-		int strength; // number of attractees
-		HashSet<Attractor> child = null;
-		HashSet<String> stomach = null;
-		Attractor parent = null;
-		
-		
-		Attractor(String name, HashSet<Integer> geneIdx, int sz, int strength){
-			this.name = name;
-			this.geneIdx = geneIdx;
-			this.sz = sz;
-			this.strength = strength;
-			this.stomach = new HashSet<String>();
-			this.stomach.add(this.name);
-		}
-		Attractor(String name){
-			this.name = name;
-		}
-		Attractor(Attractor a){
-			this.name = "MetaAttractor" + counter;
-			counter++;
-			this.sz = a.sz;
-			this.child = new HashSet<Attractor>();
-			this.addChild(a);
-		}
-		void combine(Attractor a){ //combine the children of two attractors 
-			for(Attractor aa : a.child){
-				this.addChild(aa);
-			}
-		}
-		void merge(Attractor a){
-			this.name = "MetaAttractor" + counter;
-			counter++;
-			this.geneIdx.addAll(a.geneIdx);
-			this.sz = this.geneIdx.size();
-			this.strength += a.strength;
-			this.stomach.add(a.name);
-		}
-		void intersect(Attractor a){
-			this.name = "MetaAttractor" + counter;
-			counter++;
-			HashSet<Integer> newGeneIdx = new HashSet<Integer>();
-			for(Integer i : a.geneIdx){
-				if(this.geneIdx.contains(i)){
-					newGeneIdx.add(i);
-				}
-			}
-			
-			this.geneIdx = newGeneIdx;
-			this.sz = this.geneIdx.size();
-			this.strength += a.strength;
-			this.stomach.add(a.name);
-		}
-		void addChild(Attractor a){
-			if(this.child==null){
-				this.child = new HashSet<Attractor>();
-			}
-			a.parent = this;
-			this.child.add(a);
-		}
-		void setParent(Attractor a){
-			this.parent = a;
-		}
-		String getName(){
-			return name;
-		}
-		public String toString(){
-			String s = this.name + "\t" + this.sz + ":" + this.strength;
-			for(int i : this.geneIdx){
-				s += ("\t" + geneNames.get(i));
-			}
-			return s;
-		}
-		public boolean equals(Object other){
-			boolean result = false;
-	        if (other instanceof Attractor) {
-	        	Attractor that = (Attractor) other;
-	        	result = this.name.equals(that.name);
-	        }
-	        return result;
-		}
-		public int hashCode(){
-			return(this.name.hashCode());
-		}
-		void cronus(){
-			this.geneIdx = new HashSet<Integer>();
-			this.strength = 0;
-			for(Attractor a : this.child){
-				this.geneIdx.addAll(a.geneIdx);
-				this.strength += a.strength;
-			}
-			this.sz = this.geneIdx.size();
-		}
-		int getOverlap(Attractor a){
-			int ovlp = 0;	
-			for(int i : a.geneIdx){
-				if(this.geneIdx.contains(i)){
-					ovlp++;
-				}
-			}
-			return ovlp;
-		}
-		boolean overlap(Attractor a){
-			int th = Math.min(this.sz, a.sz)/2;
-			int ovlp = 0;
-			for(int i : a.geneIdx){
-				if(this.geneIdx.contains(i)){
-					ovlp++;
-					if(ovlp > th)return true;
-				}
-			}
-			return false;
-		}
-		float similarities(Attractor a){
-			float ovlp = 0;
-			float minSz = (float) Math.min(this.sz, a.sz);
-			for(int i : a.geneIdx){
-				if(this.geneIdx.contains(i)){
-					ovlp++;
-				}
-			}
-			return ovlp / minSz;
-		}
-		static void setGeneNames(ArrayList<String> geneNames){
-			Attractor.geneNames = geneNames;
-		}
-		public int compareTo(Attractor other) {
-			return -Double.compare(this.strength, other.strength);
-		}
-	}
-	static ArrayList<Chromosome> parseChromGenes(String file, ArrayList<String> genes, HashMap<String, Integer> geneMap, HashMap<Integer, Chromosome> chromap) throws IOException{
-		ArrayList<Chromosome> chrs = new ArrayList<Chromosome>();
-		Chromosome.setGeneMap(geneMap);
-		Chromosome.setGeneNames(genes);
-		BufferedReader br = new BufferedReader(new FileReader(file));
-		br.readLine(); // first line header
-		
-		String line = br.readLine();
-		while(line != null){
-			//System.out.println(line);
-			String[] tokens = line.split("\t");
-			int nt = tokens.length;
-			Chromosome chr = new Chromosome(tokens[nt-1]);
-			float coord = Float.parseFloat(tokens[5]);
-			boolean strand = tokens[2].equals("(+)");
-			if(chrs.contains(chr)){
-				chrs.get(chrs.indexOf(chr)).addGene(tokens[0], coord, strand);
-			}else{
-				chr.addGene(tokens[0], coord, strand);
-				chrs.add(chr);
-				
-			}
-			if(geneMap.get(tokens[0]) != null){
-				chromap.put(geneMap.get(tokens[0]), chrs.get(chrs.indexOf(chr)));
-			}
-			line = br.readLine();
-		}
-		return chrs;
-	}
 	private static ArrayList<Attractor> parseAttractorInOneFile(
 			String file, HashMap<String, Integer> rowmap, int minSize) throws IOException {
 		
@@ -233,29 +68,34 @@ public class GroupAttractors3 {
 			String[] tokens = line.split("\t");
 			String name = tokens[0];
 			int nt = tokens.length;
-			/*if(nt - 2 < minSize) {
+			if(nt - 2 < minSize) {
 				line = br.readLine();
 				continue;
-			}*/
-			int numChild = Integer.parseInt(tokens[1].split(":")[1]);
-			HashSet<Integer> gidx = new HashSet<Integer>();
+			}
+			float numChild = Float.parseFloat(tokens[1].split(":")[1]);
+			float z = 0;
+			HashMap<String, Float> zMap = new HashMap<String, Float>();
+			ArrayList<String> genes = new ArrayList<String>();
 			for(int j = 2; j < nt; j++){
 				String[] t2 = tokens[j].split(":");
-				int i = rowmap.get(t2[0]);
-				gidx.add(i);
+				if(j==2){
+					z = Float.parseFloat(t2[2]);
+				}
+				genes.add(t2[0]);
+				zMap.put(t2[0], z = Float.parseFloat(t2[2]));
 			}
-			allAttractors.add(new Attractor(name, gidx, nt-2, numChild));
+			allAttractors.add(new Attractor(name, genes, zMap, rowmap, numChild, z));
 			line = br.readLine();
 		}
 		br.close();
 		return allAttractors;
 	}
 	
-	private static float[] getMetaGene(float[][] data, HashSet<Integer> idx, int n){
-		int m = idx.size();
+	private static float[] getMetaGene(float[][] data, Attractor a, int n){
+		int m = a.size();
 		float[] out = new float[n];
 		for(int j = 0; j < n; j++){
-			for(Integer i : idx){
+			for(Integer i : a.geneIndices()){
 				out[j] += data[i][j];
 			}
 			out[j] /= m;
@@ -269,41 +109,34 @@ public class GroupAttractors3 {
 	 */
 	public static void main(String[] arg) throws Exception {
 		// TODO Auto-generated method stub
-		String path = "/home/weiyi/workspace/javaworks/caf/output/brca.gse2034.minorm.z8/";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/ov.tcga.agi.minorm.z8/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
 		
 		int minSize = 10;
 		float zScore = 8f;
+		float reconvergeTh = 0.8f; // reconverge threshold
 		float ovlpTh = 0.5f; // overlap threshold
 		boolean rowNormalization = false;
 		boolean MINormalization = true;
-		boolean CNV = false;
 		
 		System.out.println("Loading files...");
-		DataFile ma = DataFile.parse("/home/weiyi/workspace/data/brca/gse2034/ge.13271x286.var.txt");
+		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/brca/gse2034/ge.13271x286.var.txt");
 		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt");
 		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/coad/gse14333/ge.20765x290.var.txt");
 		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt");
 		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/gse9891/ge.20765x285.var.txt");
 		//DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt");
+		DataFile ma = DataFile.parse("/home/weiyi/workspace/data/ov/tcga/ge/ge.17814x584.knn.txt");
 		int m = ma.getNumRows();
 		int n = ma.getNumCols();
 		if(rowNormalization) ma.normalizeRows();
 		float[][] data = ma.getData();
 		
 		HashMap<String, Integer> rowmap = ma.getRows();
-		HashMap<Integer, Chromosome> chromap = new HashMap<Integer, Chromosome>();
-		ArrayList<Chromosome> chrs = new ArrayList<Chromosome>();
-		
-		if(CNV){
-				chrs = parseChromGenes("/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3", 
-				ma.getProbes(), ma.getRows(), chromap);
-		}
 		
 		ArrayList<String> probeNames = ma.getProbes();
-		Attractor.setGeneNames(probeNames);
 		System.out.print("Loading gene sets...");
 		
 		ArrayList<Attractor> allGeneSet = parseAttractorInOneFile(path + "attractors.gwt", rowmap, minSize);
@@ -324,8 +157,8 @@ public class GroupAttractors3 {
 			for(int j = i+1; j < N; j++){
 				Attractor aj = allGeneSet.get(j);
 				float ovlpRatio = ai.similarities(aj);
-				if(ovlpRatio >= ovlpTh){
-					allDist.add(new DistPair(ai.name, aj.name, ovlpRatio));
+				if(ovlpRatio > ovlpTh){
+					allDist.add(new DistPair(ai.name(), aj.name(), ovlpRatio));
 				}
 			}
 		}
@@ -340,7 +173,7 @@ public class GroupAttractors3 {
 		
 		while(allDist.size() > 0){
 			DistPair target = allDist.get(0); // merge the most similar pair
-			System.out.print(target.toString());
+			System.out.print(allDist.size() + "\t" + target.toString() + "...");
 			
 			int xIdx = allGeneSet.indexOf(new Attractor(target.x));
 			int yIdx = allGeneSet.indexOf(new Attractor(target.y));
@@ -350,13 +183,21 @@ public class GroupAttractors3 {
 				xIdx = tmp;
 			}
 			
+			//System.out.println(target.x + "(" + xIdx + ")" + "\t" + target.y + "(" + yIdx + ")");
+			
 		// 1. merge gene set, put in new key
-			allGeneSet.get(xIdx).merge(allGeneSet.get(yIdx));
-			String mergedName = allGeneSet.get(xIdx).name;
-			System.out.println(" into " + mergedName + " (" + xIdx + ").");
-			
-			
-			
+			if(target.sim == 1){
+				allGeneSet.get(xIdx).merge(allGeneSet.get(yIdx));
+			}else if(target.sim >= reconvergeTh){
+				allGeneSet.get(xIdx).fight(allGeneSet.get(yIdx));
+			}else{
+				allGeneSet.get(xIdx).merge(allGeneSet.get(yIdx));
+				float[] vec = getMetaGene(data,allGeneSet.get(xIdx),n );
+				ArrayList<ValIdx> metaIdx = cvg.findAttractor(data, vec);
+				allGeneSet.get(xIdx).reset(metaIdx, probeNames);
+			}
+			String mergedName = allGeneSet.get(xIdx).name();
+			System.out.println(" into " + mergedName + " (" + xIdx + ")." + allGeneSet.get(xIdx).strength());
 		// 2. remove merged gene set, remove keys
 			allGeneSet.remove(yIdx);
 			
@@ -366,13 +207,18 @@ public class GroupAttractors3 {
 					allDist.remove(i);
 				}
 			}
+			
+			if(allGeneSet.get(xIdx).size() < minSize){
+				allGeneSet.remove(xIdx);
+				continue;
+			}
 		// 4. add new distances
 			for(int i = 0; i < allGeneSet.size(); i++){
 				if(i != xIdx){
 					Attractor ai = allGeneSet.get(i);
 					float ovlpRatio = ai.similarities(allGeneSet.get(xIdx));
-					if(ovlpRatio >= ovlpTh){
-						allDist.add(new DistPair(ai.name, mergedName, ovlpRatio));
+					if(ovlpRatio > ovlpTh){
+						allDist.add(new DistPair(ai.name(), mergedName, ovlpRatio));
 					}
 				}
 			}
@@ -381,21 +227,34 @@ public class GroupAttractors3 {
 		N = allGeneSet.size();
 		
 		Collections.sort(allGeneSet);
-		PrintWriter pw2 = new PrintWriter(new FileWriter(path + "MetaAttractors.gwt"));
-		for(int i = N-1; i >= 0; i-- ){
+		for(int i = N-1; i >=0; i--){
 			Attractor a = allGeneSet.get(i);
-			if(a.sz < minSize){
+			if(a.size() < minSize){
 				allGeneSet.remove(i);
-			}else{
-				pw2.println(a);
+				continue;
+			}
+			for(int j = 0; j < i; j++){
+				if(a.similarities(allGeneSet.get(j)) > ovlpTh){
+					allGeneSet.remove(i);
+					break;
+				}
 			}
 		}
-		pw2.close();
 		
 		N = allGeneSet.size();
 		System.out.println(N + " meta-attractors left.");
+		PrintWriter pw2 = new PrintWriter(new FileWriter(path + "MetaAttractors.gwt"));
+		for(int i = 0; i < N; i++ ){
+			
+			Attractor a = allGeneSet.get(i);
+			//System.out.println(a.name());
+			pw2.println(a.toStringGenesOnly());
+		}
+		pw2.close();
 		
-		System.out.println("Reconverging...");
+		System.out.println(N + " Done.");
+		
+		/*System.out.println("Reconverging...");
 		
 		ArrayList<GeneSet> convergedGeneSets = new ArrayList<GeneSet>();
 		for(int i = 0; i < N; i++){
@@ -434,7 +293,6 @@ public class GroupAttractors3 {
 			pw.print(gs.getName() + "\t" + gs.size() + ":" + gs.getNumChild() + "\t");
 			pw.println(gs.toProbes());
 		}
-		pw.close();
+		pw.close();*/
 	}
-
 }

@@ -9,13 +9,9 @@ import java.util.HashMap;
 
 import obj.Chromosome;
 import obj.DataFile;
+import obj.ValIdx;
+
 import worker.Converger;
-import worker.Converger.ValIdx;
-
-
-
-
-
 
 public class CNVFinder {
 	static ArrayList<Chromosome> parseChromGenes(String file, ArrayList<String> genes, HashMap<String, Integer> geneMap) throws IOException{

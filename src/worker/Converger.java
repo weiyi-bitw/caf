@@ -9,6 +9,7 @@ import java.util.HashSet;
 
 import obj.Chromosome;
 import obj.DataFile;
+import obj.ValIdx;
 
 import org.apache.commons.math.MathException;
 import org.apache.commons.math.distribution.NormalDistributionImpl;
@@ -24,9 +25,11 @@ public class Converger extends DistributedWorker{
 	private static int bins = 7;
 	private static int splineOrder = 3;
 	private static boolean miNorm = false;
+	private final float convergeTh = 1E-8f;
+	static ITComputer itc;
 	
 	
-	public static class ValIdx implements Comparable<ValIdx>{
+	/*public static class ValIdx implements Comparable<ValIdx>{
 		float val;
 		int idx;
 		public ValIdx(int i, float v){
@@ -56,7 +59,7 @@ public class Converger extends DistributedWorker{
 	        return result;
 		}
 		
-	}
+	}*/
 	// search ValIdx array by its INDICES!
 	public static int biSearch(ValIdx[] x, ValIdx k){
 		int out = -1;
@@ -158,6 +161,53 @@ public class Converger extends DistributedWorker{
 		}
 		return out;
 	}
+	private static float[] getWeightedMetaGene(float[][] data, float[] w, float power, int m, int n){
+		float[] out = new float[n];
+		double sum = 0;
+		float[] r = StatOps.rank(w);
+		for(int i = 0; i < m; i++){
+			if(w[i] > 0){
+				double f = Math.exp(power*Math.log(w[i]));
+				//double sig =  1/(1 + Math.exp(-r[i] + (m-50)));
+				//double f = w[i] * sig;
+				sum += f;
+				for(int j = 0; j < n; j++){
+					out[j] += data[i][j] * f;
+				}
+			}
+		}
+		for(int j = 0; j < n; j++){
+			out[j] /= sum;
+		}
+		return out;
+	}
+	private static float[] getSmoothedWeightedMetaGene(float[][] data, float[] w, float[] pw, float power, int m, int n){
+		float[] out = new float[n];
+		double sum = 0;
+		float vw = StatOps.var(w, m);
+		float a= vw / (vw + StatOps.var(pw, m));
+		for(int i = 0; i < m; i++){
+			if(w[i] > 0){
+				w[i] = a * w[i] + (1-a)*pw[i];
+				double f = (float) Math.exp(power*Math.log(w[i]));
+				sum += f;
+				for(int j = 0; j < n; j++){
+					out[j] += data[i][j] * f;
+				}
+			}
+		}
+		for(int j = 0; j < n; j++){
+			out[j] /= sum;
+		}
+		return out;
+	}
+	private static float calcDist(float[] a, float[] b, int n){
+		float err = 0;
+		for(int i = 0; i < n; i++){
+			err += (a[i] - b[i]) * (a[i] - b[i]);
+		}
+		return err;
+	}
 	public ArrayList<ValIdx> findAttractor(float[][] data, int idx) throws Exception{
 		int m = data.length;
 		int n = data[0].length;
@@ -239,6 +289,85 @@ public class Converger extends DistributedWorker{
 		}
 		if(cnt == maxIter){
 			System.out.println("Not converged.");
+		}
+		return metaIdx;
+		
+	}
+	public ArrayList<ValIdx> noThConverge(float[][] data, int idx) throws Exception{
+		int m = data.length;
+		int n = data[0].length;
+		
+		ITComputer itc = new ITComputer(bins, splineOrder, id, totalComputers, miNorm);
+		float[] mi = itc.getAllMIWith(data[idx], data);
+		ArrayList<ValIdx> metaIdx = new ArrayList<ValIdx>();
+		ValIdx[] vec = new ValIdx[m];
+		for(int i = 0; i < m; i++){
+			vec[i] = new ValIdx(i, mi[i]);
+		}
+		Arrays.sort(vec);
+		for(int i = 0; i < attractorSize; i++){
+			metaIdx.add(vec[i]);
+		}
+		int cnt = 0;
+		ArrayList<ValIdx> preMetaIdx = new ArrayList<ValIdx>();
+		preMetaIdx.addAll(metaIdx);
+		ArrayList<ValIdx> prepreMetaIdx = new ArrayList<ValIdx>();
+		boolean converged = false;
+		while(cnt < maxIter){
+			
+			// cannot find significant associated genes, exit.
+			
+			if(metaIdx.size() == 0){
+				//System.out.println("Empty set, exit.");
+				break;
+			}
+			System.out.print("Iteration " + cnt + "...");
+			float[] metaGene = getMetaGene(data,metaIdx, n);
+			mi = itc.getAllMIWith(metaGene, data);
+			metaIdx = new ArrayList<ValIdx>();	
+			vec = new ValIdx[m];
+			for(int i = 0; i < m; i++){
+				vec[i] = new ValIdx(i, mi[i]);
+			}
+			Arrays.sort(vec);
+			for(int i = 0; i < attractorSize; i++){
+				metaIdx.add(vec[i]);
+			}
+			
+			if(preMetaIdx.equals(metaIdx)){
+				System.out.println("Converged."); 
+				System.out.println("Gene Set Size: " + metaIdx.size());
+				converged = true;
+				break;
+			}else if (prepreMetaIdx.equals(metaIdx)){
+				System.out.println("Cycled.");
+				converged = true;
+				if(metaIdx.size() >= preMetaIdx.size()){
+					break;
+				}else{
+					metaIdx = preMetaIdx;
+					break;
+				}
+			}
+			else{
+				prepreMetaIdx = preMetaIdx;
+				preMetaIdx = metaIdx;
+				//System.out.println("Gene Set Size: " + metaIdx.size());
+				cnt++;
+			}
+			
+		}
+		if(!converged){
+			System.out.println("Not converged.");
+			metaIdx.clear();
+		}else{
+			System.out.println("Expanding...");
+			HashSet<Integer> base = new HashSet<Integer>();
+			int higher = metaIdx.size() * 2;
+			for(ValIdx vi : metaIdx){
+				base.add(vi.idx);
+			}
+			
 		}
 		return metaIdx;
 		
@@ -552,6 +681,52 @@ public class Converger extends DistributedWorker{
 			}
 			return metaIdx;
 	}
+	public float[] findWeightedAttractor(float[][] data, float[] vec, float power) throws Exception{
+		int m = data.length;
+		int n = data[0].length;
+		float[] wVec = itc.getAllMIWith(vec, data);
+		//float[] wVec = StatOps.pearsonCorr(vec, data, m, n);
+		//float[] wVec = StatOps.cov(vec, data, m, n);
+		float[] preWVec = new float[m];
+		float[] prepreWVec = new float[m];
+		System.arraycopy(wVec, 0, preWVec, 0, m);
+		System.arraycopy(wVec, 0, prepreWVec, 0, m);
+		int c = 0;
+		while(c < maxIter){
+			float[] metaGene = getWeightedMetaGene(data, wVec, power,  m, n);
+			wVec = itc.getAllMIWith(metaGene, data);
+			//wVec = StatOps.pearsonCorr(metaGene, data, m, n);
+			//wVec = StatOps.cov(metaGene, data, m, n);
+			float err = calcDist(wVec, preWVec, m);
+			System.out.println(err);
+			if(err < convergeTh){
+				System.out.println("Converged.");
+				return wVec;
+			}
+			System.arraycopy(preWVec, 0, prepreWVec, 0, m);
+			System.arraycopy(wVec, 0, preWVec, 0, m);
+			c++;
+			
+			/*if(Arrays.equals(wVec, preWVec)){
+				System.out.println("Converged.");
+				return true;
+			}else if(Arrays.equals(wVec, prepreWVec)){
+				System.out.println("Cycled.");
+				return false;
+			}else{
+				System.arraycopy(preWVec, 0, prepreWVec, 0, m);
+				System.arraycopy(wVec, 0, preWVec, 0, m);
+				for(int i = 0; i < 10; i++){
+					System.out.print(wVec[i] + "\t");
+				}
+				System.out.println();
+			}*/
+		}
+		System.out.println("Not converged.");
+		wVec[0] = -1;
+		return wVec;
+	}
+	
 	public ArrayList<ValIdx> findAttractor(float[][] data, float[] vec)throws Exception{
 		int m = data.length;
 		int n = data[0].length;
@@ -648,12 +823,8 @@ public class Converger extends DistributedWorker{
 					break;
 				}else if (prepreMetaIdx.equals(metaIdx)){
 					System.out.println("Cycled.");
-					if(metaIdx.size() >= preMetaIdx.size()){
-						break;
-					}else{
-						metaIdx = preMetaIdx;
-						break;
-					}
+					metaIdx.clear();
+					break;
 				}
 				else{
 					prepreMetaIdx = preMetaIdx;
@@ -665,6 +836,7 @@ public class Converger extends DistributedWorker{
 			}
 			if(cnt == maxIter){
 				System.out.println("Not converged.");
+				metaIdx.clear();
 			}
 			return metaIdx;
 	}
@@ -837,4 +1009,10 @@ public class Converger extends DistributedWorker{
 	public void miNormalization(boolean miNorm){
 		Converger.miNorm = miNorm;
 	}
+	public void linkITComputer(ITComputer itc){
+		this.itc = itc;
+	}
+	
+	
+	
 }

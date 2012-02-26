@@ -17,7 +17,7 @@ import org.apache.commons.math.distribution.HypergeometricDistributionImpl;
 import obj.Annotations;
 import obj.DataFile;
 import obj.GeneSet;
-import worker.Converger.ValIdx;
+import obj.ValIdx;
 
 public class GroupAttractors {
 	static boolean miAndZscore = false;

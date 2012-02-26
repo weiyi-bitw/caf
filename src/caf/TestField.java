@@ -1,6 +1,7 @@
 package caf;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -14,10 +15,10 @@ import org.apache.commons.math.distribution.NormalDistributionImpl;
 
 import obj.Annotations;
 import obj.DataFile;
+import obj.ValIdx;
 
 import util.StatOps;
 import worker.Converger;
-import worker.Converger.ValIdx;
 import worker.ITComputer;
 
 public class TestField {
@@ -91,23 +92,20 @@ public class TestField {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String path = "/home/weiyi/workspace/data/ov/tcga/ge/";
+		String path = "/home/weiyi/workspace/data/brca/gse2034/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
 		
-		int th = (int) (Math.min(51, 21) * 0.9);
-		System.out.println(th);
-		
-		/*System.out.println("Loading files...");
-		DataFile ma = DataFile.parse(path + "ge.12042x582.txt");
+		System.out.println("Loading files...");
+		DataFile ma = DataFile.parse(path + "ge.13271x286.var.txt");
 		//ma.normalizeRows();
 		int m = ma.getNumRows();
 		int n = ma.getNumCols();
 		float[][] data = ma.getData();
 		
 		ArrayList<String> gs = new ArrayList<String>();
-		BufferedReader br = new BufferedReader(new FileReader("COL11A1_50"));
+		/*BufferedReader br = new BufferedReader(new FileReader("COL11A1_50"));
 		br.readLine();
 		String line = br.readLine();
 		while(line != null){
@@ -115,13 +113,20 @@ public class TestField {
 			gs.add(tokens[0]);
 			line = br.readLine();
 		}
-		br.close();
+		br.close();*/
 		
-		gs.add("AGK");
-		gs.add("NDUFS8");
-		gs.add("NOSIP");
-		gs.add("GCDH");
-		gs.add("HSF1");
+		gs.add("FAP");
+		gs.add("CD53");
+		/*gs.add("COL5A2");
+		gs.add("CENPA"); 
+		gs.add("KIF2C");
+		gs.add("LAPTM5");
+		gs.add("CD53");
+		gs.add("ADIPOQ");
+		gs.add("ADH1B");
+		gs.add("ESR1");*/
+		gs.add("ADH1B");
+		//gs.add("FABP4");
 		long jobID = System.currentTimeMillis();
 		
 		//String annotPath = "/home/weiyi/workspace/data/annot/affy/u133p2/annot.csv";
@@ -129,12 +134,40 @@ public class TestField {
 		Annotations annot = null;
 		
 		Converger cvg = new Converger(0, 1, jobID);
-		
-		cvg.setZThreshold(8f);
-		cvg.setConvergeMethos("ZSCORE");
-		cvg.setMIParameter(7, 3);
-		
+		ITComputer itc = new ITComputer(6, 3, 0, 1, true);
+		cvg.linkITComputer(itc);
 		HashMap<String, Integer> geneMap = ma.getRows();
+		ArrayList<String> geneNames = ma.getProbes();
+		
+		new File("tmp").mkdir();
+		for(String g : gs){
+			PrintWriter pw = new PrintWriter(new FileWriter("tmp/" + g + "_Attractor.txt"));
+			int idx = geneMap.get(g);
+			float[] vec = data[idx];
+			float[] out = cvg.findWeightedAttractor(data, vec, 5f);
+			if(out[0] == -1){
+				pw.println("Not converged.");
+				pw.close();
+				continue;
+			}
+			
+			ArrayList<ValIdx> vi = new ArrayList<ValIdx>();
+			for(int i = 0; i < m; i++){
+				out[i] = (float)Math.floor(out[i] * 10000) / 10000;
+				vi.add(new ValIdx(i, out[i]));
+			}
+			Collections.sort(vi);
+			for(int i = 0; i < m; i++){
+				pw.println(geneNames.get(vi.get(i).idx) + "\t" + vi.get(i).val);
+			}
+			pw.close();
+		}
+		
+		/*cvg.setZThreshold(8f);
+		cvg.setConvergeMethos("ZSCORE");
+		cvg.setMIParameter(6, 3);*/
+		
+		/*HashMap<String, Integer> geneMap = ma.getRows();
 		ArrayList<String> attractees = new ArrayList<String>();
 		ArrayList<ArrayList<ValIdx>> attractors = new ArrayList<ArrayList<ValIdx>>();
 		ArrayList<String> geneNames = ma.getProbes();

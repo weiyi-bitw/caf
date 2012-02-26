@@ -16,7 +16,7 @@ import java.util.HashSet;
 import obj.Chromosome;
 import obj.DataFile;
 import obj.GeneSet;
-import worker.Converger.ValIdx;
+import obj.ValIdx;
 
 public class AttractorGrouper extends DistributedWorker {
 	static float ovlpTh = 0.5f;
@@ -103,6 +103,22 @@ public class AttractorGrouper extends DistributedWorker {
 			this.name = "MetaAttractor" + counter;
 			counter++;
 			this.geneIdx.addAll(a.geneIdx);
+			this.sz = this.geneIdx.size();
+			this.strength += a.strength;
+			this.stomach.add(a.name);
+		}
+		
+		void intersect(Attractor a){
+			this.name = "MetaAttractor" + counter;
+			counter++;
+			HashSet<Integer> newGeneIdx = new HashSet<Integer>();
+			for(Integer i : a.geneIdx){
+				if(this.geneIdx.contains(i)){
+					newGeneIdx.add(i);
+				}
+			}
+			
+			this.geneIdx = newGeneIdx;
 			this.sz = this.geneIdx.size();
 			this.strength += a.strength;
 			this.stomach.add(a.name);
@@ -295,8 +311,6 @@ public class AttractorGrouper extends DistributedWorker {
 			allGeneSet.get(xIdx).merge(allGeneSet.get(yIdx));
 			String mergedName = allGeneSet.get(xIdx).name;
 			//System.out.println(" into " + mergedName + " (" + xIdx + ").");
-			
-			
 			
 		// 2. remove merged gene set, remove keys
 			allGeneSet.remove(yIdx);

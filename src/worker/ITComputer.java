@@ -33,7 +33,7 @@ public class ITComputer extends DistributedWorker{
 		int[] knots = new int[bins + splineOrder];
 		SplineMI.splineKnots(knots, bins, splineOrder);
 		ITComputer.knots = knots;
-		System.out.println("ITComputer " + (id+1) + " of " + totalComputers + " created.");
+		//System.out.println("ITComputer " + (id+1) + " of " + totalComputers + " created.");
 	}
 	public ITComputer(int bins, int splineOrder, int thisSeg, int totalSegs, boolean miNorm){
 		super(thisSeg, totalSegs);
@@ -43,7 +43,7 @@ public class ITComputer extends DistributedWorker{
 		SplineMI.splineKnots(knots, bins, splineOrder);
 		ITComputer.knots = knots;
 		ITComputer.normalizeMI = miNorm;
-		System.out.println("ITComputer " + (id+1) + " of " + totalComputers + " created.");
+		//System.out.println("ITComputer " + (id+1) + " of " + totalComputers + " created.");
 	}
 	public float[][][] getWeights(DataFile mset){
 		int m = mset.getNumRows();

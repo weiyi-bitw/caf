@@ -6,7 +6,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Genome {
+	
 	static class Gene implements Comparable<Gene>{
+		static boolean useChrCoord = false;
 		String name;
 		String chr;
 		float idx;
@@ -36,13 +38,16 @@ public class Genome {
 		public void resetIdx(float i){
 			this.idx = i;
 		}
+		static void useChrCoord(boolean ucc){
+			Gene.useChrCoord = ucc;
+		}
 	}
 	
 	ArrayList<Gene> genes;
 	HashMap<String, String> chrMap;
 	HashMap<String, Integer> idxMap;
 	
-	public static Genome parseGeneLocation(String file)throws Exception{
+	public static Genome parseGeneLocation(String file, boolean useChrCoord)throws Exception{
 		BufferedReader br = new BufferedReader(new FileReader(file));
 		ArrayList<Gene> genes = new ArrayList<Gene>();
 		br.readLine(); // first row header
@@ -52,7 +57,8 @@ public class Genome {
 			String[] tokens = line.split("\t");
 			String name = tokens[0];
 			String chr = tokens[6];
-			genes.add(new Gene(name, chr, lncnt));
+			float chrCoord = useChrCoord? Float.parseFloat(tokens[5]) : lncnt;
+			genes.add(new Gene(name, chr, chrCoord));
 			lncnt++;
 			line = br.readLine();
 		}
@@ -94,4 +100,5 @@ public class Genome {
 	boolean contains(String gene){
 		return genes.contains(new Gene(gene));
 	}
+	
 }

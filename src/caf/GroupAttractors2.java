@@ -14,7 +14,7 @@ import java.util.HashSet;
 import obj.Chromosome;
 import obj.DataFile;
 import obj.GeneSet;
-import worker.Converger.ValIdx;
+import obj.ValIdx;
 import worker.Converger;
 
 public class GroupAttractors2 {
