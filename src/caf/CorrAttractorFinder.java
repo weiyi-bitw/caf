@@ -370,7 +370,6 @@ public class CorrAttractorFinder {
 			if(command.equalsIgnoreCase("CAF")){
 				if(convergeMethod.equalsIgnoreCase("WEIGHTED")){
 					cvg.findWeightedAttractor(val, 5f);
-					return;
 				}else{
 					cvg.findAttractor(val, data);
 				}
@@ -401,7 +400,11 @@ public class CorrAttractorFinder {
 				if(segment < fold){
 					GeneSetMerger mg = new GeneSetMerger(segment, fold, jobID);
 					mg.setMinSize(minSize);
-					mg.mergeGeneSets("tmp/" + jobID + "/geneset/", numSegments, false);
+					if(convergeMethod.equals("WEIGHTED")){
+						mg.mergeWeightedGeneSets("tmp/" + jobID + "/geneset/", numSegments, 1E-4f, false);
+					}else{
+						mg.mergeGeneSets("tmp/" + jobID + "/geneset/", numSegments, false);
+					}
 				}else{
 					System.out.println("Job finished. Exit.");
 					System.exit(0);
@@ -417,7 +420,11 @@ public class CorrAttractorFinder {
 					if(breakPoint.equalsIgnoreCase("output")){
 						GeneSetMerger.addMergeCount();
 					}
-					mg.mergeGeneSets("tmp/" + jobID + "/merge" + (GeneSetMerger.mergeCount-1), fold, true);
+					if(convergeMethod.equals("WEIGHTED")){
+						mg.mergeWeightedGeneSets("tmp/" + jobID + "/merge" + (GeneSetMerger.mergeCount-1), fold, 1E-4f, true);
+					}else{
+						mg.mergeGeneSets("tmp/" + jobID + "/merge" + (GeneSetMerger.mergeCount-1), fold, true);
+					}
 				}
 			}
 		

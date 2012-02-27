@@ -24,6 +24,106 @@ public class GeneSetMerger extends DistributedWorker{
 		allGeneSets = new ArrayList<GeneSet>();
 	}
 	
+	
+	public void mergeWeightedGeneSets(String path, int numFiles, float precision, boolean finalOutput) throws IOException{
+		if(!path.endsWith("/")) path = path + "/";
+		int start = id * numFiles/totalComputers;
+		int end = (id+1) * numFiles/totalComputers;
+		BufferedReader br;
+		ArrayList<float[]> wVecs = new ArrayList<float[]>();
+		ArrayList<ArrayList<Integer>> basins = new ArrayList<ArrayList<Integer>>();
+		
+		int m = -1;
+		
+		System.out.println("Processing file " + start + " to file " + end );
+		for(int i = start; i < end; i++){
+			System.out.println(i);
+			br = new BufferedReader(new FileReader(path + "caf."+ String.format("%05d", i)+".txt"));
+			String line = br.readLine();
+			// Greedily merge gene set
+			while(line != null){
+				String[] tokens = line.split("\t");
+				int nt = tokens.length;
+				if(m < 0){
+					m = nt-1;
+				}
+				float[] wvec = new float[nt-1];
+				ArrayList<Integer> basin = new ArrayList<Integer>();
+				String[] t2 = tokens[0].split(",");
+				int nt2 = t2.length;
+				for(int j = 0; j < nt2; j++){
+					basin.add(Integer.parseInt(t2[j]));
+				}
+				for(int j = 0; j < m; j++){
+					wvec[j] = Float.parseFloat(tokens[j+1]);
+				}
+				boolean newOne = true;
+				int foundIdx = -1;
+				for(int j = 0; j < wVecs.size(); j++){
+					float[] fs = wVecs.get(j);
+					if(Converger.equal(fs, wvec, m, 10*precision)){
+						foundIdx = j;
+						newOne = false;
+						break;
+					}
+				}
+				if(newOne){
+					wVecs.add(wvec);
+					basins.add(basin);
+				}else{
+					basins.get(foundIdx).addAll(basin);
+				}
+				
+				line = br.readLine();
+			}
+			br.close();
+		}
+		if(finalOutput){
+			new File("output").mkdir();
+			new File("output/" + jobID).mkdir();
+			PrintWriter pw = new PrintWriter(new FileWriter("output/" + jobID + "/attractors.gwt"));
+			PrintWriter pw2 = new PrintWriter(new FileWriter("output/" + jobID + "/attractees.gwt"));
+			
+			for(int i = 0; i < wVecs.size(); i++){
+				String name = "Attractor" + String.format("%05d", i);
+				pw2.print(name);
+				pw.print(name);
+				ArrayList<Integer> basin = basins.get(i);
+				for(int j : basin){
+					pw2.print("\t" + j);
+				}pw2.println();
+				
+				float[] fs = wVecs.get(i);
+				for(int j = 0; j < m; j++){
+					pw.print("\t" + fs[j]);
+				}pw.println();
+			}
+			pw2.close();
+			pw.close();
+		}else{
+			PrintWriter pw = new PrintWriter(new FileWriter("tmp/" + jobID + "/merge" + mergeCount+ "/caf."+ String.format("%05d", id)+".txt"));
+			for(int i = 0; i < wVecs.size(); i++){
+				ArrayList<Integer> basin = basins.get(i);
+				int k = basin.size();
+				for(int j = 0; j < k; j++){
+					if(j == 0){
+						pw.print(basin.get(j));
+					}else{
+						pw.print("," + basin.get(j));
+					}
+				}
+				float[] fs = wVecs.get(i);
+				for(int j = 0; j < m; j++){
+					pw.print("\t" + fs[j]);
+				}
+				pw.println();
+			}
+			pw.close();
+			
+			mergeCount++;
+		
+		}
+	}
 	public void mergeGeneSets(String path, int numFiles, boolean finalOutput) throws IOException{
 		if(!path.endsWith("/")) path = path + "/";
 		int start = id * numFiles/totalComputers;

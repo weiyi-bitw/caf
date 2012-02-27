@@ -92,13 +92,13 @@ public class TestField {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String path = "/home/weiyi/workspace/data/brca/gse2034/";
+		String path = "/home/weiyi/workspace/data/coad/tcga/ge/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
 		
 		System.out.println("Loading files...");
-		DataFile ma = DataFile.parse(path + "ge.13271x286.var.txt");
+		DataFile ma = DataFile.parse(path + "ge.17814x154.knn.txt");
 		//ma.normalizeRows();
 		int m = ma.getNumRows();
 		int n = ma.getNumCols();
@@ -116,7 +116,8 @@ public class TestField {
 		br.close();*/
 		
 		//gs.add("LAPTM5");
-		gs.add("ADH1B");
+		gs.add("COL11A1");
+		gs.add("FBN1");
 		/*gs.add("COL5A2");
 		gs.add("CENPA"); 
 		gs.add("KIF2C");
@@ -145,7 +146,7 @@ public class TestField {
 			PrintWriter pw = new PrintWriter(new FileWriter("tmp/" + g + "_Attractor.txt"));
 			int idx = geneMap.get(g);
 			float[] vec = data[idx];
-			float[] out = cvg.findWeightedAttractor(data, vec, 2f);
+			float[] out = cvg.findWeightedAttractor(data, vec, 5f);
 			if(out[0] == -1){
 				pw.println("Not converged.");
 				pw.close();
