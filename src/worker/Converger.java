@@ -209,9 +209,9 @@ public class Converger extends DistributedWorker{
 		}
 		return err;
 	}
-	private static boolean equal(float[] a, float[] b, int n){
+	private static boolean equal(float[] a, float[] b, int n, float delta){
 		for(int i = 0; i < n; i++){
-			if(Math.abs(a[i] - b[i]) > precision){
+			if(Math.abs(a[i] - b[i]) > delta){
 				System.out.println(Math.abs(a[i] - b[i]));
 				return false;
 			}
@@ -705,7 +705,7 @@ public class Converger extends DistributedWorker{
 			wVec = itc.getAllMIWith(metaGene, data);
 			//wVec = StatOps.pearsonCorr(metaGene, data, m, n);
 			//wVec = StatOps.cov(metaGene, data, m, n);
-			if(equal(wVec, preWVec, m)){
+			if(equal(wVec, preWVec, m, precision)){
 				System.out.println("Converged.");
 				return wVec;
 			}
@@ -745,7 +745,7 @@ public class Converger extends DistributedWorker{
 				//wVec = StatOps.cov(metaGene, data, m, n);
 				//System.out.println(err);
 				
-				if( equal(wVec, preWVec, m)){
+				if( equal(wVec, preWVec, m, precision)){
 					System.out.println("Converged.");
 					converge = true;
 					break;
@@ -757,7 +757,7 @@ public class Converger extends DistributedWorker{
 				boolean newOne = true;
 				for(int i = 0; i < wVecs.size(); i++){
 					float[] fs = wVecs.get(i);
-					if(equal(wVec, fs, m)){ 
+					if(equal(wVec, fs, m, precision)){ 
 						newOne = false;
 						basins.get(i).add(idx);
 						break;
