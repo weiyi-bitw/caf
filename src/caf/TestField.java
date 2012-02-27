@@ -145,7 +145,7 @@ public class TestField {
 			PrintWriter pw = new PrintWriter(new FileWriter("tmp/" + g + "_Attractor.txt"));
 			int idx = geneMap.get(g);
 			float[] vec = data[idx];
-			float[] out = cvg.findWeightedAttractor(data, vec, 5f);
+			float[] out = cvg.findWeightedAttractor(data, vec, 2f);
 			if(out[0] == -1){
 				pw.println("Not converged.");
 				pw.close();
