@@ -168,8 +168,8 @@ public class Converger extends DistributedWorker{
 		for(int i = 0; i < m; i++){
 			if(w[i] > 0){
 				//double ww = Math.exp(power*Math.log(w[i]));
-				//double f = Math.exp(power*Math.log(w[i]));
-				double f =  Math.exp(power * Math.log(1/(1 + Math.exp(-w[i]))));
+				double f = Math.exp(power*Math.log(w[i]));
+				//double f =  Math.exp(power * Math.log(1/(1 + Math.exp(-w[i]))));
 				//double f = w[i] * sig;
 				sum += f;
 				for(int j = 0; j < n; j++){
