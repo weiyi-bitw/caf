@@ -101,6 +101,7 @@ public class GeneSetMerger extends DistributedWorker{
 			pw2.close();
 			pw.close();
 		}else{
+			prepare("merge" + mergeCount);
 			PrintWriter pw = new PrintWriter(new FileWriter("tmp/" + jobID + "/merge" + mergeCount+ "/caf."+ String.format("%05d", id)+".txt"));
 			for(int i = 0; i < wVecs.size(); i++){
 				ArrayList<Integer> basin = basins.get(i);
