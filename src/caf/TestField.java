@@ -116,8 +116,8 @@ public class TestField {
 		br.close();*/
 		
 		//gs.add("LAPTM5");
-		gs.add("COL11A1");
-		gs.add("FBN1");
+		gs.add("ZNF776");
+		gs.add("ZNF777");
 		/*gs.add("COL5A2");
 		gs.add("CENPA"); 
 		gs.add("KIF2C");
@@ -127,7 +127,6 @@ public class TestField {
 		gs.add("ADH1B");
 		gs.add("ESR1");*/
 		//gs.add("COL11A1");
-		gs.add("ADIPOQ");
 		long jobID = System.currentTimeMillis();
 		
 		//String annotPath = "/home/weiyi/workspace/data/annot/affy/u133p2/annot.csv";

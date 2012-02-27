@@ -85,10 +85,14 @@ public class GeneSetMerger extends DistributedWorker{
 			PrintWriter pw2 = new PrintWriter(new FileWriter("output/" + jobID + "/attractees.gwt"));
 			
 			for(int i = 0; i < wVecs.size(); i++){
+				ArrayList<Integer> basin = basins.get(i);
+				if(basin.size() < 2){
+					continue;
+				}
 				String name = "Attractor" + String.format("%05d", i);
 				pw2.print(name);
 				pw.print(name);
-				ArrayList<Integer> basin = basins.get(i);
+				
 				for(int j : basin){
 					pw2.print("\t" + j);
 				}pw2.println();
