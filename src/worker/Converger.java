@@ -161,6 +161,9 @@ public class Converger extends DistributedWorker{
 		}
 		return out;
 	}
+	private static double sigmoid(double x){
+		return (1/(1 + Math.exp(-x * 2 * Math.PI)));
+	}
 	private static float[] getWeightedMetaGene(float[][] data, float[] w, float power, int m, int n){
 		float[] out = new float[n];
 		double sum = 0;
@@ -169,7 +172,7 @@ public class Converger extends DistributedWorker{
 			if(w[i] > 0){
 				//double ww = Math.exp(power*Math.log(w[i]));
 				double f = Math.exp(power*Math.log(w[i]));
-				//double f =  Math.exp(power * Math.log(1/(1 + Math.exp(-w[i]))));
+				//double f =  Math.exp(power * Math.log(sigmoid(2*w[i]-1)));
 				//double f = w[i] * sig;
 				sum += f;
 				for(int j = 0; j < n; j++){
@@ -770,27 +773,27 @@ public class Converger extends DistributedWorker{
 					basins.add(basin);
 				}
 			}
-			PrintWriter pw = new PrintWriter(new FileWriter("tmp/" + jobID + "/geneset/caf." + String.format("%05d", id)+".txt"));
-			for(int i = 0; i < wVecs.size(); i++){
-				ArrayList<Integer> basin = basins.get(i);
-				int k = basin.size();
-				for(int j = 0; j < k; j++){
-					if(j == 0){
-						pw.print(basin.get(j));
-					}else{
-						pw.print("," + basin.get(j));
-					}
-				}
-				float[] fs = wVecs.get(i);
-				for(int j = 0; j < m; j++){
-					pw.print("\t" + fs[j]);
-				}
-				pw.println();
-			}
-			pw.close();
+			
 		}
 		
-		
+		PrintWriter pw = new PrintWriter(new FileWriter("tmp/" + jobID + "/geneset/caf." + String.format("%05d", id)+".txt"));
+		for(int i = 0; i < wVecs.size(); i++){
+			ArrayList<Integer> basin = basins.get(i);
+			int k = basin.size();
+			for(int j = 0; j < k; j++){
+				if(j == 0){
+					pw.print(basin.get(j));
+				}else{
+					pw.print("," + basin.get(j));
+				}
+			}
+			float[] fs = wVecs.get(i);
+			for(int j = 0; j < m; j++){
+				pw.print("\t" + fs[j]);
+			}
+			pw.println();
+		}
+		pw.close();
 		
 		
 		
