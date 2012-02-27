@@ -688,9 +688,7 @@ public class Converger extends DistributedWorker{
 		//float[] wVec = StatOps.pearsonCorr(vec, data, m, n);
 		//float[] wVec = StatOps.cov(vec, data, m, n);
 		float[] preWVec = new float[m];
-		float[] prepreWVec = new float[m];
 		System.arraycopy(wVec, 0, preWVec, 0, m);
-		System.arraycopy(wVec, 0, prepreWVec, 0, m);
 		int c = 0;
 		while(c < maxIter){
 			float[] metaGene = getWeightedMetaGene(data, wVec, power,  m, n);
@@ -703,30 +701,92 @@ public class Converger extends DistributedWorker{
 				System.out.println("Converged.");
 				return wVec;
 			}
-			System.arraycopy(preWVec, 0, prepreWVec, 0, m);
 			System.arraycopy(wVec, 0, preWVec, 0, m);
 			c++;
-			
-			/*if(Arrays.equals(wVec, preWVec)){
-				System.out.println("Converged.");
-				return true;
-			}else if(Arrays.equals(wVec, prepreWVec)){
-				System.out.println("Cycled.");
-				return false;
-			}else{
-				System.arraycopy(preWVec, 0, prepreWVec, 0, m);
-				System.arraycopy(wVec, 0, preWVec, 0, m);
-				for(int i = 0; i < 10; i++){
-					System.out.print(wVec[i] + "\t");
-				}
-				System.out.println();
-			}*/
 		}
 		System.out.println("Not converged.");
 		wVec[0] = -1;
 		return wVec;
 	}
-	
+	public void findWeightedAttractor(float[][] data, float power) throws Exception{
+		int m = data.length;
+		int n = data[0].length;
+		
+		int start = id * m / totalComputers;
+		int end = (id+1) * m / totalComputers;
+		
+		System.out.println("Processing gene " + (start+1) + " to " + end);
+		
+		prepare("geneset");
+		ArrayList<float[]> wVecs = new ArrayList<float[]>();
+		ArrayList<ArrayList<Integer>> basins = new ArrayList<ArrayList<Integer>>();
+		
+		for(int idx = start; idx < end; idx++){
+			System.out.print("Processing " + idx + "...");
+			float[] wVec = itc.getAllMIWith(data[idx], data);
+			//float[] wVec = StatOps.pearsonCorr(vec, data, m, n);
+			//float[] wVec = StatOps.cov(vec, data, m, n);
+			float[] preWVec = new float[m];
+			System.arraycopy(wVec, 0, preWVec, 0, m);
+			int c = 0;
+			boolean converge = false;
+			while(c < maxIter){
+				float[] metaGene = getWeightedMetaGene(data, wVec, power,  m, n);
+				wVec = itc.getAllMIWith(metaGene, data);
+				//wVec = StatOps.pearsonCorr(metaGene, data, m, n);
+				//wVec = StatOps.cov(metaGene, data, m, n);
+				float err = calcDist(wVec, preWVec, m);
+				//System.out.println(err);
+				if(err < convergeTh){
+					System.out.println("Converged.");
+					converge = true;
+					break;
+				}
+				System.arraycopy(wVec, 0, preWVec, 0, m);
+				c++;
+			}
+			if(converge){
+				boolean newOne = true;
+				for(int i = 0; i < wVecs.size(); i++){
+					float[] fs = wVecs.get(i);
+					if(StatOps.mse(fs, wVec) < 1E-4){ // 1E-4: precision of the calculation
+						newOne = false;
+						basins.get(i).add(idx);
+						break;
+					}
+				}
+				if(newOne){
+					wVecs.add(wVec);
+					ArrayList<Integer> basin = new ArrayList<Integer>();
+					basin.add(idx);
+					basins.add(basin);
+				}
+			}
+			PrintWriter pw = new PrintWriter(new FileWriter("tmp/" + jobID + "/geneset/caf." + String.format("%05d", id)+".txt"));
+			for(int i = 0; i < wVecs.size(); i++){
+				ArrayList<Integer> basin = basins.get(i);
+				int k = basin.size();
+				for(int j = 0; j < k; j++){
+					if(j == 0){
+						pw.print(basin.get(j));
+					}else{
+						pw.print("," + basin.get(j));
+					}
+				}
+				float[] fs = wVecs.get(i);
+				for(int j = 0; j < m; j++){
+					pw.print("\t" + fs[j]);
+				}
+				pw.println();
+			}
+			pw.close();
+		}
+		
+		
+		
+		
+		
+	}
 	public ArrayList<ValIdx> findAttractor(float[][] data, float[] vec)throws Exception{
 		int m = data.length;
 		int n = data[0].length;

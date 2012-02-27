@@ -116,7 +116,15 @@ public class StatOps {
 		Arrays.sort(in);
 		return in[ (int) (numIn*pct)];
 	}
-	
+	public static float mse(float[] x, float[] y){
+		int n = x.length;
+		int q = 0;
+		for(int i = 0; i < n; i++){
+			q += (x[i] - y[i]) * (x[i] - y[i]);
+		}
+		q /= n;
+		return (float) Math.sqrt(q);
+	}
 	
 	public static float pearsonCorr(float[] x, float[] y){
 		float xMean = 0;

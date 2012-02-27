@@ -21,6 +21,7 @@ import util.StatOps;
 import worker.AttractorGrouper;
 import worker.Converger;
 import worker.GeneSetMerger;
+import worker.ITComputer;
 import worker.Scheduler;
 
 public class CorrAttractorFinder {
@@ -153,7 +154,7 @@ public class CorrAttractorFinder {
 		    confLine = config.getProperty("converge_method");
 	    	if (confLine != null && confLine.length() > 0) {
 	    		confLine.toUpperCase();
-	    		if(!confLine.equals("ZSCORE") && !confLine.equals("FIXEDSIZE")){
+	    		if(! (confLine.equals("ZSCORE") || confLine.equals("FIXEDSIZE") || confLine.equals("WEIGHTED"))){
 	    			System.out.println("WARNING: Couldn't recognize converge method: " + confLine + ", using default = " + convergeMethod);
 	    		}
 	            convergeMethod = confLine;
@@ -336,10 +337,10 @@ public class CorrAttractorFinder {
 		
 		Scheduler scdr = new Scheduler(segment, numSegments, jobID);
 		Converger cvg = new Converger(segment, numSegments, jobID, convergeMethod, maxIter, rankBased);
+		ITComputer itc = new ITComputer(bins, splineOrder, segment, numSegments, normMI);
 		AttractorGrouper ag = new AttractorGrouper(segment, numSegments, jobID);
-		cvg.miNormalization(normMI);
+		cvg.linkITComputer(itc);
 		cvg.setAttractorSize(minSize);
-		cvg.setMIParameter(bins, splineOrder);
 		int fold = (int) Math.round(Math.sqrt(numSegments));
 		if(!debugging)
 		{
@@ -367,7 +368,12 @@ public class CorrAttractorFinder {
 				cvg.setZThreshold(zThreshold);
 			}
 			if(command.equalsIgnoreCase("CAF")){
-				cvg.findAttractor(val, data);
+				if(convergeMethod.equalsIgnoreCase("WEIGHTED")){
+					cvg.findWeightedAttractor(val, 5f);
+					return;
+				}else{
+					cvg.findAttractor(val, data);
+				}
 			}else if(command.equalsIgnoreCase("CNV")){
 				cvg.findCNV(data, val, chrs, zThreshold);
 			}else if(command.equalsIgnoreCase("MRC")){

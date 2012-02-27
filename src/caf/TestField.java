@@ -115,7 +115,7 @@ public class TestField {
 		}
 		br.close();*/
 		
-		gs.add("FAP");
+		gs.add("LAPTM5");
 		gs.add("CD53");
 		/*gs.add("COL5A2");
 		gs.add("CENPA"); 
