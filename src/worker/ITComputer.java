@@ -249,26 +249,7 @@ public class ITComputer extends DistributedWorker{
 		SplineMI.findWeights(fixVec, knots, weightFix, n, splineOrder, bins);
 		float[] histValtf = new float[bins];
 		int numSamples = n;
-		float e1fix = 0;
 		
-		for(int curSample = 0; curSample < n; curSample++){
-			
-			if(!Float.isNaN(weightFix[0][curSample])){
-				for (int curBin = 0; curBin < bins; curBin++) {
-					histValtf[curBin] += weightFix[curBin][curSample];
-	            }
-        	}else{
-        		numSamples--;
-        	}
-        }
-		for (int curBin = 0; curBin < bins; curBin++){
-			histValtf[curBin] /= numSamples;
-			if (histValtf[curBin] > 0) {
-        		e1fix -= histValtf[curBin] * SplineMI.log2d(histValtf[curBin]);
-        	}
-		}
-		
-		float e2fix = (float)SplineMI.entropy2d(weightFix, weightFix, n, bins);
 		//float miMax = 2 * e1fix - e2fix;
 		
 		float[] mi = new float[m];

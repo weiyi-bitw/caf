@@ -161,8 +161,8 @@ public class Converger extends DistributedWorker{
 		}
 		return out;
 	}
-	private static double sigmoid(double x){
-		return (1/(1 + Math.exp(-x * 2 * Math.PI)));
+	private static double sigmoid(double x, double a){
+		return (1/(1 + Math.exp(-2 * Math.PI * a * x)));
 	}
 	private static float[] getWeightedMetaGene(float[][] data, float[] w, float power, int m, int n){
 		float[] out = new float[n];
@@ -174,6 +174,8 @@ public class Converger extends DistributedWorker{
 				double f = Math.exp(power*Math.log(w[i]));
 				//double f =  Math.exp(power * Math.log(sigmoid(2*w[i]-1)));
 				//double f = w[i] * sig;
+				//double f = sigmoid(2*w[i]-1, power);
+				//double f = sigmoid(2*r[i]/m - 1, power);
 				sum += f;
 				for(int j = 0; j < n; j++){
 					out[j] += data[i][j] * f;
