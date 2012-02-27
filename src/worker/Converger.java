@@ -25,7 +25,7 @@ public class Converger extends DistributedWorker{
 	private static int bins = 7;
 	private static int splineOrder = 3;
 	private static boolean miNorm = false;
-	private final float convergeTh = 1E-8f;
+	private static final float precision = (float) 1E-4;
 	static ITComputer itc;
 	
 	
@@ -164,11 +164,12 @@ public class Converger extends DistributedWorker{
 	private static float[] getWeightedMetaGene(float[][] data, float[] w, float power, int m, int n){
 		float[] out = new float[n];
 		double sum = 0;
-		float[] r = StatOps.rank(w);
+		//float[] r = StatOps.rank(w);
 		for(int i = 0; i < m; i++){
 			if(w[i] > 0){
+				//double ww = Math.exp(power*Math.log(w[i]));
 				double f = Math.exp(power*Math.log(w[i]));
-				//double sig =  1/(1 + Math.exp(-r[i] + (m-50)));
+				//double f =  1/(1 + Math.exp(-ww));
 				//double f = w[i] * sig;
 				sum += f;
 				for(int j = 0; j < n; j++){
@@ -207,6 +208,15 @@ public class Converger extends DistributedWorker{
 			err += (a[i] - b[i]) * (a[i] - b[i]);
 		}
 		return err;
+	}
+	private static boolean equal(float[] a, float[] b, int n){
+		for(int i = 0; i < n; i++){
+			if(Math.abs(a[i] - b[i]) > precision){
+				System.out.println(Math.abs(a[i] - b[i]));
+				return false;
+			}
+		}
+		return true;
 	}
 	public ArrayList<ValIdx> findAttractor(float[][] data, int idx) throws Exception{
 		int m = data.length;
@@ -695,9 +705,7 @@ public class Converger extends DistributedWorker{
 			wVec = itc.getAllMIWith(metaGene, data);
 			//wVec = StatOps.pearsonCorr(metaGene, data, m, n);
 			//wVec = StatOps.cov(metaGene, data, m, n);
-			float err = calcDist(wVec, preWVec, m);
-			System.out.println(err);
-			if(err < convergeTh){
+			if(equal(wVec, preWVec, m)){
 				System.out.println("Converged.");
 				return wVec;
 			}
@@ -735,9 +743,9 @@ public class Converger extends DistributedWorker{
 				wVec = itc.getAllMIWith(metaGene, data);
 				//wVec = StatOps.pearsonCorr(metaGene, data, m, n);
 				//wVec = StatOps.cov(metaGene, data, m, n);
-				float err = calcDist(wVec, preWVec, m);
 				//System.out.println(err);
-				if(err < convergeTh){
+				
+				if( equal(wVec, preWVec, m)){
 					System.out.println("Converged.");
 					converge = true;
 					break;
@@ -749,7 +757,7 @@ public class Converger extends DistributedWorker{
 				boolean newOne = true;
 				for(int i = 0; i < wVecs.size(); i++){
 					float[] fs = wVecs.get(i);
-					if(StatOps.mse(fs, wVec) < 1E-4){ // 1E-4: precision of the calculation
+					if(equal(wVec, fs, m)){ 
 						newOne = false;
 						basins.get(i).add(idx);
 						break;

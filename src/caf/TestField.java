@@ -115,8 +115,8 @@ public class TestField {
 		}
 		br.close();*/
 		
-		gs.add("LAPTM5");
-		gs.add("CD53");
+		//gs.add("LAPTM5");
+		//gs.add("CD53");
 		/*gs.add("COL5A2");
 		gs.add("CENPA"); 
 		gs.add("KIF2C");
@@ -125,7 +125,7 @@ public class TestField {
 		gs.add("ADIPOQ");
 		gs.add("ADH1B");
 		gs.add("ESR1");*/
-		gs.add("ADH1B");
+		gs.add("COL11A1");
 		//gs.add("FABP4");
 		long jobID = System.currentTimeMillis();
 		
@@ -141,6 +141,7 @@ public class TestField {
 		
 		new File("tmp").mkdir();
 		for(String g : gs){
+			System.out.println("Processing " + g + "...");
 			PrintWriter pw = new PrintWriter(new FileWriter("tmp/" + g + "_Attractor.txt"));
 			int idx = geneMap.get(g);
 			float[] vec = data[idx];
