@@ -160,7 +160,6 @@ public class CorrAttractorFinder {
 		    	System.out.printf("%-25s%s\n", "Genome File:", confLine);
 		    	try {
 		    		gn = Genome.parseGeneLocation(confLine);
-		    		gn.linkToDataFile(ma);
 	            } catch (Exception e) {
 	                throw new RuntimeException("ERROR: Couldn't parse gene location file '" + confLine+ "\n" + e);
 	            }

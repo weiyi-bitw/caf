@@ -143,7 +143,13 @@ public class Genome {
 		}
 		chrIdxRangeMap.get(preChr).setY(cnt);
 	}
-	
+	public String[] getAllGenes(){
+		ArrayList<String> out = new ArrayList<String>();
+		for(Gene g : genes){
+			out.add(g.name);
+		}
+		return out.toArray(new String[0]);
+	}
 	ArrayList<Gene> getAllGenesInChr(String chr){
 		ArrayList<Gene> out = new ArrayList<Gene>();
 		for(Gene g: genes){

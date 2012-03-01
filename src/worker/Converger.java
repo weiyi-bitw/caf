@@ -824,6 +824,10 @@ public class Converger extends DistributedWorker{
 		return wVec;
 	}
 	public void findWeightedCNV(DataFile ma, Genome gn, int winSize, float power, boolean miDecay) throws Exception{
+		
+		gn.linkToDataFile(ma);
+		ma = ma.getSubProbes(gn.getAllGenes());
+		
 		int m = ma.getNumRows();
 		int n = ma.getNumCols();
 		ArrayList<String> genes = ma.getProbes();
@@ -854,9 +858,6 @@ public class Converger extends DistributedWorker{
 		
 		for(int idx = start; idx < end; idx++){
 			g = genes.get(idx);
-			if(!gn.contains(g)){
-				continue;
-			}
 			String chr = gn.getChr(g);
 			if(!chr.equals(preChr)){
 				neighbors = gn.getNeighbors(g, winSize);
