@@ -2,6 +2,7 @@ package caf;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -15,6 +16,7 @@ import org.apache.commons.math.distribution.NormalDistributionImpl;
 
 import obj.Annotations;
 import obj.DataFile;
+import obj.Genome;
 import obj.ValIdx;
 
 import util.StatOps;
@@ -92,13 +94,22 @@ public class TestField {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String path = "/home/weiyi/workspace/data/coad/tcga/ge/";
+		String path = "/home/weiyi/workspace/data/brca/gse2034";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
 		
+		
 		System.out.println("Loading files...");
-		DataFile ma = DataFile.parse(path + "ge.17814x154.knn.txt");
+		DataFile ma = DataFile.parse(path + "ge.13271x286.var.txt");
+		
+		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3";
+		
+		String command = "CAF";
+		float power = 5f;
+		boolean excludeTop = false;
+		int winSize = -1;
+		
 		//ma.normalizeRows();
 		int m = ma.getNumRows();
 		int n = ma.getNumCols();
@@ -116,20 +127,9 @@ public class TestField {
 		br.close();*/
 		
 		//gs.add("LAPTM5");
-		gs.add("CENPA");
 		//gs.add("ZNF777");
-		/*gs.add("COL5A2");
-		gs.add("CENPA"); 
-		gs.add("KIF2C");
-		gs.add("LAPTM5");
-		gs.add("CD53");
-		gs.add("ADIPOQ");
-		gs.add("ADH1B");
-		gs.add("ESR1");*/
-		//gs.add("COL11A1");
-		//gs.add("PUF60");
-		//gs.add("SHARPIN");
-		//gs.add("CENPA");
+		gs.add("AR");
+		gs.add("ABAT");
 		long jobID = System.currentTimeMillis();
 		
 		//String annotPath = "/home/weiyi/workspace/data/annot/affy/u133p2/annot.csv";
@@ -137,6 +137,16 @@ public class TestField {
 		Annotations annot = null;
 		
 		Converger cvg = new Converger(0, 1, jobID);
+		
+		Genome gn = Genome.parseGeneLocation(geneLocFile);
+		if(command.equals("CNV")) gn.linkToDataFile(ma);
+		
+		/*String[] chr8 = gn.getNeighbors("ASH2L", 51);
+		for(String s : chr8){
+			gs.add(s);
+		}*/
+		
+		
 		ITComputer itc = new ITComputer(6, 3, 0, 1, true);
 		cvg.linkITComputer(itc);
 		HashMap<String, Integer> geneMap = ma.getRows();
@@ -144,27 +154,60 @@ public class TestField {
 		
 		new File("tmp").mkdir();
 		for(String g : gs){
-			System.out.println("Processing " + g + "...");
-			PrintWriter pw = new PrintWriter(new FileWriter("tmp/" + g + "_Attractor.txt"));
-			int idx = geneMap.get(g);
-			float[] vec = data[idx];
-			float[] out = cvg.findWeightedAttractor(data, vec, 5f);
-			if(out[0] == -1){
-				pw.println("Not converged.");
-				pw.close();
-				continue;
+			if(geneNames.contains(g)){
+				System.out.println("Processing " + g + " (" + (gs.indexOf(g)+1) + "/" + gs.size() + ")" + "...");
+				String outFile = command.equals("CAF")? "tmp/" + g + "_Attractor.txt" : "tmp/" + g + "_CNV.txt";
+				try{
+					PrintWriter pw = new PrintWriter(new FileWriter(outFile));
+					float[] out = new float[m];
+					float[] vec = new float[m];
+					int idx = geneMap.get(g);
+					if(command.equals("CAF")){
+						vec = data[idx];
+						out = cvg.findWeightedAttractor(ma, g, vec, power, excludeTop);
+					}else if(command.equals("CNV")){
+						String[] neighbors = gn.getNeighbors(g, winSize);
+						if(neighbors == null){
+							pw.println("No neighbors");
+							pw.close();
+							continue;
+						}
+						DataFile ma2 = ma.getSubProbes(neighbors);
+						geneNames = ma2.getProbes();
+						m = ma2.getNumRows();
+						idx = ma2.getRows().get(g);
+						data = ma2.getData();
+						vec = data[idx];
+						out = cvg.findWeightedCNV(ma2, g, gn, vec, power, excludeTop);
+					}else{
+						System.out.println("Wrong command!");
+						System.exit(1);
+					}
+					
+					
+					if(out[0] == -1){
+						pw.println("Not converged.");
+						pw.close();
+						continue;
+					}
+					
+					ArrayList<ValIdx> vi = new ArrayList<ValIdx>();
+					for(int i = 0; i < m; i++){
+						out[i] = (float) Math.round(out[i] * 10000) / 10000;
+						vi.add(new ValIdx(i, out[i]));
+					}
+					Collections.sort(vi);
+					for(int i = 0; i < m; i++){
+						pw.println(geneNames.get(vi.get(i).idx) + "\t" + vi.get(i).val);
+					}
+					pw.close();
+				}catch (FileNotFoundException e){
+					System.out.println("Exception: " + e);
+					continue;
+				}
+			}else{
+				System.out.println("Does not contain gene " + g + "!!");
 			}
-			
-			ArrayList<ValIdx> vi = new ArrayList<ValIdx>();
-			for(int i = 0; i < m; i++){
-				out[i] = (float)Math.floor(out[i] * 10000) / 10000;
-				vi.add(new ValIdx(i, out[i]));
-			}
-			Collections.sort(vi);
-			for(int i = 0; i < m; i++){
-				pw.println(geneNames.get(vi.get(i).idx) + "\t" + vi.get(i).val);
-			}
-			pw.close();
 		}
 		
 		/*cvg.setZThreshold(8f);

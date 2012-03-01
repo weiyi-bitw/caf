@@ -17,6 +17,7 @@ import obj.Annotations;
 import obj.Chromosome;
 import obj.DataFile;
 import obj.GeneSet;
+import obj.Genome;
 import util.StatOps;
 import worker.AttractorGrouper;
 import worker.Converger;
@@ -43,6 +44,7 @@ public class CorrAttractorFinder {
 	private static String convergeMethod = "FIXEDSIZE";
 	private static String attractorFolder = "";
 	private static float ovlpTh = 0.5f;
+	private static float precision = (float) 1E-4;
 	
 	private static int bins = 6;
 	private static int splineOrder = 3;
@@ -50,6 +52,7 @@ public class CorrAttractorFinder {
 	private static DataFile ma;
 	private static Annotations annot;
 	private static ArrayList<Chromosome> chrs;
+	private static Genome gn;
 	
 	static ArrayList<Chromosome> parseChromGenes(String file, ArrayList<String> genes, HashMap<String, Integer> geneMap) throws IOException{
 		ArrayList<Chromosome> chrs = new ArrayList<Chromosome>();
@@ -151,6 +154,19 @@ public class CorrAttractorFinder {
 	            }
 		    }
 		    
+		    gn = null;
+		    confLine = config.getProperty("genome");
+		    if(confLine != null){
+		    	System.out.printf("%-25s%s\n", "Genome File:", confLine);
+		    	try {
+		    		gn = Genome.parseGeneLocation(confLine);
+		    		gn.linkToDataFile(ma);
+	            } catch (Exception e) {
+	                throw new RuntimeException("ERROR: Couldn't parse gene location file '" + confLine+ "\n" + e);
+	            }
+		    }
+		    
+		    
 		    confLine = config.getProperty("converge_method");
 	    	if (confLine != null && confLine.length() > 0) {
 	    		confLine.toUpperCase();
@@ -220,30 +236,46 @@ public class CorrAttractorFinder {
 	        }
 	    	System.out.printf("%-25s%s\n", "Correlation Threshold:", corrThreshold);
 	    	*/
-	    	confLine = config.getProperty("z_threshold");
-	    	if (confLine != null && confLine.length() > 0) {
-	            try {
-	               zThreshold = Float.parseFloat(confLine);
-	            } catch (NumberFormatException nfe) {
-	            	System.out.println("WARNING: Couldn't parse Z score Threshold: " + confLine + ", using variable threshold.");
-	            }
-	        }
-	    	if(zThreshold >= 0){
-	    		System.out.printf("%-25s%s\n", "Z Threshold:", zThreshold);
-	    	}
 	    	
-	    	if(!command.equalsIgnoreCase("MRC")){
+	    	if(!convergeMethod.equals("WEIGHTED")){
 	    	
-		    	confLine = config.getProperty("min_size");
+		    	confLine = config.getProperty("z_threshold");
 		    	if (confLine != null && confLine.length() > 0) {
 		            try {
-		               minSize = Integer.parseInt(confLine);
+		               zThreshold = Float.parseFloat(confLine);
 		            } catch (NumberFormatException nfe) {
-		            	System.out.println("WARNING: Couldn't parse minimum attractor size : " + confLine + ", using default = " + minSize);
+		            	System.out.println("WARNING: Couldn't parse Z score Threshold: " + confLine + ", using variable threshold.");
 		            }
 		        }
-		    	System.out.printf("%-25s%s\n", "Min Size:", minSize);
+		    	if(zThreshold >= 0){
+		    		System.out.printf("%-25s%s\n", "Z Threshold:", zThreshold);
+		    	}
+		    	
+		    	if(!command.equalsIgnoreCase("MRC")){
+		    	
+			    	confLine = config.getProperty("min_size");
+			    	if (confLine != null && confLine.length() > 0) {
+			            try {
+			               minSize = Integer.parseInt(confLine);
+			            } catch (NumberFormatException nfe) {
+			            	System.out.println("WARNING: Couldn't parse minimum attractor size : " + confLine + ", using default = " + minSize);
+			            }
+			        }
+			    	System.out.printf("%-25s%s\n", "Min Size:", minSize);
+		    	
+		    	}
 	    	
+	    	}else{
+	    		confLine = config.getProperty("precision");
+		    	if (confLine != null && confLine.length() > 0) {
+		            try {
+		               precision = Float.parseFloat(confLine);
+		            } catch (NumberFormatException nfe) {
+		            	System.out.println("WARNING: Couldn't parse precision: " + confLine + ", using default 1E-4.");
+		            }
+		        }
+	    		System.out.printf("%-25s%s\n", "Precision:", precision);
+	    		
 	    	}
 	    	/*confLine = config.getProperty("attractor_size");
 	    	if (confLine != null && confLine.length() > 0) {
@@ -374,7 +406,11 @@ public class CorrAttractorFinder {
 					cvg.findAttractor(val, data);
 				}
 			}else if(command.equalsIgnoreCase("CNV")){
-				cvg.findCNV(data, val, chrs, zThreshold);
+				if(convergeMethod.equalsIgnoreCase("WEIGHTED")){
+					cvg.findWeightedCNV(ma, gn, -1, 2f, true);
+				}else{
+					cvg.findCNV(data, val, chrs, zThreshold);
+				}
 			}else if(command.equalsIgnoreCase("MRC")){
 				ag.mergeAndReconverge(attractorFolder, ma, cvg, minSize);
 			}
@@ -401,7 +437,7 @@ public class CorrAttractorFinder {
 					GeneSetMerger mg = new GeneSetMerger(segment, fold, jobID);
 					mg.setMinSize(minSize);
 					if(convergeMethod.equals("WEIGHTED")){
-						mg.mergeWeightedGeneSets("tmp/" + jobID + "/geneset/", numSegments, 1E-4f, false);
+						mg.mergeWeightedGeneSets("tmp/" + jobID + "/geneset/", numSegments, precision, false);
 					}else{
 						mg.mergeGeneSets("tmp/" + jobID + "/geneset/", numSegments, false);
 					}
@@ -421,7 +457,7 @@ public class CorrAttractorFinder {
 						GeneSetMerger.addMergeCount();
 					}
 					if(convergeMethod.equals("WEIGHTED")){
-						mg.mergeWeightedGeneSets("tmp/" + jobID + "/merge" + (GeneSetMerger.mergeCount-1), fold, 1E-4f, true);
+						mg.mergeWeightedGeneSets("tmp/" + jobID + "/merge" + (GeneSetMerger.mergeCount-1), fold, precision, true);
 					}else{
 						mg.mergeGeneSets("tmp/" + jobID + "/merge" + (GeneSetMerger.mergeCount-1), fold, true);
 					}

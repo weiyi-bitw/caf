@@ -22,7 +22,7 @@ public class GroupCNV {
 		
 		
 		System.out.println("Loading gene location file...");
-		Genome gn = Genome.parseGeneLocation(geneLocFile, usingChrCoord);
+		Genome gn = Genome.parseGeneLocation(geneLocFile);
 		int rangeTh = 100;
 		
 		if(!path.endsWith("/")){

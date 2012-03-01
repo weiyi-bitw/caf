@@ -32,8 +32,7 @@ public class GeneSetMerger extends DistributedWorker{
 		BufferedReader br;
 		ArrayList<float[]> wVecs = new ArrayList<float[]>();
 		ArrayList<ArrayList<Integer>> basins = new ArrayList<ArrayList<Integer>>();
-		
-		int m = -1;
+		ArrayList<String> chrs = new ArrayList<String>(); 
 		
 		System.out.println("Processing file " + start + " to file " + end );
 		for(int i = start; i < end; i++){
@@ -43,37 +42,39 @@ public class GeneSetMerger extends DistributedWorker{
 			// Greedily merge gene set
 			while(line != null){
 				String[] tokens = line.split("\t");
+				String tag = tokens[0];
 				int nt = tokens.length;
-				if(m < 0){
-					m = nt-1;
-				}
-				float[] wvec = new float[nt-1];
+				int m = nt-2;
+				float[] wvec = new float[m];
 				ArrayList<Integer> basin = new ArrayList<Integer>();
-				String[] t2 = tokens[0].split(",");
+				String[] t2 = tokens[1].split(",");
 				int nt2 = t2.length;
 				for(int j = 0; j < nt2; j++){
 					basin.add(Integer.parseInt(t2[j]));
 				}
 				for(int j = 0; j < m; j++){
-					wvec[j] = Float.parseFloat(tokens[j+1]);
+					wvec[j] = Float.parseFloat(tokens[j+2]);
 				}
 				boolean newOne = true;
 				int foundIdx = -1;
 				for(int j = 0; j < wVecs.size(); j++){
-					float[] fs = wVecs.get(j);
-					if(Converger.equal(fs, wvec, m, 10*precision)){
-						foundIdx = j;
-						newOne = false;
-						break;
+					if(tag.equals(chrs.get(j))){
+						float[] fs = wVecs.get(j);
+						float err = Converger.calcDist(fs, wvec, m);
+						if(err < precision){
+							foundIdx = j;
+							newOne = false;
+							break;
+						}
 					}
 				}
 				if(newOne){
 					wVecs.add(wvec);
 					basins.add(basin);
+					chrs.add(tag);
 				}else{
 					basins.get(foundIdx).addAll(basin);
 				}
-				
 				line = br.readLine();
 			}
 			br.close();
@@ -90,16 +91,16 @@ public class GeneSetMerger extends DistributedWorker{
 					continue;
 				}
 				String name = "Attractor" + String.format("%05d", i);
-				pw2.print(name);
-				pw.print(name);
+				pw2.print(name + "\t" + chrs.get(i));
+				pw.print(name+ "\t" + chrs.get(i));
 				
 				for(int j : basin){
 					pw2.print("\t" + j);
 				}pw2.println();
 				
 				float[] fs = wVecs.get(i);
-				for(int j = 0; j < m; j++){
-					pw.print("\t" + fs[j]);
+				for(float f : fs){
+					pw.print("\t" + f);
 				}pw.println();
 			}
 			pw2.close();
@@ -108,18 +109,19 @@ public class GeneSetMerger extends DistributedWorker{
 			prepare("merge" + mergeCount);
 			PrintWriter pw = new PrintWriter(new FileWriter("tmp/" + jobID + "/merge" + mergeCount+ "/caf."+ String.format("%05d", id)+".txt"));
 			for(int i = 0; i < wVecs.size(); i++){
+				pw.print(chrs.get(i));
 				ArrayList<Integer> basin = basins.get(i);
 				int k = basin.size();
 				for(int j = 0; j < k; j++){
 					if(j == 0){
-						pw.print(basin.get(j));
+						pw.print("\t" + basin.get(j));
 					}else{
 						pw.print("," + basin.get(j));
 					}
 				}
 				float[] fs = wVecs.get(i);
-				for(int j = 0; j < m; j++){
-					pw.print("\t" + fs[j]);
+				for(float f : fs){
+					pw.print("\t" + f);
 				}
 				pw.println();
 			}
