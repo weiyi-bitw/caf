@@ -150,14 +150,14 @@ public class Genome {
 		}
 		return out.toArray(new String[0]);
 	}
-	ArrayList<Gene> getAllGenesInChr(String chr){
-		ArrayList<Gene> out = new ArrayList<Gene>();
+	public String[] getAllGenesInChr(String chr){
+		ArrayList<String> out = new ArrayList<String>();
 		for(Gene g: genes){
 			if (g.chr.equalsIgnoreCase(chr)){
-				out.add(g);
+				out.add(g.name);
 			}
 		}
-		return out;
+		return out.toArray(new String[0]);
 	}
 	
 	int getIdx(String gene){

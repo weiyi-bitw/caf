@@ -270,7 +270,7 @@ public class CorrAttractorFinder {
 		            try {
 		               precision = Float.parseFloat(confLine);
 		            } catch (NumberFormatException nfe) {
-		            	System.out.println("WARNING: Couldn't parse precision: " + confLine + ", using default 1E-4.");
+		            	System.out.println("WARNING: Couldn't parse delta: " + confLine + ", using default " + precision);
 		            }
 		        }
 	    		System.out.printf("%-25s%s\n", "Precision:", precision);

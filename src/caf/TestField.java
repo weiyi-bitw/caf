@@ -94,7 +94,7 @@ public class TestField {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String path = "/home/weiyi/workspace/data/brca/gse2034";
+		String path = "/home/weiyi/workspace/data/brca/gse2034/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
@@ -104,10 +104,12 @@ public class TestField {
 		DataFile ma = DataFile.parse(path + "ge.13271x286.var.txt");
 		
 		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3";
+		//final String geneLocFile = "/home/weiyi/workspace/javaworks/caf/output/639/gene.location3";
 		
-		String command = "CAF";
-		float power = 5f;
+		String command = "CNV";
+		float power = 2f;
 		boolean excludeTop = false;
+		boolean miDecay = true;
 		int winSize = -1;
 		
 		//ma.normalizeRows();
@@ -128,8 +130,10 @@ public class TestField {
 		
 		//gs.add("LAPTM5");
 		//gs.add("ZNF777");
-		gs.add("AR");
-		gs.add("ABAT");
+		gs.add("EXOSC4");
+		gs.add("PUF60");
+		gs.add("LSM1");
+		gs.add("ASH2L");
 		long jobID = System.currentTimeMillis();
 		
 		//String annotPath = "/home/weiyi/workspace/data/annot/affy/u133p2/annot.csv";
@@ -178,7 +182,7 @@ public class TestField {
 						idx = ma2.getRows().get(g);
 						data = ma2.getData();
 						vec = data[idx];
-						out = cvg.findWeightedCNV(ma2, g, gn, vec, power, excludeTop);
+						out = cvg.findWeightedCNV(ma2, g, gn, vec, power, excludeTop, miDecay);
 					}else{
 						System.out.println("Wrong command!");
 						System.exit(1);
