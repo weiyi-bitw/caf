@@ -866,7 +866,7 @@ public class Converger extends DistributedWorker{
 			if(!chr.equals(preChr)){
 				neighbors = gn.getNeighbors(g, winSize);
 				ma2 = ma.getSubProbes(neighbors);
-				genes2 = ma.getProbes();
+				genes2 = ma2.getProbes();
 				m2 = ma2.getNumRows();
 				idx2 = ma2.getRows().get(g);
 				data = ma2.getData();
@@ -896,7 +896,7 @@ public class Converger extends DistributedWorker{
 			
 			float center = gn.getCoord(g);
 			//System.out.println(center);
-			float range = gn.getChrCoordRange(gn.getChr(g));
+			float range = gn.getChrCoordRange(chr);
 			for(int i = 0; i < m2; i++){
 				float f = Math.abs(gn.getCoord(genes2.get(i))-center) / (float)range;
 				wVec[i] *=(float) Math.exp(Math.log( 1 - f ) ); 
@@ -939,7 +939,6 @@ public class Converger extends DistributedWorker{
 			}
 			if(converge){
 				boolean newOne = true;
-				convergeTh *= m2;
 				for(int i = 0; i < wVecs.size(); i++){
 					if(chr.equals(chrs.get(i))){
 						float[] fs = wVecs.get(i);
