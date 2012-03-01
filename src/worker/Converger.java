@@ -842,7 +842,6 @@ public class Converger extends DistributedWorker{
 		
 		System.out.println("Processing gene " + (start+1) + " to " + end);
 		
-		
 		ArrayList<float[]> wVecs = new ArrayList<float[]>();
 		ArrayList<ArrayList<Integer>> basins = new ArrayList<ArrayList<Integer>>();
 		ArrayList<String> chrs = new ArrayList<String>();
@@ -862,16 +861,17 @@ public class Converger extends DistributedWorker{
 		
 		for(int idx = start; idx < end; idx++){
 			g = genes.get(idx);
+			System.out.print("Processing " + g + "...");
 			String chr = gn.getChr(g);
 			if(!chr.equals(preChr)){
 				neighbors = gn.getNeighbors(g, winSize);
 				ma2 = ma.getSubProbes(neighbors);
 				genes2 = ma2.getProbes();
 				m2 = ma2.getNumRows();
-				idx2 = ma2.getRows().get(g);
 				data = ma2.getData();
-				vec = data[idx2];
 			}
+			idx2 = ma2.getRows().get(g);
+			vec = data[idx2];
 			preChr = chr;
 			
 			float convergeTh = precision * precision /m2;
@@ -897,9 +897,11 @@ public class Converger extends DistributedWorker{
 			float center = gn.getCoord(g);
 			//System.out.println(center);
 			float range = gn.getChrCoordRange(chr);
-			for(int i = 0; i < m2; i++){
-				float f = Math.abs(gn.getCoord(genes2.get(i))-center) / (float)range;
-				wVec[i] *=(float) Math.exp(Math.log( 1 - f ) ); 
+			if(miDecay){
+				for(int i = 0; i < m2; i++){
+					float f = Math.abs(gn.getCoord(genes2.get(i))-center) / (float)range;
+					wVec[i] *=(float) Math.exp(Math.log( 1 - f ) ); 
+				}
 			}
 			
 			float[] preWVec = new float[m2];
@@ -921,9 +923,11 @@ public class Converger extends DistributedWorker{
 				}
 				center = gn.getCoord(genes2.get(maxIdx));
 				//System.out.println(center);
-				for(int i = 0; i < m2; i++){
-					float f = Math.abs(gn.getCoord(genes2.get(i))-center) / (float)range;
-					wVec[i] *= (float) Math.exp(Math.log( 1 - f ) ); 
+				if(miDecay){
+					for(int i = 0; i < m2; i++){
+						float f = Math.abs(gn.getCoord(genes2.get(i))-center) / (float)range;
+						wVec[i] *= (float) Math.exp(Math.log( 1 - f ) ); 
+					}
 				}
 				
 				float err = calcMSE(wVec, preWVec, m2);

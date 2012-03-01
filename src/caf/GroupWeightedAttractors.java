@@ -19,7 +19,7 @@ public class GroupWeightedAttractors {
 	 */
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-		String path = "/home/weiyi/workspace/javaworks/caf/output/641/";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/643/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
