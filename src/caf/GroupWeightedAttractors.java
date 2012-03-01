@@ -19,13 +19,13 @@ public class GroupWeightedAttractors {
 	 */
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-		String path = "/home/weiyi/workspace/javaworks/caf/output/639/";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/640/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
 		
-		//final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3";
-		final String geneLocFile = path + "gene.location3";
+		System.out.println("Loading files...");
+		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3";
 		final String dataFile = "/home/weiyi/workspace/data/brca/gse2034/ge.13271x286.var.txt";
 		
 		DataFile ma = DataFile.parse(dataFile);
@@ -75,7 +75,8 @@ public class GroupWeightedAttractors {
 				
 				for(int i = 0; i < m2; i++){
 					float f = Math.abs(gn.getCoord(genesInChr[i]) - center) / range;
-					wVec[i] = (float)Math.exp(2 * Math.log(wVec[i] * f));
+					
+					wVec[i] = (float)Math.exp(2 * Math.log(wVec[i] * (1-f)));
 					vec.add(new ValIdx(i, wVec[i]));
 					sum += wVec[i];
 				}

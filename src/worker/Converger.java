@@ -27,7 +27,7 @@ public class Converger extends DistributedWorker{
 	private static int bins = 7;
 	private static int splineOrder = 3;
 	private static boolean miNorm = false;
-	private static final float precision = (float) 1E-4;
+	private static float precision = (float) 1E-4;
 	static ITComputer itc;
 	
 	
@@ -1415,6 +1415,9 @@ public class Converger extends DistributedWorker{
 	public void setMIParameter(int bins, int so){
 		Converger.bins = bins;
 		Converger.splineOrder = so;
+	}
+	public void setPrecision(float precision){
+		this.precision = precision;
 	}
 	public void miNormalization(boolean miNorm){
 		Converger.miNorm = miNorm;

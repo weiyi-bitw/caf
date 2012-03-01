@@ -372,6 +372,7 @@ public class CorrAttractorFinder {
 		AttractorGrouper ag = new AttractorGrouper(segment, numSegments, jobID);
 		cvg.linkITComputer(itc);
 		cvg.setAttractorSize(minSize);
+		cvg.setPrecision(precision);
 		int fold = (int) Math.round(Math.sqrt(numSegments));
 		if(!debugging)
 		{

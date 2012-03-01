@@ -61,7 +61,7 @@ public class GeneSetMerger extends DistributedWorker{
 					if(tag.equals(chrs.get(j))){
 						float[] fs = wVecs.get(j);
 						float err = Converger.calcMSE(fs, wvec, m);
-						if(err < precision){
+						if(err < precision/m){
 							foundIdx = j;
 							newOne = false;
 							break;
