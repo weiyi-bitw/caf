@@ -922,7 +922,7 @@ public class Converger extends DistributedWorker{
 				}
 				
 				float err = calcMSE(wVec, preWVec, m2);
-				System.out.println(err);
+				//System.out.println(err);
 				if(err < convergeTh){
 					//pw.close();
 					System.out.println("Converged.");
