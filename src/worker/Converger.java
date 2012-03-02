@@ -848,33 +848,18 @@ public class Converger extends DistributedWorker{
 		ArrayList<ArrayList<Integer>> basins = new ArrayList<ArrayList<Integer>>();
 		ArrayList<String> chrs = new ArrayList<String>();
 		
-		String g = genes.get(start);
-		String preChr = gn.getChr(g);
-		String[] neighbors = gn.getNeighbors(g, winSize);
-		
-		DataFile ma2 = ma.getSubProbes(neighbors);
-		int m2 = ma2.getNumRows();
-		ArrayList<String> genes2 = ma.getProbes();
-		int idx2 = ma2.getRows().get(g);
-		float[][] data = ma2.getData();
-		float[] vec = data[idx2];
-		
 		boolean converge = false;
 		
 		for(int idx = start; idx < end; idx++){
-			g = genes.get(idx);
+			String g = genes.get(idx);
 			String chr = gn.getChr(g);
-			if(!chr.equals(preChr)){
-				neighbors = gn.getNeighbors(g, winSize);
-				ma2 = ma.getSubProbes(neighbors);
-				genes2 = ma2.getProbes();
-				m2 = ma2.getNumRows();
-				data = ma2.getData();
-			}
-			idx2 = ma2.getRows().get(g);
-			vec = data[idx2];
-			preChr = chr;
-			
+			String[] neighbors = gn.getNeighbors(g, winSize);
+			DataFile ma2 = ma.getSubProbes(neighbors);
+			ArrayList<String> genes2 = ma2.getProbes();
+			int m2 = ma2.getNumRows();
+			float[][] data = ma2.getData();
+			int idx2 = ma2.getRows().get(g);
+			float[] vec = data[idx2];
 			
 			float convergeTh = precision * precision /m2;
 			
