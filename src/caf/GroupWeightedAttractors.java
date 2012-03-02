@@ -19,7 +19,7 @@ public class GroupWeightedAttractors {
 	 */
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-		String path = "/home/weiyi/workspace/javaworks/caf/output/test/";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/646/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
@@ -27,6 +27,7 @@ public class GroupWeightedAttractors {
 		System.out.println("Loading files...");
 		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3";
 		final String dataFile = "/home/weiyi/workspace/data/brca/gse2034/ge.13271x286.var.txt";
+		//final String dataFile = "test.txt";
 		
 		DataFile ma = DataFile.parse(dataFile);
 		Genome gn = Genome.parseGeneLocation(geneLocFile);

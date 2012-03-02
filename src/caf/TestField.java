@@ -101,7 +101,25 @@ public class TestField {
 		
 		
 		System.out.println("Loading files...");
-		DataFile ma = DataFile.parse(path + "ge.13271x286.var.txt");
+		ArrayList<float[]> a = new ArrayList<float[]>();
+		
+		for(int i = 0; i < 3; i++){
+			float[] f = {1f, 2f, 3f};
+			
+			if(i==2){
+				f[1] = 6;
+			}
+			a.add(f);
+		
+		}
+		for(float[] ff : a){
+			for(float fff : ff){
+				System.out.print(fff + "\t");
+			}System.out.println();
+		}
+		
+		
+		/*DataFile ma = DataFile.parse(path + "ge.13271x286.var.txt");
 		
 		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3";
 		//final String geneLocFile = "/home/weiyi/workspace/javaworks/caf/output/639/gene.location3";
@@ -118,7 +136,7 @@ public class TestField {
 		float[][] data = ma.getData();
 		
 		ArrayList<String> gs = new ArrayList<String>();
-		/*BufferedReader br = new BufferedReader(new FileReader("COL11A1_50"));
+		BufferedReader br = new BufferedReader(new FileReader("COL11A1_50"));
 		br.readLine();
 		String line = br.readLine();
 		while(line != null){
@@ -126,7 +144,7 @@ public class TestField {
 			gs.add(tokens[0]);
 			line = br.readLine();
 		}
-		br.close();*/
+		br.close();
 		
 		//gs.add("LAPTM5");
 		//gs.add("ZNF777");
@@ -142,10 +160,10 @@ public class TestField {
 		Genome gn = Genome.parseGeneLocation(geneLocFile);
 		if(command.equals("CNV")) gn.linkToDataFile(ma);
 		
-		/*String[] chr8 = gn.getNeighbors("ASH2L", 51);
+		String[] chr8 = gn.getNeighbors("ASH2L", 51);
 		for(String s : chr8){
 			gs.add(s);
-		}*/
+		}
 		
 		
 		ITComputer itc = new ITComputer(6, 3, 0, 1, true);
@@ -209,7 +227,7 @@ public class TestField {
 			}else{
 				System.out.println("Does not contain gene " + g + "!!");
 			}
-		}
+		}*/
 		
 		/*cvg.setZThreshold(8f);
 		cvg.setConvergeMethos("ZSCORE");

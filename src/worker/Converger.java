@@ -878,9 +878,8 @@ public class Converger extends DistributedWorker{
 			
 			float convergeTh = precision * precision /m2;
 			
-			System.out.print("Processing " + g + "..." + chr + "\t" + m2 + "\t" + convergeTh);
-			
-			
+			System.out.print("Processing " + g + "..." + chr + "\t" + m2 + "\t" + convergeTh + "\t");
+						
 			float[] wVec = itc.getAllMIWith(vec, data);
 			//System.out.println(chr + "\t" + wVec.length);
 			//float[] wVec = StatOps.pearsonCorr(vec, data, m, n);
@@ -938,7 +937,7 @@ public class Converger extends DistributedWorker{
 				}
 				
 				float err = calcMSE(wVec, preWVec, m2);
-				//System.out.println(err);
+				System.out.println(err);
 				if(err < convergeTh){
 					//pw.close();
 					System.out.println("Converged.");
@@ -1427,13 +1426,13 @@ public class Converger extends DistributedWorker{
 		Converger.splineOrder = so;
 	}
 	public void setPrecision(float precision){
-		this.precision = precision;
+		Converger.precision = precision;
 	}
 	public void miNormalization(boolean miNorm){
 		Converger.miNorm = miNorm;
 	}
 	public void linkITComputer(ITComputer itc){
-		this.itc = itc;
+		Converger.itc = itc;
 	}
 	
 	
