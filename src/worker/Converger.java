@@ -785,6 +785,8 @@ public class Converger extends DistributedWorker{
 		System.arraycopy(wVec, 0, preWVec, 0, m);
 		int c = 0;
 		float convergeTh = precision * precision / m;
+		System.out.println("m : " + m);
+		System.out.println("Convergence threshold : " + convergeTh);
 		while(c < maxIter){
 			float[] metaGene = getWeightedMetaGene(data, wVec, power,  m, n);
 			wVec = itc.getAllMIWith(metaGene, data);
@@ -861,7 +863,6 @@ public class Converger extends DistributedWorker{
 		
 		for(int idx = start; idx < end; idx++){
 			g = genes.get(idx);
-			System.out.print("Processing " + g + "...");
 			String chr = gn.getChr(g);
 			if(!chr.equals(preChr)){
 				neighbors = gn.getNeighbors(g, winSize);
@@ -874,9 +875,14 @@ public class Converger extends DistributedWorker{
 			vec = data[idx2];
 			preChr = chr;
 			
+			
 			float convergeTh = precision * precision /m2;
 			
+			System.out.print("Processing " + g + "..." + chr + "\t" + m2 + "\t" + convergeTh);
+			
+			
 			float[] wVec = itc.getAllMIWith(vec, data);
+			//System.out.println(chr + "\t" + wVec.length);
 			//float[] wVec = StatOps.pearsonCorr(vec, data, m, n);
 			//float[] wVec = StatOps.cov(vec, data, m, n);
 			
@@ -901,6 +907,7 @@ public class Converger extends DistributedWorker{
 				for(int i = 0; i < m2; i++){
 					float f = Math.abs(gn.getCoord(genes2.get(i))-center) / (float)range;
 					wVec[i] *=(float) Math.exp(Math.log( 1 - f ) ); 
+					
 				}
 			}
 			

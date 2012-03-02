@@ -19,7 +19,7 @@ public class GroupWeightedAttractors {
 	 */
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-		String path = "/home/weiyi/workspace/javaworks/caf/output/643/";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/test/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
@@ -74,15 +74,14 @@ public class GroupWeightedAttractors {
 				float center = gn.getCoord(genesInChr[maxIdx]);
 				
 				for(int i = 0; i < m2; i++){
-					float f = Math.abs(gn.getCoord(genesInChr[i]) - center) / range;
-					
-					wVec[i] = (float)Math.exp(2 * Math.log(wVec[i] * (1-f)));
+					//float f = Math.abs(gn.getCoord(genesInChr[i]) - center) / range;
+					//wVec[i] = (float)Math.exp(Math.log(wVec[i] * (1-f)));
 					vec.add(new ValIdx(i, wVec[i]));
 					sum += wVec[i];
 				}
 				Collections.sort(vec);
 				for(int i = 0; i < 10; i++){
-					pw.print("\t" + genesInChr[vec.get(i).idx] + "(" + vec.get(i).val/sum + ")");
+					pw.print("\t" + genesInChr[vec.get(i).idx] + "(" + vec.get(i).val + ")");
 				}pw.println();
 				
 			}else{

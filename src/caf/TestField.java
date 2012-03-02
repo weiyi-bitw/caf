@@ -130,7 +130,7 @@ public class TestField {
 		
 		//gs.add("LAPTM5");
 		//gs.add("ZNF777");
-		gs.add("TCEB1");
+		gs.add("PDP1");
 		long jobID = System.currentTimeMillis();
 		
 		//String annotPath = "/home/weiyi/workspace/data/annot/affy/u133p2/annot.csv";
