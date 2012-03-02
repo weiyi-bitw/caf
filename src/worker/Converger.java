@@ -848,7 +848,7 @@ public class Converger extends DistributedWorker{
 		ArrayList<ArrayList<Integer>> basins = new ArrayList<ArrayList<Integer>>();
 		ArrayList<String> chrs = new ArrayList<String>();
 		
-		boolean converge = false;
+		
 		
 		for(int idx = start; idx < end; idx++){
 			String g = genes.get(idx);
@@ -898,6 +898,9 @@ public class Converger extends DistributedWorker{
 			float[] preWVec = new float[m2];
 			System.arraycopy(wVec, 0, preWVec, 0, m2);
 			int c = 0;
+			
+			boolean converge = false;
+			
 			while(c < maxIter){
 				float[] metaGene = getWeightedMetaGene(data, wVec, power,  m2, n);
 				wVec = itc.getAllMIWith(metaGene, data);

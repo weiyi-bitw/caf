@@ -19,7 +19,7 @@ public class GroupWeightedAttractors {
 	 */
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-		String path = "/home/weiyi/workspace/javaworks/caf/output/646/";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/650/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
@@ -43,11 +43,14 @@ public class GroupWeightedAttractors {
 		String line = br.readLine();
 		String line2 = br2.readLine();
 		PrintWriter pw = new PrintWriter(new FileWriter(path + "attractors.top10.gwt"));
+		PrintWriter pw2 = new PrintWriter(new FileWriter(path + "attractees.decoded.gwt"));
 		
 		while(line != null){
 			if(CNV){
+				ma = ma.getSubProbes(gn.getAllGenes());
+				genes = ma.getProbes();
+				
 				String[] tokens = line.split("\t");
-				int numBasins = line2.split("\t").length - 2;
 				String name = tokens[0];
 				String chr = tokens[1];
 				
@@ -56,6 +59,17 @@ public class GroupWeightedAttractors {
 				int m2 = genesInChr.length;
 				/*System.out.print(m2);
 				System.out.println("\t" + tokens.length);*/
+				
+				String[] t2 = line2.split("\t");
+				int numBasins = t2.length - 2;
+				int[] basinIdx = new int[numBasins];
+				for(int i = 0; i < numBasins; i++){
+					basinIdx[i] = Integer.parseInt(t2[i+2]);
+				}
+				pw2.print(name + "\t" + chr + "\t" + numBasins);
+				for(int i = 0; i < numBasins; i++){
+					pw2.print("\t" + genes.get(basinIdx[i]));
+				}pw2.println();
 				
 				pw.print(name + "\t" + chr + "\t" + numBasins);
 				float wVec[] = new float[m2];
@@ -110,6 +124,7 @@ public class GroupWeightedAttractors {
 		}
 		br.close();
 		pw.close();
+		pw2.close();
 		System.out.println("Done.");
 	}
 
