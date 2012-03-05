@@ -989,8 +989,10 @@ public class Converger extends DistributedWorker{
 		int n = ma.getNumCols();
 		ArrayList<String> genes = ma.getProbes();
 		
-		int start = id * m / totalComputers;
-		int end = (id+1) * m / totalComputers;
+		int buf = (winSize - 1)/2;
+		
+		int start = id * (m - 2*buf) / totalComputers;
+		int end = (id+1) * (m - 2*buf) / totalComputers;
 		
 		System.out.println("Processing gene " + (start+1) + " to " + end);
 		new File("output").mkdir();
@@ -998,7 +1000,8 @@ public class Converger extends DistributedWorker{
 		PrintWriter pw = new PrintWriter("output/" + jobID + "/basinScores." + String.format("%05d", id)+ ".txt");
 		
 		for(int idx = start; idx < end; idx++){
-			String g = genes.get(idx);
+			int ii = idx + buf;
+			String g = genes.get(ii);
 			String chr = gn.getChr(g);
 			String[] neighbors = gn.getNeighbors(g, winSize);
 			DataFile ma2 = ma.getSubProbes(neighbors);

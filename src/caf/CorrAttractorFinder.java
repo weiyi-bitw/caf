@@ -236,20 +236,24 @@ public class CorrAttractorFinder {
 	    	System.out.printf("%-25s%s\n", "Correlation Threshold:", corrThreshold);
 	    	*/
 	    	
-	    	if(! (convergeMethod.equals("WEIGHTED") || convergeMethod.equals("WINDOW"))){
+	    	if(! convergeMethod.equals("WEIGHTED")){
 	    	
-		    	confLine = config.getProperty("z_threshold");
-		    	if (confLine != null && confLine.length() > 0) {
-		            try {
-		               zThreshold = Float.parseFloat(confLine);
-		            } catch (NumberFormatException nfe) {
-		            	System.out.println("WARNING: Couldn't parse Z score Threshold: " + confLine + ", using variable threshold.");
-		            }
-		        }
-		    	if(zThreshold >= 0){
-		    		System.out.printf("%-25s%s\n", "Z Threshold:", zThreshold);
-		    	}
+	    		if(! convergeMethod.equals("WINDOW")){
+			    	
+	    			confLine = config.getProperty("z_threshold");
+			    	if (confLine != null && confLine.length() > 0) {
+			            try {
+			               zThreshold = Float.parseFloat(confLine);
+			            } catch (NumberFormatException nfe) {
+			            	System.out.println("WARNING: Couldn't parse Z score Threshold: " + confLine + ", using variable threshold.");
+			            }
+			        }
+			    	if(zThreshold >= 0){
+			    		System.out.printf("%-25s%s\n", "Z Threshold:", zThreshold);
+			    	}
 		    	
+	    		}
+	    		
 		    	if(!command.equalsIgnoreCase("MRC")){
 		    	
 			    	confLine = config.getProperty("min_size");
