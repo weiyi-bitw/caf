@@ -1004,6 +1004,9 @@ public class Converger extends DistributedWorker{
 			String g = genes.get(ii);
 			String chr = gn.getChr(g);
 			String[] neighbors = gn.getNeighbors(g, winSize);
+			if(neighbors == null){
+				continue;
+			}
 			DataFile ma2 = ma.getSubProbes(neighbors);
 			ArrayList<String> genes2 = ma2.getProbes();
 			int m2 = ma2.getNumRows();
