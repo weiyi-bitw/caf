@@ -1,5 +1,6 @@
 package worker;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -979,9 +980,123 @@ public class Converger extends DistributedWorker{
 			pw.println();
 		}
 		pw.close();
-		
-		
 	}
+	public void findWeightedCNVCoef(DataFile ma, Genome gn, int winSize, float power, boolean miDecay) throws Exception{
+		gn.linkToDataFile(ma);
+		ma = ma.getSubProbes(gn.getAllGenes());
+		
+		int m = ma.getNumRows();
+		int n = ma.getNumCols();
+		ArrayList<String> genes = ma.getProbes();
+		
+		int start = id * m / totalComputers;
+		int end = (id+1) * m / totalComputers;
+		
+		System.out.println("Processing gene " + (start+1) + " to " + end);
+		new File("output").mkdir();
+		new File("output/" + jobID).mkdir();
+		PrintWriter pw = new PrintWriter("output/" + jobID + "/basinScores." + String.format("%05d", id)+ ".txt");
+		
+		for(int idx = start; idx < end; idx++){
+			String g = genes.get(idx);
+			String chr = gn.getChr(g);
+			String[] neighbors = gn.getNeighbors(g, winSize);
+			DataFile ma2 = ma.getSubProbes(neighbors);
+			ArrayList<String> genes2 = ma2.getProbes();
+			int m2 = ma2.getNumRows();
+			float[][] data = ma2.getData();
+			int idx2 = ma2.getRows().get(g);
+			float[] vec = data[idx2];
+			
+			float convergeTh = precision * precision /m2;
+			
+			System.out.print("Processing " + g + "..." + chr + "\t" + m2 + "\t" + convergeTh + "\t");
+						
+			float[] wVec = itc.getAllMIWith(vec, data);
+			//System.out.println(chr + "\t" + wVec.length);
+			//float[] wVec = StatOps.pearsonCorr(vec, data, m, n);
+			//float[] wVec = StatOps.cov(vec, data, m, n);
+			
+			/*if(excludeTop){
+				int maxIdx = -1;
+				float maxw = -1;
+				float nextMaxW = -1;
+				for(int i = 0; i < m; i++){
+					if(wVec[i] > maxw){
+						maxIdx = i;
+						nextMaxW = maxw;
+						maxw = wVec[i];
+					}
+				}
+				wVec[maxIdx] = 0;
+			}*/
+			
+			float center = gn.getCoord(g);
+			//System.out.println(center);
+			float range = gn.getChrCoordRange(chr);
+			if(miDecay){
+				for(int i = 0; i < m2; i++){
+					float f = Math.abs(gn.getCoord(genes2.get(i))-center) / (float)range;
+					wVec[i] *=(float) Math.exp(Math.log( 1 - f ) ); 
+					
+				}
+			}
+			
+			float[] preWVec = new float[m2];
+			System.arraycopy(wVec, 0, preWVec, 0, m2);
+			int c = 0;
+			
+			boolean converge = false;
+			
+			while(c < maxIter){
+				float[] metaGene = getWeightedMetaGene(data, wVec, power,  m2, n);
+				wVec = itc.getAllMIWith(metaGene, data);
+				//System.out.println(wVec[idx]);
+				//wVec = StatOps.pearsonCorr(metaGene, data, m, n);
+				//wVec = StatOps.cov(metaGene, data, m, n);
+				int maxIdx = -1;
+				float maxWVec = -1;
+				for(int i = 0; i < m2; i++){
+					if(wVec[i] > maxWVec){
+						maxIdx = i;
+						maxWVec = wVec[i];
+					}
+				}
+				center = gn.getCoord(genes2.get(maxIdx));
+				//System.out.println(center);
+				if(miDecay){
+					for(int i = 0; i < m2; i++){
+						float f = Math.abs(gn.getCoord(genes2.get(i))-center) / (float)range;
+						wVec[i] *= (float) Math.exp(Math.log( 1 - f ) ); 
+					}
+				}
+				
+				float err = calcMSE(wVec, preWVec, m2);
+				//System.out.println(err);
+				if(err < convergeTh){
+					//pw.close();
+					System.out.println("Converged.");
+					converge = true;
+					break;
+				}
+				System.arraycopy(wVec, 0, preWVec, 0, m2);
+				c++;
+			}
+			
+			if(converge){
+				Arrays.sort(wVec);
+				int k = m2 >= 10? m2-10 : m2; 
+				pw.println(g + "\t" + wVec[k]);
+			}else{
+				pw.println(g + "\t" + "-1");
+			}
+			
+			
+		}
+		pw.close();
+	}
+	
+	
 	public float[] findWeightedAttractor(DataFile ma, String gene, float[] vec, float power, boolean excludeTop) throws Exception{
 		float[][] data = ma.getData();
 		int m = data.length;

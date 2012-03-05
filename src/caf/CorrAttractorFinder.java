@@ -169,7 +169,7 @@ public class CorrAttractorFinder {
 		    confLine = config.getProperty("converge_method");
 	    	if (confLine != null && confLine.length() > 0) {
 	    		confLine.toUpperCase();
-	    		if(! (confLine.equals("ZSCORE") || confLine.equals("FIXEDSIZE") || confLine.equals("WEIGHTED"))){
+	    		if(! (confLine.equals("ZSCORE") || confLine.equals("FIXEDSIZE") || confLine.equals("WEIGHTED") || confLine.equals("WINDOW"))){
 	    			System.out.println("WARNING: Couldn't recognize converge method: " + confLine + ", using default = " + convergeMethod);
 	    		}
 	            convergeMethod = confLine;
@@ -236,7 +236,7 @@ public class CorrAttractorFinder {
 	    	System.out.printf("%-25s%s\n", "Correlation Threshold:", corrThreshold);
 	    	*/
 	    	
-	    	if(!convergeMethod.equals("WEIGHTED")){
+	    	if(! (convergeMethod.equals("WEIGHTED") || convergeMethod.equals("WINDOW"))){
 	    	
 		    	confLine = config.getProperty("z_threshold");
 		    	if (confLine != null && confLine.length() > 0) {
@@ -408,6 +408,9 @@ public class CorrAttractorFinder {
 			}else if(command.equalsIgnoreCase("CNV")){
 				if(convergeMethod.equalsIgnoreCase("WEIGHTED")){
 					cvg.findWeightedCNV(ma, gn, -1, 2f, true);
+				}else if (convergeMethod.equalsIgnoreCase("WINDOW")){
+					cvg.findWeightedCNVCoef(ma, gn, minSize, 2f, false);
+					
 				}else{
 					cvg.findCNV(data, val, chrs, zThreshold);
 				}
@@ -423,48 +426,52 @@ public class CorrAttractorFinder {
 			}
 		}
 		
+		if(!convergeMethod.equals("WINDOW")){
 		
-		if(command.equalsIgnoreCase("MRC")){
-			if(segment == 0){
-				ag.outputConvergedAttractors("tmp/" + jobID + "/geneset/", ma, minSize);
-			}
-		}else{
-			ma = null;
-		
-			if(!debugging || breakPoint.equalsIgnoreCase("merge"))
-			{
-				if(segment < fold){
-					GeneSetMerger mg = new GeneSetMerger(segment, fold, jobID);
-					mg.setMinSize(minSize);
-					if(convergeMethod.equals("WEIGHTED")){
-						mg.mergeWeightedGeneSets("tmp/" + jobID + "/geneset/", numSegments, precision, false);
-					}else{
-						mg.mergeGeneSets("tmp/" + jobID + "/geneset/", numSegments, false);
-					}
-				}else{
-					System.out.println("Job finished. Exit.");
-					System.exit(0);
+			if(command.equalsIgnoreCase("MRC")){
+				if(segment == 0){
+					ag.outputConvergedAttractors("tmp/" + jobID + "/geneset/", ma, minSize);
 				}
-				
-			}
-			if(!debugging  || breakPoint.equalsIgnoreCase("output") || breakPoint.equalsIgnoreCase("merge"))
-			{
-				if(annot != null)GeneSet.setAnnotations(annot);
-				if((scdr.allFinished(fold)|| breakPoint.equalsIgnoreCase("output")) && segment==0){
-					GeneSetMerger mg = new GeneSetMerger(segment, 1, jobID);
-					mg.setMinSize(minSize);
-					if(breakPoint.equalsIgnoreCase("output")){
-						GeneSetMerger.addMergeCount();
-					}
-					if(convergeMethod.equals("WEIGHTED")){
-						mg.mergeWeightedGeneSets("tmp/" + jobID + "/merge" + (GeneSetMerger.mergeCount-1), fold, precision, true);
+			}else{
+				ma = null;
+			
+				if(!debugging || breakPoint.equalsIgnoreCase("merge"))
+				{
+					if(segment < fold){
+						GeneSetMerger mg = new GeneSetMerger(segment, fold, jobID);
+						mg.setMinSize(minSize);
+						if(convergeMethod.equals("WEIGHTED")){
+							mg.mergeWeightedGeneSets("tmp/" + jobID + "/geneset/", numSegments, precision, false);
+						}else{
+							mg.mergeGeneSets("tmp/" + jobID + "/geneset/", numSegments, false);
+						}
 					}else{
-						mg.mergeGeneSets("tmp/" + jobID + "/merge" + (GeneSetMerger.mergeCount-1), fold, true);
+						System.out.println("Job finished. Exit.");
+						System.exit(0);
+					}
+					
+				}
+				if(!debugging  || breakPoint.equalsIgnoreCase("output") || breakPoint.equalsIgnoreCase("merge"))
+				{
+					if(annot != null)GeneSet.setAnnotations(annot);
+					if((scdr.allFinished(fold)|| breakPoint.equalsIgnoreCase("output")) && segment==0){
+						GeneSetMerger mg = new GeneSetMerger(segment, 1, jobID);
+						mg.setMinSize(minSize);
+						if(breakPoint.equalsIgnoreCase("output")){
+							GeneSetMerger.addMergeCount();
+						}
+						if(convergeMethod.equals("WEIGHTED")){
+							mg.mergeWeightedGeneSets("tmp/" + jobID + "/merge" + (GeneSetMerger.mergeCount-1), fold, precision, true);
+						}else{
+							mg.mergeGeneSets("tmp/" + jobID + "/merge" + (GeneSetMerger.mergeCount-1), fold, true);
+						}
 					}
 				}
+			
 			}
 		
 		}
+		
 		System.out.println("Done in " + (System.currentTimeMillis() - tOrigin) + " msecs.");
 		System.out.println("\n====Thank you!!==================================@ Columbia University 2011=======\n");
 	}

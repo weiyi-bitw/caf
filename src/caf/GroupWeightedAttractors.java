@@ -19,7 +19,7 @@ public class GroupWeightedAttractors {
 	 */
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-		String path = "/home/weiyi/workspace/javaworks/caf/output/650/";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/651/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
@@ -42,7 +42,7 @@ public class GroupWeightedAttractors {
 		BufferedReader br2 = new BufferedReader(new FileReader(path + "attractees.gwt"));
 		String line = br.readLine();
 		String line2 = br2.readLine();
-		PrintWriter pw = new PrintWriter(new FileWriter(path + "attractors.top10.gwt"));
+		PrintWriter pw = new PrintWriter(new FileWriter(path + "attractors.topGenes.gwt"));
 		PrintWriter pw2 = new PrintWriter(new FileWriter(path + "attractees.decoded.gwt"));
 		
 		while(line != null){
@@ -51,6 +51,7 @@ public class GroupWeightedAttractors {
 				genes = ma.getProbes();
 				
 				String[] tokens = line.split("\t");
+				
 				String name = tokens[0];
 				String chr = tokens[1];
 				
@@ -92,11 +93,18 @@ public class GroupWeightedAttractors {
 					//float f = Math.abs(gn.getCoord(genesInChr[i]) - center) / range;
 					//wVec[i] = (float)Math.exp(Math.log(wVec[i] * (1-f)));
 					vec.add(new ValIdx(i, wVec[i]));
-					sum += wVec[i];
+					sum += wVec[i]*wVec[i];
 				}
 				Collections.sort(vec);
-				for(int i = 0; i < 10; i++){
+				float cumW = 0;
+				for(int i = 0; i < m2; i++){
 					pw.print("\t" + genesInChr[vec.get(i).idx] + "(" + vec.get(i).val + ")");
+					float w = vec.get(i).val;
+					cumW += w*w;
+					if(cumW/sum > 0.50){
+						break;
+					}
+					
 				}pw.println();
 				
 			}else{

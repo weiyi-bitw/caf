@@ -110,8 +110,8 @@ public class TestField {
 		String command = "CNV";
 		float power = 2f;
 		boolean excludeTop = false;
-		boolean miDecay = true;
-		int winSize = -1;
+		boolean miDecay = false;
+		int winSize = 101;
 		
 		//ma.normalizeRows();
 		int m = ma.getNumRows();
@@ -131,8 +131,8 @@ public class TestField {
 		
 		//gs.add("LAPTM5");
 		//gs.add("ZNF777");
-		gs.add("RAG1");
-		gs.add("PRG3");
+		
+		
 		long jobID = System.currentTimeMillis();
 		
 		//String annotPath = "/home/weiyi/workspace/data/annot/affy/u133p2/annot.csv";
@@ -144,24 +144,26 @@ public class TestField {
 		Genome gn = Genome.parseGeneLocation(geneLocFile);
 		if(command.equals("CNV")) gn.linkToDataFile(ma);
 		
-		/*String[] chr8 = gn.getNeighbors("ASH2L", 51);
+		String[] chr8 = gn.getNeighbors("ASH2L", -1);
 		for(String s : chr8){
 			gs.add(s);
-		}*/
+		}
 		
+		int k = chr8.length;
+		float scores[] = new float[k];
 		
 		ITComputer itc = new ITComputer(6, 3, 0, 1, true);
 		cvg.linkITComputer(itc);
 		HashMap<String, Integer> geneMap = ma.getRows();
 		ArrayList<String> geneNames = ma.getProbes();
-		
+		int cnt = 0;
 		new File("tmp").mkdir();
 		for(String g : gs){
 			if(geneNames.contains(g)){
 				System.out.println("Processing " + g + " (" + (gs.indexOf(g)+1) + "/" + gs.size() + ")" + "...");
 				String outFile = command.equals("CAF")? "tmp/" + g + "_Attractor.txt" : "tmp/" + g + "_CNV.txt";
 				try{
-					PrintWriter pw = new PrintWriter(new FileWriter(outFile));
+					//PrintWriter pw = new PrintWriter(new FileWriter(outFile));
 					float[] out = new float[m];
 					float[] vec = new float[m];
 					int idx = geneMap.get(g);
@@ -171,8 +173,8 @@ public class TestField {
 					}else if(command.equals("CNV")){
 						String[] neighbors = gn.getNeighbors(g, winSize);
 						if(neighbors == null){
-							pw.println("No neighbors");
-							pw.close();
+							/*pw.println("No neighbors");
+							pw.close();*/
 							continue;
 						}
 						DataFile ma2 = ma.getSubProbes(neighbors);
@@ -189,21 +191,23 @@ public class TestField {
 					
 					
 					if(out[0] == -1){
-						pw.println("Not converged.");
-						pw.close();
+						/*pw.println("Not converged.");
+						pw.close();*/
 						continue;
 					}
 					
 					ArrayList<ValIdx> vi = new ArrayList<ValIdx>();
 					for(int i = 0; i < m; i++){
-						out[i] = (float) Math.round(out[i] * 10000) / 10000;
+						//out[i] = (float) Math.round(out[i] * 10000) / 10000;
 						vi.add(new ValIdx(i, out[i]));
 					}
 					Collections.sort(vi);
-					for(int i = 0; i < m; i++){
+					scores[cnt] = vi.get(9).val;
+					cnt++;
+					/*for(int i = 0; i < m; i++){
 						pw.println(geneNames.get(vi.get(i).idx) + "\t" + vi.get(i).val);
 					}
-					pw.close();
+					pw.close();*/
 				}catch (FileNotFoundException e){
 					System.out.println("Exception: " + e);
 					continue;
@@ -212,7 +216,10 @@ public class TestField {
 				System.out.println("Does not contain gene " + g + "!!");
 			}
 		}
-		
+		PrintWriter pw = new PrintWriter(new FileWriter("tmp/FixedWindowScores.txt"));
+		for(int i = 0; i < k; i++){
+			pw.println(gs.get(i) + "\t" + scores[i]);
+		}pw.close();
 		/*cvg.setZThreshold(8f);
 		cvg.setConvergeMethos("ZSCORE");
 		cvg.setMIParameter(6, 3);*/
