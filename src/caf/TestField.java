@@ -76,6 +76,40 @@ public class TestField {
 		
 		return metaIdx;
 	}
+	private static ArrayList<String> slidingWindowSelector(String inFileName, int winSize) throws Exception{
+		BufferedReader br = new BufferedReader(new FileReader(inFileName));
+		ArrayList<String> genesAl = new ArrayList<String>();
+		ArrayList<Float> scoresAl = new ArrayList<Float>();
+		String line = br.readLine();
+		while(line != null){
+			String[] tokens = line.split("\t");
+			genesAl.add(tokens[0]);
+			scoresAl.add(Float.parseFloat(tokens[1]));
+			line = br.readLine();
+		}
+		
+		int k = genesAl.size();
+		ArrayList<String> outG = new ArrayList<String>();
+		for(int i = 0; i <= k-winSize; i+=20){
+			int maxIdx = -1;
+			float maxF = -1;
+			for(int j = 0; j < winSize; j++){
+				if(scoresAl.get(i+j) > maxF){
+					maxF = scoresAl.get(i+j);
+					maxIdx = (i+j);
+				}
+			}
+			String g = genesAl.get(maxIdx);
+			if(!outG.contains(g)){
+				outG.add(g);
+			}
+		}
+		br.close();
+		return outG;
+	}
+	
+	
+	
 /*	static class ValIdx implements Comparable<ValIdx>{
 		float val;
 		int idx;
@@ -102,7 +136,13 @@ public class TestField {
 		
 		System.out.println("Loading files...");
 		
+		String outPath = "/home/weiyi/workspace/javaworks/caf/output/657/";
+		//String outPath = "/home/weiyi/workspace/javaworks/caf/tmp/";
+		if(!outPath.endsWith("/")){
+			outPath = outPath + "/";
+		}
 		DataFile ma = DataFile.parse(path + "ge.13271x286.var.txt");
+		
 		
 		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3";
 		//final String geneLocFile = "/home/weiyi/workspace/javaworks/caf/output/639/gene.location3";
@@ -110,8 +150,8 @@ public class TestField {
 		String command = "CNV";
 		float power = 2f;
 		boolean excludeTop = false;
-		boolean miDecay = false;
-		int winSize = 101;
+		boolean miDecay = true;
+		int winSize = -1;
 		
 		//ma.normalizeRows();
 		int m = ma.getNumRows();
@@ -129,10 +169,6 @@ public class TestField {
 		}
 		br.close();*/
 		
-		//gs.add("LAPTM5");
-		//gs.add("ZNF777");
-		
-		
 		long jobID = System.currentTimeMillis();
 		
 		//String annotPath = "/home/weiyi/workspace/data/annot/affy/u133p2/annot.csv";
@@ -144,26 +180,34 @@ public class TestField {
 		Genome gn = Genome.parseGeneLocation(geneLocFile);
 		if(command.equals("CNV")) gn.linkToDataFile(ma);
 		
-		String[] chr8 = gn.getNeighbors("ASH2L", -1);
+		
+		gs.add("LRRC47");
+		gs.add("EXOSC10");
+		gs.add("ASH2L");
+		gs.add("EXOSC4");
+		//gs.addAll(slidingWindowSelector(outPath + "basinScores.txt", 200));
+		
+		/*String[] chr8 = gn.getNeighbors("ASH2L", -1);
 		for(String s : chr8){
 			gs.add(s);
 		}
 		
 		int k = chr8.length;
-		float scores[] = new float[k];
+		float scores[] = new float[k];*/
 		
 		ITComputer itc = new ITComputer(6, 3, 0, 1, true);
 		cvg.linkITComputer(itc);
 		HashMap<String, Integer> geneMap = ma.getRows();
-		ArrayList<String> geneNames = ma.getProbes();
+		
 		int cnt = 0;
 		new File("tmp").mkdir();
 		for(String g : gs){
+			ArrayList<String> geneNames = ma.getProbes();
 			if(geneNames.contains(g)){
 				System.out.println("Processing " + g + " (" + (gs.indexOf(g)+1) + "/" + gs.size() + ")" + "...");
-				String outFile = command.equals("CAF")? "tmp/" + g + "_Attractor.txt" : "tmp/" + g + "_CNV.txt";
+				String outFile = command.equals("CAF")? outPath + g + "_Attractor.txt" : outPath + g + "_CNV.txt";
 				try{
-					//PrintWriter pw = new PrintWriter(new FileWriter(outFile));
+					PrintWriter pw = new PrintWriter(new FileWriter(outFile));
 					float[] out = new float[m];
 					float[] vec = new float[m];
 					int idx = geneMap.get(g);
@@ -202,12 +246,13 @@ public class TestField {
 						vi.add(new ValIdx(i, out[i]));
 					}
 					Collections.sort(vi);
-					scores[cnt] = vi.get(9).val;
+					//scores[cnt] = vi.get(9).val;
 					cnt++;
-					/*for(int i = 0; i < m; i++){
+					for(int i = 0; i < m; i++){
 						pw.println(geneNames.get(vi.get(i).idx) + "\t" + vi.get(i).val);
 					}
-					pw.close();*/
+					pw.close();
+					
 				}catch (FileNotFoundException e){
 					System.out.println("Exception: " + e);
 					continue;
@@ -216,10 +261,13 @@ public class TestField {
 				System.out.println("Does not contain gene " + g + "!!");
 			}
 		}
-		PrintWriter pw = new PrintWriter(new FileWriter("tmp/FixedWindowScores.txt"));
+		
+		/*PrintWriter pw = new PrintWriter(new FileWriter("tmp/FixedWindowScores.txt"));
 		for(int i = 0; i < k; i++){
 			pw.println(gs.get(i) + "\t" + scores[i]);
-		}pw.close();
+		}pw.close();*/
+		
+		
 		/*cvg.setZThreshold(8f);
 		cvg.setConvergeMethos("ZSCORE");
 		cvg.setMIParameter(6, 3);*/

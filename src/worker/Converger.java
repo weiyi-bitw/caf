@@ -769,15 +769,19 @@ public class Converger extends DistributedWorker{
 		}
 		
 		float center = gn.getCoord(gene);
+		//float center = gn.getIdx(gene);
 		System.out.println(center);
 		float range = gn.getChrCoordRange(gn.getChr(gene));
+		//float range = gn.getChrIdxRange(gn.getChr(gene));
 		
 		if(miDecay){
 			
 			for(int i = 0; i < m; i++){
 				float f = Math.abs(gn.getCoord(genes.get(i))-center) / (float)range;
+				//float f = Math.abs(gn.getIdx(genes.get(i))-center) / (float)range;
+				
 				//System.out.print(f + "\t" + wVec[i]);
-				wVec[i] *=(float) Math.exp(Math.log( 1 - f ) ); 
+				wVec[i] *=(float) Math.exp(2*Math.log( 1 - f ) ); 
 				//System.out.println("\t" + wVec[i]);
 			}
 		
@@ -800,11 +804,13 @@ public class Converger extends DistributedWorker{
 				}
 			}
 			center = gn.getCoord(genes.get(maxIdx));
+			//center = gn.getIdx(genes.get(maxIdx));
 			//System.out.println(center);
 			if(miDecay){
 				for(int i = 0; i < m; i++){
 					float f = Math.abs(gn.getCoord(genes.get(i))-center) / (float)range;
-					wVec[i] *= (float) Math.exp(Math.log( 1 - f ) ); 
+					//float f = Math.abs(gn.getIdx(genes.get(i))-center) / (float)range;
+					wVec[i] *= (float) Math.exp(2*Math.log( 1 - f ) ); 
 				}
 			}
 			//System.out.println(wVec[idx]);
@@ -891,7 +897,7 @@ public class Converger extends DistributedWorker{
 			if(miDecay){
 				for(int i = 0; i < m2; i++){
 					float f = Math.abs(gn.getCoord(genes2.get(i))-center) / (float)range;
-					wVec[i] *=(float) Math.exp(Math.log( 1 - f ) ); 
+					wVec[i] *=(float) Math.exp(2*Math.log( 1 - f ) ); 
 					
 				}
 			}
@@ -921,7 +927,7 @@ public class Converger extends DistributedWorker{
 				if(miDecay){
 					for(int i = 0; i < m2; i++){
 						float f = Math.abs(gn.getCoord(genes2.get(i))-center) / (float)range;
-						wVec[i] *= (float) Math.exp(Math.log( 1 - f ) ); 
+						wVec[i] *= (float) Math.exp(2*Math.log( 1 - f ) ); 
 					}
 				}
 				

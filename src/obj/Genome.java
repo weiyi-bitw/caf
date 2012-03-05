@@ -160,7 +160,7 @@ public class Genome {
 		return out.toArray(new String[0]);
 	}
 	
-	int getIdx(String gene){
+	public int getIdx(String gene){
 		return idxMap.get(gene);
 	}
 	
@@ -170,6 +170,11 @@ public class Genome {
 	
 	public float getChrCoordRange(String chr){
 		IntPair ip = chrCoordRangeMap.get(chr);
+		return (ip.y - ip.x);
+	}
+	
+	public float getChrIdxRange(String chr){
+		IntPair ip = chrIdxRangeMap.get(chr);
 		return (ip.y - ip.x);
 	}
 	
