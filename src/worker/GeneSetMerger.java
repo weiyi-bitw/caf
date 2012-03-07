@@ -50,6 +50,7 @@ public class GeneSetMerger extends DistributedWorker{
 				String[] t2 = tokens[1].split(",");
 				int nt2 = t2.length;
 				if(finalOutput && nt2 < 2){
+					line = br.readLine();
 					continue;
 				}
 				for(int j = 0; j < nt2; j++){
