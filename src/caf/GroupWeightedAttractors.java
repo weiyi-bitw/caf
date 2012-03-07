@@ -19,14 +19,17 @@ public class GroupWeightedAttractors {
 	 */
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-		String path = "/home/weiyi/workspace/javaworks/caf/output/651/";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/659/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
 		
 		System.out.println("Loading files...");
 		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3";
-		final String dataFile = "/home/weiyi/workspace/data/brca/gse2034/ge.13271x286.var.txt";
+		
+		//final String dataFile = "/home/weiyi/workspace/data/brca/gse2034/ge.13271x286.var.txt";
+		final String dataFile = "/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt";
+		
 		//final String dataFile = "test.txt";
 		
 		DataFile ma = DataFile.parse(dataFile);
@@ -97,13 +100,14 @@ public class GroupWeightedAttractors {
 				}
 				Collections.sort(vec);
 				float cumW = 0;
-				for(int i = 0; i < m2; i++){
-					pw.print("\t" + genesInChr[vec.get(i).idx] + "(" + vec.get(i).val + ")");
+				for(int i = 0; i < 10; i++){
+					String g = genesInChr[vec.get(i).idx];
+					pw.print("\t" + g + "(" + gn.getIdx(g) + ")" + ":" + vec.get(i).val);
 					float w = vec.get(i).val;
 					cumW += w*w;
-					if(cumW/sum > 0.50){
+					/*if(cumW/sum > 0.50){
 						break;
-					}
+					}*/
 					
 				}pw.println();
 				
@@ -123,7 +127,8 @@ public class GroupWeightedAttractors {
 				}
 				Collections.sort(vec);
 				for(int i = 0; i < 10; i++){
-					pw.print("\t" + genes.get(vec.get(i).idx) + "(" + vec.get(i).val/sum + ")");
+					String g = genes.get(vec.get(i).idx);
+					pw.print("\t" + g  + ":" +  vec.get(i).val/sum );
 				}pw.println();
 			}
 			

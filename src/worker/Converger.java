@@ -777,11 +777,11 @@ public class Converger extends DistributedWorker{
 		if(miDecay){
 			
 			for(int i = 0; i < m; i++){
-				float f = Math.abs(gn.getCoord(genes.get(i))-center) / (float)range;
+				float f = Math.abs(gn.getCoord(genes.get(i))-center) / (float) range;
 				//float f = Math.abs(gn.getIdx(genes.get(i))-center) / (float)range;
 				
-				//System.out.print(f + "\t" + wVec[i]);
-				wVec[i] *=(float) Math.exp(2*Math.log( 1 - f ) ); 
+				//System.out.print("\t" + f + "\t" + wVec[i]);
+				wVec[i] *=(float) Math.exp(2 * Math.log( 1-f ) ); 
 				//System.out.println("\t" + wVec[i]);
 			}
 		
@@ -808,9 +808,9 @@ public class Converger extends DistributedWorker{
 			//System.out.println(center);
 			if(miDecay){
 				for(int i = 0; i < m; i++){
-					float f = Math.abs(gn.getCoord(genes.get(i))-center) / (float)range;
+					float f = Math.abs(gn.getCoord(genes.get(i))-center) / range;
 					//float f = Math.abs(gn.getIdx(genes.get(i))-center) / (float)range;
-					wVec[i] *= (float) Math.exp(2*Math.log( 1 - f ) ); 
+					wVec[i] *= (float) Math.exp(2 * Math.log( 1-f ) ); 
 				}
 			}
 			//System.out.println(wVec[idx]);
@@ -1245,7 +1245,7 @@ public class Converger extends DistributedWorker{
 			int k = basin.size();
 			for(int j = 0; j < k; j++){
 				if(j == 0){
-					pw.print(basin.get(j));
+					pw.print("\t" + basin.get(j));
 				}else{
 					pw.print("," + basin.get(j));
 				}
