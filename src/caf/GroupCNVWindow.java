@@ -71,38 +71,45 @@ public class GroupCNVWindow {
 		
 		return metaIdx;
 	}
-	private static ArrayList<String> slidingWindowSelector(String inFileName, int winSize) throws Exception{
+	private static ArrayList<String> slidingWindowSelector(String inFileName, int winSize, int topAttractors) throws Exception{
 		BufferedReader br = new BufferedReader(new FileReader(inFileName));
 		ArrayList<String> genesAl = new ArrayList<String>();
-		ArrayList<Float> scoresAl = new ArrayList<Float>();
+		ArrayList<ValIdx> scoresAl = new ArrayList<ValIdx>();
 		String line = br.readLine();
+		int cnt = 0;
+		
 		while(line != null){
 			String[] tokens = line.split("\t");
 			genesAl.add(tokens[0]);
-			scoresAl.add(Float.parseFloat(tokens[1]));
+			scoresAl.add(new ValIdx(cnt,Float.parseFloat(tokens[1])));
 			line = br.readLine();
-		}
-		
-		int k = genesAl.size();
-		ArrayList<String> outG = new ArrayList<String>();
-		for(int i = 0; i <= k-winSize; i+=20){
-			int maxIdx = -1;
-			float maxF = -1;
-			for(int j = 0; j < winSize; j++){
-				if(scoresAl.get(i+j) > maxF){
-					maxF = scoresAl.get(i+j);
-					maxIdx = (i+j);
-				}
-			}
-			if(maxIdx == (i + winSize-1) || maxIdx == i){
-				continue;
-			}
-			String g = genesAl.get(maxIdx);
-			if(!outG.contains(g)){
-				outG.add(g);
-			}
+			cnt ++;
 		}
 		br.close();
+		
+		int k = genesAl.size();
+		Collections.sort(scoresAl);
+		ArrayList<String> outG = new ArrayList<String>();
+		boolean[] eliminate = new boolean[k];
+		
+		for(ValIdx vi : scoresAl){
+			int idx = vi.idx;
+			if(!eliminate[idx]){
+				for(int i = (idx - winSize + 1); i <= (idx + winSize -1); i++){
+					if(i >= 0 && i < k){
+						eliminate[i] = true;
+					}
+				}
+				outG.add(genesAl.get(idx));
+				if(topAttractors > 0){
+					if(outG.size() >= topAttractors){
+						break;
+					}
+				}
+			}
+		}
+		
+		
 		return outG;
 	}
 	
@@ -111,20 +118,21 @@ public class GroupCNVWindow {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String path = "/home/weiyi/workspace/data/brca/gse2034/";
-		if(!path.endsWith("/")){
-			path = path + "/";
-		}
-		
+		final String dataFile = "/home/weiyi/workspace/data/brca/gse2034/ge.13271x286.var.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/coad/gse14333/ge.20765x290.var.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/ov/gse9891/ge.20765x285.var.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/ov/tcga/ge/ge.17814x584.knn.txt";
 		
 		System.out.println("Loading files...");
+		DataFile ma = DataFile.parse(dataFile);
 		
-		//String outPath = "/home/weiyi/workspace/javaworks/caf/output/window41.brca.gse2034/";
-		String outPath = "/home/weiyi/workspace/javaworks/caf/tmp/";
-		if(!outPath.endsWith("/")){
-			outPath = outPath + "/";
+		String outPath = "/home/weiyi/workspace/javaworks/caf/output/window51/brca.gse2034/";
+		//String outPath = "/home/weiyi/workspace/javaworks/caf/tmp/";
+		if(outPath.endsWith("/")){
+			outPath = outPath.substring(0, outPath.length()-1);
 		}
-		DataFile ma = DataFile.parse(path + "ge.13271x286.var.txt");
 		
 		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3";
 		//final String geneLocFile = "/home/weiyi/workspace/javaworks/caf/output/639/gene.location3";
@@ -132,7 +140,7 @@ public class GroupCNVWindow {
 		float power = 2f;
 		boolean excludeTop = false;
 		boolean miDecay = false;
-		int winSize = 41;
+		int winSize = 51;
 		
 		//ma.normalizeRows();
 		int m = ma.getNumRows();
@@ -148,19 +156,20 @@ public class GroupCNVWindow {
 		Genome gn = Genome.parseGeneLocation(geneLocFile);
 		gn.linkToDataFile(ma);
 		
-		//gs.addAll(slidingWindowSelector(outPath + "basinScores.txt", 200));
-		String[] nbs = gn.getNeighbors("PUF60", 20);
+		gs.addAll(slidingWindowSelector(outPath + "/basinScores.txt", 101, 100));
+		/*String[] nbs = gn.getNeighbors("PUF60", 20);
 		for(String s : nbs){
 			gs.add(s);
-		}
+		}*/
 		
 		ITComputer itc = new ITComputer(6, 3, 0, 1, true);
 		cvg.linkITComputer(itc);
 		HashMap<String, Integer> geneMap = ma.getRows();
 		
 		int cnt = 0;
-		new File("tmp").mkdir();
-		PrintWriter pw = new PrintWriter(new FileWriter(outPath + "windowedCNVs.txt"));
+		//new File("tmp").mkdir();
+		String outFileName = outPath.substring(outPath.lastIndexOf("/"));
+		PrintWriter pw = new PrintWriter(new FileWriter(outPath + "/../mergeroom/" + outFileName));
 		for(String g : gs){
 			ArrayList<String> geneNames = ma.getProbes();
 			if(geneNames.contains(g)){
@@ -197,10 +206,12 @@ public class GroupCNVWindow {
 					Collections.sort(vi);
 					
 					pw.print("Attractor_" + g + "\t" + gn.getChr(geneNames.get(vi.get(0).idx)));
-					for(int i = 0; i< m; i++){
+					for(int i = 0; i< 20; i++){
 						String gg = geneNames.get(vi.get(i).idx);
-						pw.print("\t" + gg + "(" + gn.getIdx(gg) + "):" + vi.get(i).val);
-					}pw.println();
+						pw.print("\t" + gg);
+					}
+					pw.print("\t" +gn.getChrArm(g) + "\t" +  vi.get(9).val);
+					pw.println();
 					
 					//scores[cnt] = vi.get(9).val;
 					cnt++;

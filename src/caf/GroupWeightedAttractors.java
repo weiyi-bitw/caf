@@ -19,7 +19,7 @@ public class GroupWeightedAttractors {
 	 */
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-		String path = "/home/weiyi/workspace/javaworks/caf/output/659/";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/weighted.cnv.brca.gse2034/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
@@ -27,8 +27,12 @@ public class GroupWeightedAttractors {
 		System.out.println("Loading files...");
 		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3";
 		
-		//final String dataFile = "/home/weiyi/workspace/data/brca/gse2034/ge.13271x286.var.txt";
-		final String dataFile = "/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt";
+		final String dataFile = "/home/weiyi/workspace/data/brca/gse2034/ge.13271x286.var.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/coad/gse14333/ge.20765x290.var.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/ov/gse9891/ge.20765x285.var.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/ov/tcga/ge/ge.17814x584.knn.txt";
 		
 		//final String dataFile = "test.txt";
 		
@@ -90,7 +94,7 @@ public class GroupWeightedAttractors {
 				
 				float sum = 0;
 				ArrayList<ValIdx> vec = new ArrayList<ValIdx>();
-				float center = gn.getCoord(genesInChr[maxIdx]);
+				//float center = gn.getCoord(genesInChr[maxIdx]);
 				
 				for(int i = 0; i < m2; i++){
 					//float f = Math.abs(gn.getCoord(genesInChr[i]) - center) / range;
@@ -100,16 +104,35 @@ public class GroupWeightedAttractors {
 				}
 				Collections.sort(vec);
 				float cumW = 0;
-				for(int i = 0; i < 10; i++){
+				float x1 = Float.MAX_VALUE;
+				float x2 = -1;
+				for(int i = 0; i < 20; i++){
 					String g = genesInChr[vec.get(i).idx];
-					pw.print("\t" + g + "(" + gn.getIdx(g) + ")" + ":" + vec.get(i).val);
+					int iii = gn.getIdx(g);
+					if(iii < x1){
+						x1 = iii;
+					}
+					if(iii > x2){
+						x2 = iii;
+					}
+				}
+				float rg = x2 - x1;
+				
+				
+				for(int i = 0; i < 20; i++){
+					String g = genesInChr[vec.get(i).idx];
+					//pw.print("\t" + g + "(" + gn.getIdx(g) + ")" + ":" + vec.get(i).val);
+					pw.print("\t" + g);
 					float w = vec.get(i).val;
 					cumW += w*w;
 					/*if(cumW/sum > 0.50){
 						break;
 					}*/
 					
-				}pw.println();
+				}
+				pw.print("\t" + rg + "\t" + vec.get(9).val);
+				pw.println();
+				
 				
 			}else{
 				ArrayList<ValIdx> vec = new ArrayList<ValIdx>();

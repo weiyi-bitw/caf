@@ -36,14 +36,16 @@ public class Genome {
 	static class Gene implements Comparable<Gene>{
 		String name;
 		String chr;
+		String chrArm;
 		float coord;
 		
 		Gene(String name){
 			this.name = name;
 		}
-		Gene(String name, String chr, float coord){
+		Gene(String name, String chr, String chrArm, float coord){
 			this.name = name;
 			this.chr = chr;
+			this.chrArm = chrArm;
 			this.coord = coord;
 		}
 		public int hashCode(){
@@ -70,6 +72,7 @@ public class Genome {
 	
 	ArrayList<Gene> genes;
 	HashMap<String, String> chrMap;
+	HashMap<String, String> chrArmMap;
 	HashMap<String, Integer> idxMap;
 	HashMap<String, Float> coordMap;
 	HashMap<String, IntPair> chrIdxRangeMap;
@@ -90,6 +93,7 @@ public class Genome {
 			String[] tokens = line.split("\t");
 			String name = tokens[0];
 			String chr = tokens[6];
+			String chrArm = tokens[1];
 			int startCoord = Integer.parseInt(tokens[3]);
 			int endCoord = Integer.parseInt(tokens[4]);
 			
@@ -102,7 +106,7 @@ public class Genome {
 			}
 			
 			float chrCoord = Float.parseFloat(tokens[5]);
-			genes.add(new Gene(name, chr, chrCoord));
+			genes.add(new Gene(name, chr, chrArm, chrCoord));
 			preMaxCoord = endCoord;
 			lncnt++;
 			line = br.readLine();
@@ -119,6 +123,7 @@ public class Genome {
 		this.genes = genes;
 		Collections.sort(genes);
 		this.chrMap = new HashMap<String, String>();
+		this.chrArmMap = new HashMap<String, String>();
 		this.idxMap = new HashMap<String, Integer>();
 		this.coordMap = new HashMap<String, Float>();
 		this.chrIdxRangeMap = new HashMap<String, IntPair>();
@@ -136,6 +141,7 @@ public class Genome {
 				
 			}
 			
+			chrArmMap.put(g.name, g.chrArm);
 			chrMap.put(g.name, chr);
 			idxMap.put(g.name, cnt);
 			coordMap.put(g.name, g.coord);
@@ -248,6 +254,10 @@ public class Genome {
 	public String getChr(String gene){
 		return chrMap.get(gene);
 	}
+	public String getChrArm(String gene){
+		return chrArmMap.get(gene);
+	}
+	
 	
 	public boolean contains(String gene){
 		return genes.contains(new Gene(gene));

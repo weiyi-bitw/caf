@@ -131,7 +131,7 @@ public class TestField {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String path = "/home/weiyi/workspace/data/brca/gse2034/";
+		String path = "/home/weiyi/workspace/data/ov/gse9891/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
@@ -144,7 +144,7 @@ public class TestField {
 		if(!outPath.endsWith("/")){
 			outPath = outPath + "/";
 		}
-		DataFile ma = DataFile.parse(path + "ge.13271x286.var.txt");
+		DataFile ma = DataFile.parse(path + "ge.20765x285.var.txt");
 		
 		
 		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3";
@@ -153,8 +153,8 @@ public class TestField {
 		String command = "CNV";
 		float power = 2f;
 		boolean excludeTop = false;
-		boolean miDecay = true;
-		int winSize = -1;
+		boolean miDecay = false;
+		int winSize = 41;
 		
 		//ma.normalizeRows();
 		int m = ma.getNumRows();
@@ -184,7 +184,9 @@ public class TestField {
 		if(command.equals("CNV")) gn.linkToDataFile(ma);
 		
 		
-		gs.add("LRRC47");
+		gs.add("PUF60");
+		gs.add("CYC1");
+		gs.add("SHARPIN");
 		/*gs.add("EXOSC10");
 		gs.add("ASH2L");
 		gs.add("EXOSC4");*/
