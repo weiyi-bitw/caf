@@ -19,7 +19,7 @@ public class GroupWeightedAttractors {
 	 */
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-		String path = "/home/weiyi/workspace/javaworks/caf/output/weighted.cnv.brca.gse2034/";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/1331832260529/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
@@ -27,14 +27,14 @@ public class GroupWeightedAttractors {
 		System.out.println("Loading files...");
 		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3";
 		
-		final String dataFile = "/home/weiyi/workspace/data/brca/gse2034/ge.13271x286.var.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/brca/gse2034/ge.13271x286.var.txt";
 		//final String dataFile = "/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt";
 		//final String dataFile = "/home/weiyi/workspace/data/coad/gse14333/ge.20765x290.var.txt";
 		//final String dataFile = "/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt";
 		//final String dataFile = "/home/weiyi/workspace/data/ov/gse9891/ge.20765x285.var.txt";
 		//final String dataFile = "/home/weiyi/workspace/data/ov/tcga/ge/ge.17814x584.knn.txt";
 		
-		//final String dataFile = "test.txt";
+		final String dataFile = "test.txt";
 		
 		DataFile ma = DataFile.parse(dataFile);
 		Genome gn = Genome.parseGeneLocation(geneLocFile);
@@ -58,6 +58,7 @@ public class GroupWeightedAttractors {
 				genes = ma.getProbes();
 				
 				String[] tokens = line.split("\t");
+				int nt = tokens.length;
 				
 				String name = tokens[0];
 				String chr = tokens[1];
@@ -83,13 +84,13 @@ public class GroupWeightedAttractors {
 				float wVec[] = new float[m2];
 				int maxIdx = -1;
 				float maxW = -1;
-				for(int i = 0; i < m2; i++){
-					float w= Float.parseFloat(tokens[i+2]);
+				for(int i = 2; i < nt; i++){
+					float w= Float.parseFloat(tokens[i]);
 					if(w > maxW){
 						maxIdx = i; 
 						maxW = w;
 					}
-					wVec[i] = w;
+					wVec[i-2] = w;
 				}
 				
 				float sum = 0;
@@ -100,7 +101,7 @@ public class GroupWeightedAttractors {
 					//float f = Math.abs(gn.getCoord(genesInChr[i]) - center) / range;
 					//wVec[i] = (float)Math.exp(Math.log(wVec[i] * (1-f)));
 					vec.add(new ValIdx(i, wVec[i]));
-					sum += wVec[i]*wVec[i];
+					sum += wVec[i];
 				}
 				Collections.sort(vec);
 				float cumW = 0;
@@ -116,7 +117,6 @@ public class GroupWeightedAttractors {
 						x2 = iii;
 					}
 				}
-				float rg = x2 - x1;
 				
 				
 				for(int i = 0; i < 20; i++){
@@ -130,7 +130,7 @@ public class GroupWeightedAttractors {
 					}*/
 					
 				}
-				pw.print("\t" + rg + "\t" + vec.get(9).val);
+				pw.print("\t" + gn.getChrArm(genesInChr[vec.get(0).idx]) + "\t" + vec.get(9).val);
 				pw.println();
 				
 				

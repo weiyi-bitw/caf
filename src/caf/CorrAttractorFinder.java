@@ -236,7 +236,15 @@ public class CorrAttractorFinder {
 	        }
 	    	System.out.printf("%-25s%s\n", "Correlation Threshold:", corrThreshold);
 	    	*/
-	    	
+	    	confLine = config.getProperty("min_size");
+	    	if (confLine != null && confLine.length() > 0) {
+	            try {
+	               minSize = Integer.parseInt(confLine);
+	            } catch (NumberFormatException nfe) {
+	            	System.out.println("WARNING: Couldn't parse minimum attractor size : " + confLine + ", using default = " + minSize);
+	            }
+	        }
+	    	System.out.printf("%-25s%s\n", "Min Size:", minSize);
 	    	if(! convergeMethod.equals("WEIGHTED")){
 	    	
 	    		if(! convergeMethod.equals("WINDOW")){
@@ -255,20 +263,6 @@ public class CorrAttractorFinder {
 		    	
 	    		}
 	    		
-		    	if(!command.equalsIgnoreCase("MRC")){
-		    	
-			    	confLine = config.getProperty("min_size");
-			    	if (confLine != null && confLine.length() > 0) {
-			            try {
-			               minSize = Integer.parseInt(confLine);
-			            } catch (NumberFormatException nfe) {
-			            	System.out.println("WARNING: Couldn't parse minimum attractor size : " + confLine + ", using default = " + minSize);
-			            }
-			        }
-			    	System.out.printf("%-25s%s\n", "Min Size:", minSize);
-		    	
-		    	}
-	    	
 	    	}else{
 	    		confLine = config.getProperty("precision");
 		    	if (confLine != null && confLine.length() > 0) {
@@ -422,7 +416,7 @@ public class CorrAttractorFinder {
 				}
 			}else if(command.equalsIgnoreCase("CNV")){
 				if(convergeMethod.equalsIgnoreCase("WEIGHTED")){
-					cvg.findWeightedCNV(ma, gn, -1, 2f, true);
+					cvg.findWeightedCNV(ma, gn, minSize, 1f, true);
 				}else if (convergeMethod.equalsIgnoreCase("WINDOW")){
 					cvg.findWeightedCNVCoef(ma, gn, minSize, 2f, false);
 					

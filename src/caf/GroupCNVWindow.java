@@ -189,7 +189,7 @@ public class GroupCNVWindow {
 					idx = ma2.getRows().get(g);
 					data = ma2.getData();
 					vec = data[idx];
-					out = cvg.findWeightedCNV(ma2, g, gn, vec, power, excludeTop, miDecay);
+					out = cvg.findWeightedCNV(ma2, g, gn, vec, winSize, power, excludeTop, miDecay);
 					
 					
 					if(out[0] == -1){

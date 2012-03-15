@@ -734,7 +734,7 @@ public class Converger extends DistributedWorker{
 			return metaIdx;
 	}
 	
-	public float[] findWeightedCNV(DataFile ma, String gene, Genome gn, float[] vec, float power, boolean excludeTop, boolean miDecay) throws Exception{
+	public float[] findWeightedCNV(DataFile ma, String gene, Genome gn, float[] vec, int winSize, float power, boolean excludeTop, boolean miDecay) throws Exception{
 		float[][] data = ma.getData();
 		int m = data.length;
 		int n = data[0].length;
@@ -768,23 +768,27 @@ public class Converger extends DistributedWorker{
 			wVec[maxIdx] = 0;
 		}
 		
-		float center = gn.getCoord(gene);
+		float center = gn.getIdx(gene);
 		//float center = gn.getIdx(gene);
 		System.out.println(center);
 		float range = gn.getChrCoordRange(gn.getChr(gene));
 		//float range = gn.getChrIdxRange(gn.getChr(gene));
 		
 		if(miDecay){
-			
+			System.out.println(gene);
 			for(int i = 0; i < m; i++){
-				float f = Math.abs(gn.getCoord(genes.get(i))-center) / (float) range;
+				if(Math.abs(center - gn.getIdx(genes.get(i))) > (winSize/2)){
+					wVec[i] = 0;
+				}//System.out.print(gn.getIdx(genes.get(i)) + ":" + wVec[i] + "\t");
+				
+				//float f = Math.abs(gn.getCoord(genes.get(i))-center) / (float) range;
 				//float f = Math.abs(gn.getIdx(genes.get(i))-center) / (float)range;
 				
 				//System.out.print("\t" + f + "\t" + wVec[i]);
-				wVec[i] *=(float) Math.exp(2 * Math.log( 1-f ) ); 
+				//wVec[i] *=(float) Math.exp(2 * Math.log( 1-f ) ); 
 				//System.out.println("\t" + wVec[i]);
 			
-			}
+			}//System.out.println();
 		
 		}
 		float[] preWVec = new float[m];
@@ -804,15 +808,20 @@ public class Converger extends DistributedWorker{
 					maxWVec = wVec[i];
 				}
 			}
-			center = gn.getCoord(genes.get(maxIdx));
+			center = gn.getIdx(genes.get(maxIdx));
 			//center = gn.getIdx(genes.get(maxIdx));
 			//System.out.println(center);
 			if(miDecay){
+				System.out.println(genes.get(maxIdx));
 				for(int i = 0; i < m; i++){
-					float f = Math.abs(gn.getCoord(genes.get(i))-center) / range;
+					if(Math.abs(center - gn.getIdx(genes.get(i))) > (winSize/2)){
+						wVec[i] = 0;
+					}//System.out.print(gn.getIdx(genes.get(i)) + ":" + wVec[i] + "\t");
+					
+					//float f = Math.abs(gn.getCoord(genes.get(i))-center) / range;
 					//float f = Math.abs(gn.getIdx(genes.get(i))-center) / (float)range;
-					wVec[i] *= (float) Math.exp(2 * Math.log( 1-f ) ); 
-				}
+					//wVec[i] *= (float) Math.exp(2 * Math.log( 1-f ) ); 
+				}//System.out.println();
 			}
 			//System.out.println(wVec[idx]);
 			//wVec = StatOps.pearsonCorr(metaGene, data, m, n);
@@ -861,7 +870,7 @@ public class Converger extends DistributedWorker{
 		for(int idx = start; idx < end; idx++){
 			String g = genes.get(idx);
 			String chr = gn.getChr(g);
-			String[] neighbors = gn.getNeighbors(g, winSize);
+			String[] neighbors = gn.getNeighbors(g, -1);
 			DataFile ma2 = ma.getSubProbes(neighbors);
 			ArrayList<String> genes2 = ma2.getProbes();
 			int m2 = ma2.getNumRows();
@@ -892,13 +901,16 @@ public class Converger extends DistributedWorker{
 				wVec[maxIdx] = 0;
 			}*/
 			
-			float center = gn.getCoord(g);
+			float center = gn.getIdx(g);
 			//System.out.println(center);
-			float range = gn.getChrCoordRange(chr);
+			//float range = gn.getChrCoordRange(chr);
 			if(miDecay){
 				for(int i = 0; i < m2; i++){
-					float f = Math.abs(gn.getCoord(genes2.get(i))-center) / (float)range;
-					wVec[i] *=(float) Math.exp(2*Math.log( 1 - f ) ); 
+					if(Math.abs(center - gn.getIdx(genes.get(i))) > (winSize/2)){
+						wVec[i] = 0;
+					}
+					//float f = Math.abs(gn.getCoord(genes2.get(i))-center) / (float)range;
+					//wVec[i] *=(float) Math.exp(2*Math.log( 1 - f ) ); 
 					
 				}
 			}
@@ -923,12 +935,15 @@ public class Converger extends DistributedWorker{
 						maxWVec = wVec[i];
 					}
 				}
-				center = gn.getCoord(genes2.get(maxIdx));
+				center = gn.getIdx(genes2.get(maxIdx));
 				//System.out.println(center);
 				if(miDecay){
 					for(int i = 0; i < m2; i++){
-						float f = Math.abs(gn.getCoord(genes2.get(i))-center) / (float)range;
-						wVec[i] *= (float) Math.exp(2*Math.log( 1 - f ) ); 
+						if(Math.abs(center - gn.getIdx(genes.get(i))) > (winSize/2)){
+							wVec[i] = 0;
+						}
+						//float f = Math.abs(gn.getCoord(genes2.get(i))-center) / (float)range;
+						//wVec[i] *= (float) Math.exp(2*Math.log( 1 - f ) ); 
 					}
 				}
 				

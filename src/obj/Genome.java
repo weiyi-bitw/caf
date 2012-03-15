@@ -235,11 +235,11 @@ public class Genome {
 				outGenes.add(genes.get(i).name);
 			}
 		}else{
-			if(windowsize > (ip.y - ip.x)){
+			/*if(windowsize > (ip.y - ip.x)){
 				return null;
-			}
-			int start = idx - windowsize/2;
-			int end = idx + windowsize/2;
+			}*/
+			int start = Math.max(0, idx - windowsize/2);
+			int end = Math.min(genes.size()-1, idx + windowsize/2);
 			
 			//if(start < ip.x) {end = end + ip.x - start; start = ip.x; }
 			//if(end >= ip.y) {start = start - end + ip.y - 1; end = ip.y-1; }

@@ -150,11 +150,11 @@ public class TestField {
 		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3";
 		//final String geneLocFile = "/home/weiyi/workspace/javaworks/caf/output/639/gene.location3";
 		
-		String command = "CAF";
-		float power = 6f;
+		String command = "CNV";
+		float power = 1f;
 		boolean excludeTop = false;
-		boolean miDecay = false;
-		int winSize = 41;
+		boolean miDecay = true;
+		int winSize = 51;
 		
 		//ma.normalizeRows();
 		int m = ma.getNumRows();
@@ -184,9 +184,9 @@ public class TestField {
 		if(command.equals("CNV")) gn.linkToDataFile(ma);
 		
 		
-		gs.add("CENPA");
-		gs.add("LAPTM5");
-		gs.add("FN1");
+		gs.add("PUF60");
+		gs.add("EXOSC4");
+		gs.add("CYC1");
 		/*gs.add("EXOSC10");
 		gs.add("ASH2L");
 		gs.add("EXOSC4");*/
@@ -220,7 +220,7 @@ public class TestField {
 						vec = data[idx];
 						out = cvg.findWeightedAttractor(ma, g, vec, power, excludeTop);
 					}else if(command.equals("CNV")){
-						String[] neighbors = gn.getNeighbors(g, winSize);
+						String[] neighbors = gn.getNeighbors(g, -1);
 						if(neighbors == null){
 							/*pw.println("No neighbors");
 							pw.close();*/
@@ -232,7 +232,7 @@ public class TestField {
 						idx = ma2.getRows().get(g);
 						data = ma2.getData();
 						vec = data[idx];
-						out = cvg.findWeightedCNV(ma2, g, gn, vec, power, excludeTop, miDecay);
+						out = cvg.findWeightedCNV(ma2, g, gn, vec, winSize, power,  excludeTop, miDecay);
 					}else{
 						System.out.println("Wrong command!");
 						System.exit(1);
