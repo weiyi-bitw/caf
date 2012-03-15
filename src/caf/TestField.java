@@ -131,7 +131,7 @@ public class TestField {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String path = "/home/weiyi/workspace/data/ov/gse9891/";
+		String path = "/home/weiyi/workspace/data/coad/tcga/ge/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
@@ -144,14 +144,14 @@ public class TestField {
 		if(!outPath.endsWith("/")){
 			outPath = outPath + "/";
 		}
-		DataFile ma = DataFile.parse(path + "ge.20765x285.var.txt");
+		DataFile ma = DataFile.parse(path + "ge.17814x154.knn.txt");
 		
 		
 		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3";
 		//final String geneLocFile = "/home/weiyi/workspace/javaworks/caf/output/639/gene.location3";
 		
-		String command = "CNV";
-		float power = 2f;
+		String command = "CAF";
+		float power = 6f;
 		boolean excludeTop = false;
 		boolean miDecay = false;
 		int winSize = 41;
@@ -184,9 +184,9 @@ public class TestField {
 		if(command.equals("CNV")) gn.linkToDataFile(ma);
 		
 		
-		gs.add("PUF60");
-		gs.add("CYC1");
-		gs.add("SHARPIN");
+		gs.add("CENPA");
+		gs.add("LAPTM5");
+		gs.add("FN1");
 		/*gs.add("EXOSC10");
 		gs.add("ASH2L");
 		gs.add("EXOSC4");*/
@@ -255,7 +255,8 @@ public class TestField {
 					cnt++;
 					for(int i = 0; i < m; i++){
 						String gg = geneNames.get(vi.get(i).idx);
-						pw.println(gg + "\t" + gn.getIdx(gg) +  "\t" + vi.get(i).val);
+						if(command.equals("CNV"))pw.println(gg + "\t" + gn.getIdx(gg) +  "\t" + vi.get(i).val);
+						else pw.println(gg + "\t"  + vi.get(i).val);
 					}
 					pw.close();
 					

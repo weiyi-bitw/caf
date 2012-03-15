@@ -45,6 +45,7 @@ public class CorrAttractorFinder {
 	private static String attractorFolder = "";
 	private static float ovlpTh = 0.5f;
 	private static float precision = (float) 1E-4;
+	private static float weightExp = 5f;
 	
 	private static int bins = 6;
 	private static int splineOrder = 3;
@@ -279,6 +280,16 @@ public class CorrAttractorFinder {
 		        }
 	    		System.out.printf("%-25s%s\n", "Precision:", precision);
 	    		
+	    		confLine = config.getProperty("exp");
+		    	if (confLine != null && confLine.length() > 0) {
+		            try {
+		               weightExp = Float.parseFloat(confLine);
+		            } catch (NumberFormatException nfe) {
+		            	System.out.println("WARNING: Couldn't parse weight exponent: " + confLine + ", using default " + weightExp);
+		            }
+		        }
+	    		System.out.printf("%-25s%s\n", "Exponent:", weightExp);
+	    		
 	    	}
 	    	/*confLine = config.getProperty("attractor_size");
 	    	if (confLine != null && confLine.length() > 0) {
@@ -405,7 +416,7 @@ public class CorrAttractorFinder {
 			}
 			if(command.equalsIgnoreCase("CAF")){
 				if(convergeMethod.equalsIgnoreCase("WEIGHTED")){
-					cvg.findWeightedAttractor(val, 5f);
+					cvg.findWeightedAttractor(val, weightExp);
 				}else{
 					cvg.findAttractor(val, data);
 				}

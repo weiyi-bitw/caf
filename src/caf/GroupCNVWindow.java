@@ -118,17 +118,17 @@ public class GroupCNVWindow {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		final String dataFile = "/home/weiyi/workspace/data/brca/gse2034/ge.13271x286.var.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/brca/gse2034/ge.13271x286.var.txt";
 		//final String dataFile = "/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt";
 		//final String dataFile = "/home/weiyi/workspace/data/coad/gse14333/ge.20765x290.var.txt";
-		//final String dataFile = "/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt";
+		final String dataFile = "/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt";
 		//final String dataFile = "/home/weiyi/workspace/data/ov/gse9891/ge.20765x285.var.txt";
 		//final String dataFile = "/home/weiyi/workspace/data/ov/tcga/ge/ge.17814x584.knn.txt";
 		
 		System.out.println("Loading files...");
 		DataFile ma = DataFile.parse(dataFile);
 		
-		String outPath = "/home/weiyi/workspace/javaworks/caf/output/window51/brca.gse2034/";
+		String outPath = "/home/weiyi/workspace/javaworks/caf/output/window51/coad.tcga/";
 		//String outPath = "/home/weiyi/workspace/javaworks/caf/tmp/";
 		if(outPath.endsWith("/")){
 			outPath = outPath.substring(0, outPath.length()-1);
@@ -156,7 +156,7 @@ public class GroupCNVWindow {
 		Genome gn = Genome.parseGeneLocation(geneLocFile);
 		gn.linkToDataFile(ma);
 		
-		gs.addAll(slidingWindowSelector(outPath + "/basinScores.txt", 101, 100));
+		gs.addAll(slidingWindowSelector(outPath + "/basinScores.txt", 101, -1));
 		/*String[] nbs = gn.getNeighbors("PUF60", 20);
 		for(String s : nbs){
 			gs.add(s);

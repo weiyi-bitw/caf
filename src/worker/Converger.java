@@ -783,6 +783,7 @@ public class Converger extends DistributedWorker{
 				//System.out.print("\t" + f + "\t" + wVec[i]);
 				wVec[i] *=(float) Math.exp(2 * Math.log( 1-f ) ); 
 				//System.out.println("\t" + wVec[i]);
+			
 			}
 		
 		}

@@ -94,21 +94,22 @@ public class GroupCNVWindow2 {
 		int matchNumber;
 		ArrayList<StringIntPair> allGenes;
 		float avgMI;
+		int numCommonGenes;
 		
 		static void setNames(String[] names){
 			CNVWindowSet.names = names;
 			CNVWindowSet.k = names.length;
 		}
 		
-		CNVWindowSet(String chr, CNVWindow[] content, int matchNumber){
+		CNVWindowSet(String chr, CNVWindow[] content){
 			this.chr = chr;
 			this.content = content;
 			this.allGenes = new ArrayList<StringIntPair>();
 			this.avgMI = 0;
-			int cnt = 0;
+			this.matchNumber = 0;
 			for(CNVWindow cnvw : content){
 				if(cnvw != null){
-					cnt++;
+					matchNumber++;
 					avgMI += cnvw.val;
 					for(String g : cnvw.geneNames){
 						StringIntPair sip = new StringIntPair(g);
@@ -120,9 +121,17 @@ public class GroupCNVWindow2 {
 					}
 				}
 			}
-			avgMI /= cnt;
+			avgMI /= matchNumber;
+			this.numCommonGenes = 0;
 			Collections.sort(allGenes);
-			this.matchNumber = matchNumber;
+			for(StringIntPair sip: allGenes){
+				if(sip.i == k){
+					numCommonGenes++;
+				}else{
+					break;
+				}
+			}
+			
 		}
 		
 		public int compareTo(CNVWindowSet other) {
@@ -133,7 +142,7 @@ public class GroupCNVWindow2 {
 		}
 		
 		public String toString(){
-			String s = chr + "\t" + matchNumber + "\t" + allGenes.size() + "\t" + avgMI + "\n";
+			String s = chr + "\t" + matchNumber + "\t" + allGenes.size() + "\t" + avgMI + "\t" + numCommonGenes + "\n";
 			for(int i = 0; i < k; i++){
 				s += names[i];
 				s += "\t" + content[i] + "\n";
@@ -231,7 +240,7 @@ public class GroupCNVWindow2 {
 	 */
 	public static void main(String[] args) throws Exception {
 		String inPath = "/home/weiyi/workspace/javaworks/caf/output/window51/";
-		int loadIn = 40;
+		int loadIn = 500;
 		
 		String[] files = new File(inPath + "mergeroom").list();
 		Arrays.sort(files);
@@ -259,7 +268,7 @@ public class GroupCNVWindow2 {
 			
 		}
 		
-		System.out.println("All CNV windows were loaded.");
+		System.out.println(allCNVWindows.size() + " CNV windows were loaded.");
 		
 		System.out.println("Making matches...");
 		
@@ -278,14 +287,15 @@ public class GroupCNVWindow2 {
 				CNVWindow cnvw2 = allCNVWindows.get(j);
 				if(cnvw.source != cnvw2.source && cnvw.chr.equals(cnvw2.chr)){
 					if(cnvw.overlapWith(cnvw2)){
+						if(row[cnvw2.source] == null) matchNumber++;
 						row[cnvw2.source] = cnvw2;
 						allCNVWindows.remove(j);
-						matchNumber++;
+						
 					}
 				}
 			}
 			if(matchNumber >1){
-				out.add(new CNVWindowSet(chr, row, matchNumber));
+				out.add(new CNVWindowSet(chr, row));
 			}
 		}
 		
@@ -293,8 +303,11 @@ public class GroupCNVWindow2 {
 		
 		System.out.println("Output to file...");
 		PrintWriter pw = new PrintWriter(new FileWriter(inPath + "/matchTable." + loadIn + ".txt"));
+		int ii = 1;
 		for(CNVWindowSet cnvws : out){
+			pw.print(ii + "\t");
 			pw.println(cnvws);
+			ii++;
 		}
 		
 		pw.close();
