@@ -1,6 +1,7 @@
 package caf;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -19,38 +20,46 @@ public class GroupWeightedAttractors {
 	 */
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-		String path = "/home/weiyi/workspace/javaworks/caf/output/1331832260529/";
-		if(!path.endsWith("/")){
-			path = path + "/";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/window51.moving/coad.gse14333";
+		if(path.endsWith("/")){
+			path = path.substring(0, path.length()-1);
 		}
+		boolean CNV = true;
 		
 		System.out.println("Loading files...");
 		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3";
 		
 		//final String dataFile = "/home/weiyi/workspace/data/brca/gse2034/ge.13271x286.var.txt";
-		//final String dataFile = "/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt";
-		//final String dataFile = "/home/weiyi/workspace/data/coad/gse14333/ge.20765x290.var.txt";
-		//final String dataFile = "/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt";
+		final String dataFile = "/home/weiyi/workspace/data/coad/gse14333/ge.20765x290.var.txt";
 		//final String dataFile = "/home/weiyi/workspace/data/ov/gse9891/ge.20765x285.var.txt";
+		
+		//final String dataFile = "/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt";
 		//final String dataFile = "/home/weiyi/workspace/data/ov/tcga/ge/ge.17814x584.knn.txt";
 		
-		final String dataFile = "test.txt";
+		
+		//final String dataFile = "test.txt";
 		
 		DataFile ma = DataFile.parse(dataFile);
-		Genome gn = Genome.parseGeneLocation(geneLocFile);
+		Genome gn = null;
 		int m = ma.getNumRows();
 		int n = ma.getNumCols();
 		ArrayList<String> genes = ma.getProbes();
-		boolean CNV = true;
 		
-		if(CNV) gn.linkToDataFile(ma);
 		
-		BufferedReader br = new BufferedReader(new FileReader(path + "attractors.gwt"));
-		BufferedReader br2 = new BufferedReader(new FileReader(path + "attractees.gwt"));
+		if(CNV) {
+			gn = Genome.parseGeneLocation(geneLocFile);
+			gn.linkToDataFile(ma);
+		}
+		
+		BufferedReader br = new BufferedReader(new FileReader(path + "/attractors.gwt"));
+		BufferedReader br2 = new BufferedReader(new FileReader(path + "/attractees.gwt"));
 		String line = br.readLine();
 		String line2 = br2.readLine();
-		PrintWriter pw = new PrintWriter(new FileWriter(path + "attractors.topGenes.gwt"));
-		PrintWriter pw2 = new PrintWriter(new FileWriter(path + "attractees.decoded.gwt"));
+		new File(path + "/../mergeroom").mkdir();
+		String outFileName = path.substring(path.lastIndexOf("/"));
+		PrintWriter pw = new PrintWriter(new FileWriter(path + "/../mergeroom/" + outFileName));
+		PrintWriter pw2 = new PrintWriter(new FileWriter(path + "/attractees.decoded.gwt"));
 		
 		while(line != null){
 			if(CNV){
@@ -142,17 +151,20 @@ public class GroupWeightedAttractors {
 				pw.print(name + "\t" + numBasins);
 				float sum = 0;
 				for(int i = 0; i < m; i++){
-					float f= Float.parseFloat(tokens[i+2]);
-					float w = (float) Math.exp(5 * Math.log(f));
+					//float f= Float.parseFloat(tokens[i+2]);
+					//float w = (float) Math.exp(5 * Math.log(f));
+					float w = Float.parseFloat(tokens[i+2]);
 					vec.add(new ValIdx(i, w));
 					
 					sum += w;
 				}
 				Collections.sort(vec);
-				for(int i = 0; i < 10; i++){
+				for(int i = 0; i < 20; i++){
 					String g = genes.get(vec.get(i).idx);
-					pw.print("\t" + g  + ":" +  vec.get(i).val/sum );
-				}pw.println();
+					pw.print("\t" + g);
+				}
+				pw.print("\t" + vec.get(9).val);
+				pw.println();
 			}
 			
 			line2 = br2.readLine();

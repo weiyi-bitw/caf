@@ -906,7 +906,7 @@ public class Converger extends DistributedWorker{
 			//float range = gn.getChrCoordRange(chr);
 			if(miDecay){
 				for(int i = 0; i < m2; i++){
-					if(Math.abs(center - gn.getIdx(genes.get(i))) > (winSize/2)){
+					if(Math.abs(center - gn.getIdx(genes2.get(i))) > (winSize/2)){
 						wVec[i] = 0;
 					}
 					//float f = Math.abs(gn.getCoord(genes2.get(i))-center) / (float)range;
@@ -939,7 +939,7 @@ public class Converger extends DistributedWorker{
 				//System.out.println(center);
 				if(miDecay){
 					for(int i = 0; i < m2; i++){
-						if(Math.abs(center - gn.getIdx(genes.get(i))) > (winSize/2)){
+						if(Math.abs(center - gn.getIdx(genes2.get(i))) > (winSize/2)){
 							wVec[i] = 0;
 						}
 						//float f = Math.abs(gn.getCoord(genes2.get(i))-center) / (float)range;

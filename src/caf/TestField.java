@@ -131,7 +131,7 @@ public class TestField {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String path = "/home/weiyi/workspace/data/coad/tcga/ge/";
+		String path = "/home/weiyi/workspace/data/coad/tcga/ge";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
