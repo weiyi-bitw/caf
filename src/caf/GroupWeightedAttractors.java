@@ -20,7 +20,7 @@ public class GroupWeightedAttractors {
 	 */
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-		String path = "/home/weiyi/workspace/javaworks/caf/output/window51.moving/coad.gse14333";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/movingWindow51/brca.gse2034";
 		if(path.endsWith("/")){
 			path = path.substring(0, path.length()-1);
 		}
@@ -29,8 +29,8 @@ public class GroupWeightedAttractors {
 		System.out.println("Loading files...");
 		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3";
 		
-		//final String dataFile = "/home/weiyi/workspace/data/brca/gse2034/ge.13271x286.var.txt";
-		final String dataFile = "/home/weiyi/workspace/data/coad/gse14333/ge.20765x290.var.txt";
+		final String dataFile = "/home/weiyi/workspace/data/brca/gse2034/ge.13271x286.var.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/coad/gse14333/ge.20765x290.var.txt";
 		//final String dataFile = "/home/weiyi/workspace/data/ov/gse9891/ge.20765x285.var.txt";
 		
 		//final String dataFile = "/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt";

@@ -131,7 +131,7 @@ public class TestField {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String path = "/home/weiyi/workspace/data/coad/tcga/ge";
+		String path = "/home/weiyi/workspace/data/ov/tcga/ge";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
@@ -144,14 +144,14 @@ public class TestField {
 		if(!outPath.endsWith("/")){
 			outPath = outPath + "/";
 		}
-		DataFile ma = DataFile.parse(path + "ge.17814x154.knn.txt");
+		DataFile ma = DataFile.parse(path + "ge.17814x584.knn.txt");
 		
 		
 		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3";
 		//final String geneLocFile = "/home/weiyi/workspace/javaworks/caf/output/639/gene.location3";
 		
 		String command = "CNV";
-		float power = 1f;
+		float power = 1.5f;
 		boolean excludeTop = false;
 		boolean miDecay = true;
 		int winSize = 51;

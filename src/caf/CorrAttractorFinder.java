@@ -416,7 +416,7 @@ public class CorrAttractorFinder {
 				}
 			}else if(command.equalsIgnoreCase("CNV")){
 				if(convergeMethod.equalsIgnoreCase("WEIGHTED")){
-					cvg.findWeightedCNV(ma, gn, minSize, 1f, true);
+					cvg.findWeightedCNV(ma, gn, minSize, weightExp, true);
 				}else if (convergeMethod.equalsIgnoreCase("WINDOW")){
 					cvg.findWeightedCNVCoef(ma, gn, minSize, 2f, false);
 					
