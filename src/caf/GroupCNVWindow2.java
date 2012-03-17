@@ -239,8 +239,8 @@ public class GroupCNVWindow2 {
 	 * @param args
 	 */
 	public static void main(String[] args) throws Exception {
-		String inPath = "/home/weiyi/workspace/javaworks/caf/output/movingWindow51/";
-		int loadIn = 500;
+		String inPath = "/home/weiyi/workspace/javaworks/caf/output/movingWindow51.1p5/";
+		int loadIn = 2000;
 		
 		String[] files = new File(inPath + "mergeroom").list();
 		Arrays.sort(files);

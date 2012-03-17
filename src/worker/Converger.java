@@ -1113,7 +1113,7 @@ public class Converger extends DistributedWorker{
 			
 			if(converge){
 				Arrays.sort(wVec);
-				int k = m2 >= 10? m2-10 : m2; 
+				int k = m2 >= 20? m2-20 : m2; 
 				pw.println(g + "\t" + wVec[k]);
 			}else{
 				pw.println(g + "\t" + "-1");
