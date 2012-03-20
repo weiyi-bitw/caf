@@ -1115,7 +1115,7 @@ public class Converger extends DistributedWorker{
 			if(converge){
 				pw.print(g);
 				for(int i = 0; i < m2; i++){
-					pw.print("\t" + i + ":" + wVec[i]);
+					pw.print("\t" + (idx+i) + ":" + wVec[i]);
 				}pw.println();
 			}else{
 				pw.println(g + "\t" + "-1");
