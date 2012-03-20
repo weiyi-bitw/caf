@@ -121,14 +121,14 @@ public class GroupCNVWindow {
 		//final String dataFile = "/home/weiyi/workspace/data/brca/gse2034/ge.13271x286.var.txt";
 		//final String dataFile = "/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt";
 		//final String dataFile = "/home/weiyi/workspace/data/coad/gse14333/ge.20765x290.var.txt";
-		final String dataFile = "/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt";
 		//final String dataFile = "/home/weiyi/workspace/data/ov/gse9891/ge.20765x285.var.txt";
-		//final String dataFile = "/home/weiyi/workspace/data/ov/tcga/ge/ge.17814x584.knn.txt";
+		final String dataFile = "/home/weiyi/workspace/data/ov/tcga/ge/ge.17814x584.knn.txt";
 		
 		System.out.println("Loading files...");
 		DataFile ma = DataFile.parse(dataFile);
 		
-		String outPath = "/home/weiyi/workspace/javaworks/caf/output/window51/coad.tcga/";
+		String outPath = "/home/weiyi/workspace/javaworks/caf/output/window51.20th/ov.tcga/";
 		//String outPath = "/home/weiyi/workspace/javaworks/caf/tmp/";
 		if(outPath.endsWith("/")){
 			outPath = outPath.substring(0, outPath.length()-1);
@@ -167,7 +167,7 @@ public class GroupCNVWindow {
 		HashMap<String, Integer> geneMap = ma.getRows();
 		
 		int cnt = 0;
-		//new File("tmp").mkdir();
+		new File(outPath + "/../mergeroom").mkdir();
 		String outFileName = outPath.substring(outPath.lastIndexOf("/"));
 		PrintWriter pw = new PrintWriter(new FileWriter(outPath + "/../mergeroom/" + outFileName));
 		for(String g : gs){

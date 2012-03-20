@@ -174,7 +174,7 @@ public class Converger extends DistributedWorker{
 		//float[] r = StatOps.rank(w);
 		for(int i = 0; i < m; i++){
 			//if( (z[i]) > 0){
-			//if(w[i] > 0){
+			if(w[i] > 0){
 				//double ww = Math.exp(power*Math.log(w[i]));
 				double f = Math.exp(power*Math.log(w[i]));
 				//double sig =  Math.exp(power * Math.log(sigmoid(2*w[i]-1, 1.0)));
@@ -186,7 +186,7 @@ public class Converger extends DistributedWorker{
 				for(int j = 0; j < n; j++){
 					out[j] += data[i][j] * f;
 				}
-			//}
+			}
 		}
 		for(int j = 0; j < n; j++){
 			out[j] /= sum;
@@ -768,7 +768,7 @@ public class Converger extends DistributedWorker{
 			wVec[maxIdx] = 0;
 		}
 		
-		float center = gn.getIdx(gene);
+		float center = genes.indexOf(gene);
 		//float center = gn.getIdx(gene);
 		System.out.println(center);
 		float range = gn.getChrCoordRange(gn.getChr(gene));
@@ -777,7 +777,7 @@ public class Converger extends DistributedWorker{
 		if(miDecay){
 			System.out.println(gene);
 			for(int i = 0; i < m; i++){
-				if(Math.abs(center - gn.getIdx(genes.get(i))) > (winSize/2)){
+				if(Math.abs(center - i) > (winSize/2)){
 					wVec[i] = 0;
 				}//System.out.print(gn.getIdx(genes.get(i)) + ":" + wVec[i] + "\t");
 				
@@ -797,6 +797,7 @@ public class Converger extends DistributedWorker{
 		float convergeTh = precision * precision / m;
 		System.out.println("m : " + m);
 		System.out.println("Convergence threshold : " + convergeTh);
+		
 		while(c < maxIter){
 			float[] metaGene = getWeightedMetaGene(data, wVec, power,  m, n);
 			wVec = itc.getAllMIWith(metaGene, data);
@@ -808,16 +809,16 @@ public class Converger extends DistributedWorker{
 					maxWVec = wVec[i];
 				}
 			}
-			center = gn.getIdx(genes.get(maxIdx));
+			
 			//center = gn.getIdx(genes.get(maxIdx));
 			//System.out.println(center);
 			if(miDecay){
-				System.out.println(genes.get(maxIdx));
+				System.out.println(genes.get(maxIdx) + "\t" + maxIdx + "\t" + center);
 				for(int i = 0; i < m; i++){
-					if(Math.abs(center - gn.getIdx(genes.get(i))) > (winSize/2)){
+					if(Math.abs(center - i) > (winSize/2) && Math.abs(maxIdx - i) > (winSize / 2)){
 						wVec[i] = 0;
 					}//System.out.print(gn.getIdx(genes.get(i)) + ":" + wVec[i] + "\t");
-					
+					center = maxIdx;
 					//float f = Math.abs(gn.getCoord(genes.get(i))-center) / range;
 					//float f = Math.abs(gn.getIdx(genes.get(i))-center) / (float)range;
 					//wVec[i] *= (float) Math.exp(2 * Math.log( 1-f ) ); 
@@ -1112,9 +1113,11 @@ public class Converger extends DistributedWorker{
 			}
 			
 			if(converge){
-				Arrays.sort(wVec);
-				int k = m2 >= 20? m2-20 : m2; 
-				pw.println(g + "\t" + wVec[k]);
+				ArrayList<ValIdx> out = new ArrayList<ValIdx>();
+				pw.print(g);
+				for(int i = 0; i < m2; i++){
+					pw.print("\t" + i + "\t" + wVec[i]);
+				}pw.println();
 			}else{
 				pw.println(g + "\t" + "-1");
 			}
@@ -1163,10 +1166,33 @@ public class Converger extends DistributedWorker{
 		System.arraycopy(wVec, 0, preWVec, 0, m);
 		int c = 0;
 		float convergeTh = precision * precision / m;
+		
+		/*float[] mis = new float[m];
+		System.arraycopy(wVec, 0, mis, 0, m);
+		Arrays.sort(mis);
+		float mi20th = mis[m-20];
+		
+		float prePower = 0;
+		float lPower = 2;
+		float hPower = power;*/
+		
+		
 		while(c < maxIter){
 			float[] metaGene = getWeightedMetaGene(data, wVec, power,  m, n);
 			wVec = itc.getAllMIWith(metaGene, data);
+			/*System.arraycopy(wVec, 0, mis, 0, m);
+			Arrays.sort(mis);
 			
+			if(mis[m-20] > mi20th){
+				prePower = power;
+				power = (power + lPower)/2;
+				hPower = prePower;
+			}else{
+				prePower = power;
+				power = (power + hPower)/2;
+				lPower = prePower;
+			}
+			mi20th = mis[m-20];*/
 			//System.out.println(wVec[idx]);
 			//wVec = StatOps.pearsonCorr(metaGene, data, m, n);
 			//wVec = StatOps.cov(metaGene, data, m, n);
@@ -1177,9 +1203,9 @@ public class Converger extends DistributedWorker{
 			}pw.println();*/
 			
 			float err = calcMSE(wVec, preWVec, m);
-			System.out.println(err);
+			//System.out.println("delta: " + err + "\t20th MI:" + mi20th + "\tpower: " + power + " (" + hPower + "/" + lPower + ")");
+			System.out.println("delta: " + err);
 			if(err < convergeTh){
-				//pw.close();
 				System.out.println("Converged.");
 				return wVec;
 			}

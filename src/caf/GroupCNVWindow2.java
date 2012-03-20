@@ -142,7 +142,7 @@ public class GroupCNVWindow2 {
 		}
 		
 		public String toString(){
-			String s = chr + "\t" + matchNumber + "\t" + allGenes.size() + "\t" + numCommonGenes + "\n";
+			String s = chr + "\t" + matchNumber + "\t" + allGenes.size() + "\t" + avgMI + "\t" + numCommonGenes + "\n";
 			for(int i = 0; i < k; i++){
 				s += names[i];
 				s += "\t" + content[i] + "\n";
@@ -190,11 +190,11 @@ public class GroupCNVWindow2 {
 			String chr = tokens[1];
 			int nt = tokens.length;
 			String chrArm = tokens[nt-2];
-			float val = Float.parseFloat(tokens[2]);
+			float val = Float.parseFloat(tokens[nt-1]);
 			ArrayList<String> genes = new ArrayList<String>();
 			int x = Integer.MAX_VALUE;
 			int y = -1;
-			for(int i = 3; i < nt-2; i++){
+			for(int i = 2; i < nt-2; i++){
 				String g = tokens[i];
 				genes.add(g);
 				int j = gn.getIdx(g);
@@ -239,7 +239,7 @@ public class GroupCNVWindow2 {
 	 * @param args
 	 */
 	public static void main(String[] args) throws Exception {
-		String inPath = "/home/weiyi/workspace/javaworks/caf/output/movingWindow51.1p5/";
+		String inPath = "/home/weiyi/workspace/javaworks/caf/output/window51.20th/";
 		int loadIn = 2000;
 		
 		String[] files = new File(inPath + "mergeroom").list();

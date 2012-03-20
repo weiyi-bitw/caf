@@ -20,18 +20,18 @@ public class GroupWeightedAttractors {
 	 */
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-		String path = "/home/weiyi/workspace/javaworks/caf/output/movingWindow51.1p5/ov.tcga";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/weighted.5/ov.tcga";
 		if(path.endsWith("/")){
 			path = path.substring(0, path.length()-1);
 		}
-		boolean CNV = true;
+		boolean CNV = false;
 		
 		System.out.println("Loading files...");
 		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3";
 		
-		//final String dataFile = "/home/weiyi/workspace/data/brca/gse2034/ge.13271x286.var.txt";
-		//final String dataFile = "/home/weiyi/workspace/data/coad/gse14333/ge.20765x290.var.txt";
-		//final String dataFile = "/home/weiyi/workspace/data/ov/gse9891/ge.20765x285.var.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/brca/gse2034/ge.12764x286.median.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/coad/gse14333/ge.19964x290.median.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/ov/gse9891/ge.19964x285.median.txt";
 		
 		//final String dataFile = "/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt";
 		//final String dataFile = "/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt";
@@ -148,7 +148,9 @@ public class GroupWeightedAttractors {
 				String[] tokens = line.split("\t");
 				int numBasins = line2.split("\t").length - 2;
 				String name = tokens[0];
+				String[] t2 = line2.split("\t");
 				pw.print(name + "\t" + numBasins);
+				pw2.print(name + "\t" + numBasins);
 				float sum = 0;
 				for(int i = 0; i < m; i++){
 					//float f= Float.parseFloat(tokens[i+2]);
@@ -158,13 +160,17 @@ public class GroupWeightedAttractors {
 					
 					sum += w;
 				}
+				for(int i = 0; i < numBasins; i++){
+					pw2.print("\t" + genes.get(Integer.parseInt(t2[i+2])));
+				}
 				Collections.sort(vec);
 				for(int i = 0; i < 20; i++){
 					String g = genes.get(vec.get(i).idx);
 					pw.print("\t" + g);
 				}
-				pw.print("\t" + vec.get(9).val);
+				pw.print("\t" + vec.get(19).val);
 				pw.println();
+				pw2.println();
 			}
 			
 			line2 = br2.readLine();

@@ -131,7 +131,7 @@ public class TestField {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String path = "/home/weiyi/workspace/data/ov/tcga/ge";
+		String path = "/home/weiyi/workspace/data/ov/tcga/ge/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
@@ -150,8 +150,8 @@ public class TestField {
 		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3";
 		//final String geneLocFile = "/home/weiyi/workspace/javaworks/caf/output/639/gene.location3";
 		
-		String command = "CNV";
-		float power = 1.5f;
+		String command = "CAF";
+		float power = 5f;
 		boolean excludeTop = false;
 		boolean miDecay = true;
 		int winSize = 51;
@@ -184,9 +184,7 @@ public class TestField {
 		if(command.equals("CNV")) gn.linkToDataFile(ma);
 		
 		
-		gs.add("PUF60");
-		gs.add("EXOSC4");
-		gs.add("CYC1");
+		gs.add("FABP4");
 		/*gs.add("EXOSC10");
 		gs.add("ASH2L");
 		gs.add("EXOSC4");*/
@@ -201,6 +199,7 @@ public class TestField {
 		float scores[] = new float[k];*/
 		
 		ITComputer itc = new ITComputer(6, 3, 0, 1, true);
+		//itc.negateMI(true);
 		cvg.linkITComputer(itc);
 		HashMap<String, Integer> geneMap = ma.getRows();
 		
