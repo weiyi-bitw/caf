@@ -1113,10 +1113,9 @@ public class Converger extends DistributedWorker{
 			}
 			
 			if(converge){
-				ArrayList<ValIdx> out = new ArrayList<ValIdx>();
 				pw.print(g);
 				for(int i = 0; i < m2; i++){
-					pw.print("\t" + i + "\t" + wVec[i]);
+					pw.print("\t" + i + ":" + wVec[i]);
 				}pw.println();
 			}else{
 				pw.println(g + "\t" + "-1");
