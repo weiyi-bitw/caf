@@ -94,6 +94,7 @@ public class GroupCNVWindow2 {
 		int matchNumber;
 		ArrayList<StringIntPair> allGenes;
 		float avgMI;
+		float minMI;
 		int numCommonGenes;
 		
 		static void setNames(String[] names){
@@ -106,11 +107,15 @@ public class GroupCNVWindow2 {
 			this.content = content;
 			this.allGenes = new ArrayList<StringIntPair>();
 			this.avgMI = 0;
+			this.minMI = Float.MAX_VALUE;
 			this.matchNumber = 0;
 			for(CNVWindow cnvw : content){
 				if(cnvw != null){
 					matchNumber++;
 					avgMI += cnvw.val;
+					if(cnvw.val < minMI){
+						minMI = cnvw.val;
+					}
 					for(String g : cnvw.geneNames){
 						StringIntPair sip = new StringIntPair(g);
 						if(allGenes.contains(sip)){
@@ -136,13 +141,13 @@ public class GroupCNVWindow2 {
 		
 		public int compareTo(CNVWindowSet other) {
 			if(this.matchNumber == other.matchNumber){
-				return Double.compare(this.getNumGenes(), other.getNumGenes());
+				return -Double.compare(this.minMI, other.minMI);
 			}
 			return -Double.compare(this.matchNumber, other.matchNumber);
 		}
 		
 		public String toString(){
-			String s = chr + "\t" + matchNumber + "\t" + allGenes.size() + "\t" + avgMI + "\t" + numCommonGenes + "\n";
+			String s = chr + "\t" + matchNumber + "\t" + allGenes.size() + "\t" + minMI + "\t" + numCommonGenes + "\n";
 			for(int i = 0; i < k; i++){
 				s += names[i];
 				s += "\t" + content[i] + "\n";
@@ -239,8 +244,8 @@ public class GroupCNVWindow2 {
 	 * @param args
 	 */
 	public static void main(String[] args) throws Exception {
-		String inPath = "/home/weiyi/workspace/javaworks/caf/output/window51.20th/";
-		int loadIn = 2000;
+		String inPath = "/home/weiyi/workspace/javaworks/caf/output/window51/";
+		int loadIn = 300;
 		
 		String[] files = new File(inPath + "mergeroom").list();
 		Arrays.sort(files);

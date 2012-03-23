@@ -11,6 +11,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 
+import caf.GroupCNVWindow2.CNVWindow;
+
 import obj.DataFile;
 import obj.Genome;
 import obj.ValIdx;
@@ -18,7 +20,77 @@ import worker.Converger;
 import worker.ITComputer;
 
 public class GroupCNVWindow {
+	static class Window implements Comparable<Window>{
+		static ArrayList<String> genes;
+		static Genome gn;
+		static int quantile = 10;
+		int startIdx;
+		ValIdx[] mis;
+		String name;
+		
+		Window(String name, int startIdx, ValIdx[] mis){
+			this.name = name;
+			this.startIdx = startIdx;
+			Arrays.sort(mis);
+			this.mis = mis;
+		}
+		
+		static Window parseWindow(String line, int startIdx){
+			String[] tokens = line.split("\t");
+			String name = "Attractor_" + tokens[0];
+			int nt = tokens.length;
+			if(nt <= 2){
+				return null;
+			}
+			ValIdx[] mis = new ValIdx[nt-1];
+			for(int i = 1; i < nt; i++){
+				String[] t2 = tokens[i].split(":");
+				mis[i-1] = new ValIdx(Integer.parseInt(t2[0]), Float.parseFloat(t2[1]));
+			}
+			return new Window(name, startIdx, mis);
+		}
+		
+		public int hashCode(){
+			return startIdx;
+		}
+		
+		public String toString(int n){
+			String s = name + "\t" + gn.getChr(genes.get(mis[0].idx));
+			for(int i = 0; i < n; i++){
+				s += "\t" + genes.get(mis[i].idx);
+			}
+			s += "\t" + gn.getChrArm(genes.get(startIdx)) + "\t" + mis[quantile-1].val;
+			return s;
+			
+		}
+		
+		public String toString(){
+			String s = name + "\t" + gn.getChr(genes.get(startIdx));
+			int n = mis.length;
+			for(int i = 0; i < n; i++){
+				s += "\t" + genes.get(mis[i].idx);
+			}
+			s += "\t" + gn.getChrArm(genes.get(startIdx)) + "\t" + mis[quantile-1].val;
+			return s;
+			
+		}
+		
+		static void linkGenes(ArrayList<String> genes){
+			Window.genes = genes;
+		}
+		static void linkGenome(Genome gn){
+			Window.gn = gn;
+		}
+		static void setQuantile(int i){
+			Window.quantile = i;
+		}
 
+		public int compareTo(Window other) {
+			return -Double.compare(this.mis[quantile-1].val, other.mis[quantile-1].val);
+		}
+	}
+	
+	
 	private static float[] getMetaGene(float[][] data, ArrayList<Integer> idx, int n){
 		int m = idx.size();
 		float[] out = new float[n];
@@ -113,22 +185,52 @@ public class GroupCNVWindow {
 		return outG;
 	}
 	
+	private static ArrayList<Window> slidingWindowSelector(String inFileName, int excludeSize) throws Exception{
+		BufferedReader br = new BufferedReader(new FileReader(inFileName));
+		ArrayList<Window> out = new ArrayList<Window>();
+		
+		String line = br.readLine();
+		int cnt = 0;
+		
+		while(line != null){
+			Window w = Window.parseWindow(line, cnt);
+			if(w != null) out.add(w);
+			line = br.readLine();
+			cnt ++;
+		}
+		br.close();
+		
+		int k = out.size();
+		Collections.sort(out);
+		
+		for(int i = k -1; i >=0; i--){
+			Window w = out.get(i);
+			for(int j = 0; j < i; j++){
+				if(Math.abs(w.startIdx - out.get(j).startIdx) < excludeSize){
+					out.remove(i);
+					break;
+				}
+			}
+		}
+		return out;
+	}
+	
 	/**
 	 * @param args
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		//final String dataFile = "/home/weiyi/workspace/data/brca/gse2034/ge.13271x286.var.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/brca/gse2034/ge.12764x286.median.txt";
 		//final String dataFile = "/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt";
-		//final String dataFile = "/home/weiyi/workspace/data/coad/gse14333/ge.20765x290.var.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/coad/gse14333/ge.19964x290.median.txt";
 		//final String dataFile = "/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt";
-		//final String dataFile = "/home/weiyi/workspace/data/ov/gse9891/ge.20765x285.var.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/ov/gse9891/ge.19964x285.median.txt";
 		final String dataFile = "/home/weiyi/workspace/data/ov/tcga/ge/ge.17814x584.knn.txt";
 		
 		System.out.println("Loading files...");
 		DataFile ma = DataFile.parse(dataFile);
 		
-		String outPath = "/home/weiyi/workspace/javaworks/caf/output/window51.20th/ov.tcga/";
+		String outPath = "/home/weiyi/workspace/javaworks/caf/output/window51/ov.tcga";
 		//String outPath = "/home/weiyi/workspace/javaworks/caf/tmp/";
 		if(outPath.endsWith("/")){
 			outPath = outPath.substring(0, outPath.length()-1);
@@ -137,9 +239,9 @@ public class GroupCNVWindow {
 		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3";
 		//final String geneLocFile = "/home/weiyi/workspace/javaworks/caf/output/639/gene.location3";
 		
-		float power = 2f;
+		/*float power = 2f;
 		boolean excludeTop = false;
-		boolean miDecay = false;
+		boolean miDecay = false;*/
 		int winSize = 51;
 		
 		//ma.normalizeRows();
@@ -151,16 +253,37 @@ public class GroupCNVWindow {
 		
 		long jobID = System.currentTimeMillis();
 		
-		Converger cvg = new Converger(0, 1, jobID);
-		
 		Genome gn = Genome.parseGeneLocation(geneLocFile);
 		gn.linkToDataFile(ma);
+		ma = ma.getSubProbes(gn.getAllGenes());
+		CNVWindow.linkGenome(gn);
+		
+		Window.linkGenes(ma.getProbes());
+		Window.linkGenome(gn);
+		Window.setQuantile(5);
+		
+		System.out.println("Parsing windows...");
+		ArrayList<Window> out = slidingWindowSelector(outPath + "/basinScores.txt", winSize/2);
+		System.out.println(out.size() + " CNVWindow selected.");
+		
+		String outFileName = outPath.substring(outPath.lastIndexOf("/"));
+		new File(outPath + "/../mergeroom").mkdir();
+		PrintWriter pw = new PrintWriter(new FileWriter(outPath + "/../mergeroom/" + outFileName));
+		for(Window w : out){
+			pw.println(w.toString(20));
+		}
+		
+		pw.close();
+		
+		
+		/*
+		Converger cvg = new Converger(0, 1, jobID);
 		
 		gs.addAll(slidingWindowSelector(outPath + "/basinScores.txt", 101, -1));
-		/*String[] nbs = gn.getNeighbors("PUF60", 20);
+		String[] nbs = gn.getNeighbors("PUF60", 20);
 		for(String s : nbs){
 			gs.add(s);
-		}*/
+		}
 		
 		ITComputer itc = new ITComputer(6, 3, 0, 1, true);
 		cvg.linkITComputer(itc);
@@ -179,8 +302,8 @@ public class GroupCNVWindow {
 					int idx = geneMap.get(g);
 					String[] neighbors = gn.getNeighbors(g, winSize);
 					if(neighbors == null){
-						/*pw.println("No neighbors");
-						pw.close();*/
+						pw.println("No neighbors");
+						pw.close();
 						continue;
 					}
 					DataFile ma2 = ma.getSubProbes(neighbors);
@@ -193,8 +316,8 @@ public class GroupCNVWindow {
 					
 					
 					if(out[0] == -1){
-						/*pw.println("Not converged.");
-						pw.close();*/
+						pw.println("Not converged.");
+						pw.close();
 						continue;
 					}
 					
@@ -220,7 +343,7 @@ public class GroupCNVWindow {
 				System.out.println("Does not contain gene " + g + "!!");
 			}
 		}
-		pw.close();
+		pw.close();*/
 		System.out.println("Done.");
 	}
 

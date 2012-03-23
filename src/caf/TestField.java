@@ -131,7 +131,7 @@ public class TestField {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String path = "/home/weiyi/workspace/data/ov/tcga/ge/";
+		String path = "/home/weiyi/workspace/data/coad/gse14333/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
@@ -144,16 +144,16 @@ public class TestField {
 		if(!outPath.endsWith("/")){
 			outPath = outPath + "/";
 		}
-		DataFile ma = DataFile.parse(path + "ge.17814x584.knn.txt");
+		DataFile ma = DataFile.parse(path + "ge.19964x290.median.txt");
 		
 		
 		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3";
 		//final String geneLocFile = "/home/weiyi/workspace/javaworks/caf/output/639/gene.location3";
 		
-		String command = "CAF";
-		float power = 5f;
+		String command = "CNV";
+		float power = 2f;
 		boolean excludeTop = false;
-		boolean miDecay = true;
+		boolean miDecay = false;
 		int winSize = 51;
 		
 		//ma.normalizeRows();
@@ -184,7 +184,7 @@ public class TestField {
 		if(command.equals("CNV")) gn.linkToDataFile(ma);
 		
 		
-		gs.add("FABP4");
+		gs.add("ERBB2");
 		/*gs.add("EXOSC10");
 		gs.add("ASH2L");
 		gs.add("EXOSC4");*/
@@ -219,7 +219,7 @@ public class TestField {
 						vec = data[idx];
 						out = cvg.findWeightedAttractor(ma, g, vec, power, excludeTop);
 					}else if(command.equals("CNV")){
-						String[] neighbors = gn.getNeighbors(g, -1);
+						String[] neighbors = gn.getNeighbors(g, winSize);
 						if(neighbors == null){
 							/*pw.println("No neighbors");
 							pw.close();*/
