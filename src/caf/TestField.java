@@ -144,14 +144,14 @@ public class TestField {
 		if(!outPath.endsWith("/")){
 			outPath = outPath + "/";
 		}
-		DataFile ma = DataFile.parse(path + "ge.19964x290.median.txt");
+		DataFile ma = DataFile.parse(path + "ge.19964x290.zmean.txt");
 		
 		
 		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3";
 		//final String geneLocFile = "/home/weiyi/workspace/javaworks/caf/output/639/gene.location3";
 		
-		String command = "CNV";
-		float power = 2f;
+		String command = "CAF";
+		float power = 5f;
 		boolean excludeTop = false;
 		boolean miDecay = false;
 		int winSize = 51;
@@ -184,7 +184,7 @@ public class TestField {
 		if(command.equals("CNV")) gn.linkToDataFile(ma);
 		
 		
-		gs.add("ERBB2");
+		gs.add("CENPA");
 		/*gs.add("EXOSC10");
 		gs.add("ASH2L");
 		gs.add("EXOSC4");*/

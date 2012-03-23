@@ -273,18 +273,17 @@ public class CorrAttractorFinder {
 		            }
 		        }
 	    		System.out.printf("%-25s%s\n", "Precision:", precision);
-	    		
-	    		confLine = config.getProperty("exp");
-		    	if (confLine != null && confLine.length() > 0) {
-		            try {
-		               weightExp = Float.parseFloat(confLine);
-		            } catch (NumberFormatException nfe) {
-		            	System.out.println("WARNING: Couldn't parse weight exponent: " + confLine + ", using default " + weightExp);
-		            }
-		        }
-	    		System.out.printf("%-25s%s\n", "Exponent:", weightExp);
-	    		
 	    	}
+	    	confLine = config.getProperty("exp");
+	    	if (confLine != null && confLine.length() > 0) {
+	            try {
+	               weightExp = Float.parseFloat(confLine);
+	            } catch (NumberFormatException nfe) {
+	            	System.out.println("WARNING: Couldn't parse weight exponent: " + confLine + ", using default " + weightExp);
+	            }
+	        }
+    		System.out.printf("%-25s%s\n", "Exponent:", weightExp);
+    		
 	    	/*confLine = config.getProperty("attractor_size");
 	    	if (confLine != null && confLine.length() > 0) {
 	            try {
