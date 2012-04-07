@@ -21,23 +21,26 @@ public class FineTuning {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		float start = 8;
-		float end = 1;
+		float start = 5;
+		float end = 5;
 		int quantile = 20;
 		
-		String path = "/home/weiyi/workspace/data/brca/gse2034/";
-		if(!path.endsWith("/")){
-			path = path + "/";
-		}
 		System.out.println("Loading files...");
 		
 		//String outPath = "/home/weiyi/workspace/javaworks/caf/output/656/";
 		new File("output").mkdir();
-		String outPath = "/home/weiyi/workspace/javaworks/caf/output/expexp/";
+		String outPath = "/home/weiyi/workspace/javaworks/caf/output/caf.finetune/cenpa/";
 		if(!outPath.endsWith("/")){
 			outPath = outPath + "/";
 		}
-		DataFile ma = DataFile.parse(path + "ge.12764x286.median.txt");
+		final String dataFile = "/home/weiyi/workspace/data/brca/gse2034/ge.12160x286.jetset.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/coad/gse14333/ge.19189x290.jetset.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/ov/gse9891/ge.19189x285.jetset.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/ov/tcga/ge/ge.17814x584.knn.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt";
+		DataFile ma = DataFile.parse(dataFile);
 		
 		int m = ma.getNumRows();
 		int n = ma.getNumCols();

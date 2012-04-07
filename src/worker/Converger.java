@@ -9,9 +9,11 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 
+import obj.Annotations;
 import obj.Chromosome;
 import obj.DataFile;
 import obj.Genome;
+import obj.InverseAnnotations;
 import obj.ValIdx;
 
 import org.apache.commons.math.MathException;
@@ -733,6 +735,47 @@ public class Converger extends DistributedWorker{
 			}
 			return metaIdx;
 	}
+	/*
+	 * Apr 6 2012
+	 * Probe-level find CNV
+	 * 
+	 */
+	public ValIdx[] findWeightedCNV(DataFile ma, float[] vec, Genome gn,
+			String[] neighborsG, InverseAnnotations invannot, int winSize,
+			float power, Annotations annot) throws Exception {
+		
+		float[][] data = ma.getData();
+		int m = data.length;
+		int n = data[0].length;
+		int mg = neighborsG.length;
+		HashMap<String, Integer> probeMap = ma.getRows(); 
+		
+		float[] mivec = itc.getAllMIWith(vec, data);
+		float[] premiVec = new float[m];
+		System.arraycopy(mivec, 0, premiVec, 0, m);
+		int c = 0;
+		float convergeTh = precision * precision / m;
+		ValIdx[] wVec = fillInWVec(mivec, neighborsG, probeMap, invannot, mg);
+		while(c < maxIter){
+			float[] metaGene = getWeightedMetageneFromPbs(data, wVec, power,  m, n, mg);
+			mivec = itc.getAllMIWith(metaGene, data);
+			float err = calcMSE(mivec, premiVec, m);
+			//System.out.println(err);
+			if(err < convergeTh){
+				//pw.close();
+				//System.out.println("Converged.");
+				return wVec;
+			}
+			wVec = fillInWVec(mivec, neighborsG, probeMap, invannot, mg);
+			System.arraycopy(mivec, 0, premiVec, 0, m);
+			c++;
+		}
+		//System.out.println("Not converged.");
+		//pw.close();
+		wVec[0] = null;
+		return wVec;
+		
+	}
 	
 	public float[] findWeightedCNV(DataFile ma, String gene, Genome gn, float[] vec, int winSize, float power, boolean excludeTop, boolean miDecay) throws Exception{
 		float[][] data = ma.getData();
@@ -770,7 +813,7 @@ public class Converger extends DistributedWorker{
 		
 		float center = genes.indexOf(gene);
 		//float center = gn.getIdx(gene);
-		System.out.println(center);
+		//System.out.println(center);
 		float range = gn.getChrCoordRange(gn.getChr(gene));
 		//float range = gn.getChrIdxRange(gn.getChr(gene));
 		
@@ -795,8 +838,8 @@ public class Converger extends DistributedWorker{
 		System.arraycopy(wVec, 0, preWVec, 0, m);
 		int c = 0;
 		float convergeTh = precision * precision / m;
-		System.out.println("m : " + m);
-		System.out.println("Convergence threshold : " + convergeTh);
+		//System.out.println("m : " + m);
+		//System.out.println("Convergence threshold : " + convergeTh);
 		
 		while(c < maxIter){
 			float[] metaGene = getWeightedMetaGene(data, wVec, power,  m, n);
@@ -1124,6 +1167,99 @@ public class Converger extends DistributedWorker{
 			
 		}
 		pw.close();
+	}
+
+	/*
+	 * Apr 6 2012
+	 * Probe-level find attractor
+	 * 
+	 */
+	public ValIdx[] findWeightedAttractor(DataFile ma, float[] vec, String[] allgenes, InverseAnnotations invannot, float power, Annotations annot) throws Exception{
+		float[][] data = ma.getData();
+		int m = data.length;
+		int n = data[0].length;
+		int mg = allgenes.length;
+		HashMap<String, Integer> probeMap = ma.getRows();
+		
+		float[] miVec = itc.getAllMIWith(vec, data);
+		float[] preMIVec = new float[m];
+		System.arraycopy(miVec, 0, preMIVec, 0, m);
+		int c = 0;
+		float convergeTh = precision * precision / m;
+		
+		ValIdx[] wVec = fillInWVec(miVec, allgenes, probeMap, invannot, mg); 
+		/*Arrays.sort(wVec);
+		for(int i = 0; i < 5; i++){
+			String gg = ma.getProbes().get(wVec[i].idx);
+			System.out.println(gg + "\t" + annot.getGene(gg) + "\t"  + wVec[i].val);
+		}*/
+		while(c < maxIter){
+			float[] metaGene = getWeightedMetageneFromPbs(data, wVec, power, m, mg, n);
+			//float[] metaGene = getWeightedMetaGene(data, wVec, power,  m, n);
+			
+			miVec = itc.getAllMIWith(metaGene, data);
+			float err = calcMSE(miVec, preMIVec, m);
+			System.out.println("delta: " + err);
+			if(err < convergeTh){
+				System.out.println("Converged.");
+				return wVec;
+			}
+			wVec = fillInWVec(miVec, allgenes, probeMap, invannot, mg);
+			/*Arrays.sort(wVec);
+			for(int i = 0; i < 5; i++){
+				String gg = ma.getProbes().get(wVec[i].idx);
+				System.out.println(gg + "\t" + annot.getGene(gg) + "\t"  + wVec[i].val);
+			}*/
+			
+			
+			System.arraycopy(miVec, 0, preMIVec, 0, m);
+			c++;
+		}
+		System.out.println("Not converged.");
+		//pw.close();
+		wVec[0] = null;
+		return wVec;
+
+	}
+	private float[] getWeightedMetageneFromPbs(float[][] data, ValIdx[] wVec,
+			float power, int m, int n, int mg) {
+		float[] out = new float[n];
+		double sum = 0;
+		for(int i = 0; i < mg; i++){
+			if(wVec[i].val > 0){
+				double f = Math.exp(power*Math.log(wVec[i].val));
+				sum += f;
+				for(int j = 0; j < n; j++){
+					out[j] += data[wVec[i].idx][j] * f;
+				}
+			}
+		}
+		for(int j = 0; j < n; j++){
+			out[j] /= sum;
+		}
+		return out;
+	}
+
+	private ValIdx[] fillInWVec(float[] mivec, String[] allgenes
+			, HashMap<String, Integer> probeMap,InverseAnnotations invannot, int mg ){
+		ValIdx[] wvec = new ValIdx[mg];
+		for(int i = 0; i < mg; i++){
+			String s = allgenes[i];
+			int bestIdx = -1;
+			float bestVal = -1;
+			for(String p : invannot.getProbes(s)){
+				//System.out.println(p);
+				if(probeMap.get(p) != null){
+					int idx = probeMap.get(p);
+					if(mivec[idx] > bestVal){
+						bestIdx = idx;
+						bestVal = mivec[idx];
+					}
+				}
+			}
+			wvec[i] = new ValIdx(bestIdx, bestVal);
+		}
+		return wvec;
 	}
 	
 	
@@ -1590,6 +1726,8 @@ public class Converger extends DistributedWorker{
 	public void linkITComputer(ITComputer itc){
 		Converger.itc = itc;
 	}
+
+	
 	
 	
 	

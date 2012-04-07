@@ -224,13 +224,13 @@ public class GroupCNVWindow {
 		//final String dataFile = "/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt";
 		//final String dataFile = "/home/weiyi/workspace/data/coad/gse14333/ge.19964x290.median.txt";
 		//final String dataFile = "/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt";
-		//final String dataFile = "/home/weiyi/workspace/data/ov/gse9891/ge.19964x285.median.txt";
-		final String dataFile = "/home/weiyi/workspace/data/ov/tcga/ge/ge.17814x584.knn.txt";
+		final String dataFile = "/home/weiyi/workspace/data/ov/gse9891/ge.19964x285.median.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/ov/tcga/ge/ge.17814x584.knn.txt";
 		
 		System.out.println("Loading files...");
 		DataFile ma = DataFile.parse(dataFile);
 		
-		String outPath = "/home/weiyi/workspace/javaworks/caf/output/window51/ov.tcga";
+		String outPath = "/home/weiyi/workspace/javaworks/caf/output/window51/ov.gse9891";
 		//String outPath = "/home/weiyi/workspace/javaworks/caf/tmp/";
 		if(outPath.endsWith("/")){
 			outPath = outPath.substring(0, outPath.length()-1);
@@ -243,6 +243,7 @@ public class GroupCNVWindow {
 		boolean excludeTop = false;
 		boolean miDecay = false;*/
 		int winSize = 51;
+		int quantile = 10;
 		
 		//ma.normalizeRows();
 		int m = ma.getNumRows();
@@ -260,10 +261,10 @@ public class GroupCNVWindow {
 		
 		Window.linkGenes(ma.getProbes());
 		Window.linkGenome(gn);
-		Window.setQuantile(5);
+		Window.setQuantile(quantile);
 		
 		System.out.println("Parsing windows...");
-		ArrayList<Window> out = slidingWindowSelector(outPath + "/basinScores.txt", winSize/2);
+		ArrayList<Window> out = slidingWindowSelector(outPath + "/basinScores.txt", winSize);
 		System.out.println(out.size() + " CNVWindow selected.");
 		
 		String outFileName = outPath.substring(outPath.lastIndexOf("/"));

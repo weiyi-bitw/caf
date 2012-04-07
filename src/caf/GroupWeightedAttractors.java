@@ -20,7 +20,7 @@ public class GroupWeightedAttractors {
 	 */
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-		String path = "/home/weiyi/workspace/javaworks/caf/output/weighted.5/ov.tcga";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/weighted.5/ov.gse9891.mean";
 		if(path.endsWith("/")){
 			path = path.substring(0, path.length()-1);
 		}
@@ -29,13 +29,13 @@ public class GroupWeightedAttractors {
 		System.out.println("Loading files...");
 		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3";
 		
-		//final String dataFile = "/home/weiyi/workspace/data/brca/gse2034/ge.12764x286.median.txt";
-		//final String dataFile = "/home/weiyi/workspace/data/coad/gse14333/ge.19964x290.median.txt";
-		//final String dataFile = "/home/weiyi/workspace/data/ov/gse9891/ge.19964x285.median.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/brca/gse2034/ge.12764x286.mean.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/coad/gse14333/ge.19964x290.mean.txt";
+		final String dataFile = "/home/weiyi/workspace/data/ov/gse9891/ge.19964x285.mean.txt";
 		
 		//final String dataFile = "/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt";
 		//final String dataFile = "/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt";
-		final String dataFile = "/home/weiyi/workspace/data/ov/tcga/ge/ge.17814x584.knn.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/ov/tcga/ge/ge.17814x584.knn.txt";
 		
 		
 		//final String dataFile = "test.txt";

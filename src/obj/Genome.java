@@ -3,6 +3,7 @@ package obj;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
 
@@ -165,7 +166,15 @@ public class Genome {
 		}
 		return out.toArray(new String[0]);
 	}
-	
+	public String[] getAllGenesInChrArm(String chrArm){
+		ArrayList<String> out = new ArrayList<String>();
+		for(Gene g: genes){
+			if (g.chrArm.contains(chrArm)){
+				out.add(g.name);
+			}
+		}
+		return out.toArray(new String[0]);
+	}
 	public int getIdx(String gene){
 		return idxMap.get(gene);
 	}
@@ -182,6 +191,44 @@ public class Genome {
 	public float getChrIdxRange(String chr){
 		IntPair ip = chrIdxRangeMap.get(chr);
 		return (ip.y - ip.x);
+	}
+	
+	public void linkToGeneSet(String[] inputgenes){
+		Arrays.sort(inputgenes);
+		int k = genes.size();
+		for(int i = k-1; i >= 0; i--){
+			String g = this.genes.get(i).name;
+			if(Arrays.binarySearch(inputgenes, g) < 0){
+				chrMap.remove(g);
+				genes.remove(i);
+			}
+		}
+		k = genes.size();
+		this.chrIdxRangeMap = new HashMap<String, IntPair>();
+		idxMap = new HashMap<String, Integer>();
+		String preChr = null;
+		for(int i = 0; i < k; i++){
+			Gene g = genes.get(i);
+			String chr = g.chr;
+			if(chrIdxRangeMap.get(chr) == null){ // new chr coming up!
+				if(preChr != null){ // previous chr, push the end value
+					chrIdxRangeMap.get(preChr).setY(i);
+				}
+				chrIdxRangeMap.put(chr, new IntPair(i));
+				preChr = chr;
+				
+			}
+			
+			chrMap.put(g.name, chr);
+			idxMap.put(g.name, i);
+			coordMap.put(g.name, g.coord);
+		}
+		chrIdxRangeMap.get(preChr).setY(k);
+		
+		/*for(String c : chrCoordRangeMap.keySet()){
+			System.out.println(c + "\t" + chrCoordRangeMap.get(c));
+		}*/
+		System.out.println(k + " genes linked.");
 	}
 	
 // filtering genes to those contained in the DataFile
@@ -243,7 +290,7 @@ public class Genome {
 			
 			//if(start < ip.x) {end = end + ip.x - start; start = ip.x; }
 			//if(end >= ip.y) {start = start - end + ip.y - 1; end = ip.y-1; }
-			System.out.println(idx + "\t" + start + "\t" + end);
+			//System.out.println(idx + "\t" + start + "\t" + end);
 			for(int i = start; i <= end; i++){
 				outGenes.add(genes.get(i).name);
 			}
