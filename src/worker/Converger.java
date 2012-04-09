@@ -1136,6 +1136,12 @@ public class Converger extends DistributedWorker{
 			
 			} // END winSize iteration
 			
+			System.out.println(bestScore);
+			
+			if(bestScore < 0){
+				continue;
+			}
+			
 			String g = genes.get(iii);
 			String chr = gn.getChr(g);
 			
