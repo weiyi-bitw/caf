@@ -1076,11 +1076,12 @@ public class Converger extends DistributedWorker{
 			float bestScore = -1;
 			int bestWinSize = -1;
 			float[] bestVec = null;
+			String g = genes.get(iii);
+			System.out.print("Processing " + g + "..."); 
 			
 			for(int winSize = wstart; winSize <= wend; winSize += delw)
 			{
-				String g = genes.get(iii);
-				System.out.print("Processing " + g + "..."); 
+				
 				
 				String[] neighbors = gn.getNeighbors(g, winSize);
 				if(neighbors == null){
@@ -1094,8 +1095,6 @@ public class Converger extends DistributedWorker{
 				int idx2 = ma2.getRows().get(g);
 				float[] vec = data[idx2];
 				float convergeTh = precision * precision /m2;
-				
-				System.out.print("\t" + m2 + "\t" + convergeTh + "\t");
 				
 				for(float power = pstart; power <= pend; power += delp)
 				{
@@ -1142,7 +1141,6 @@ public class Converger extends DistributedWorker{
 				continue;
 			}
 			
-			String g = genes.get(iii);
 			String chr = gn.getChr(g);
 			
 			pw.print(g + "\t" + chr);
