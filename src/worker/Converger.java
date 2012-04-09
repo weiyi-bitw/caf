@@ -145,6 +145,11 @@ public class Converger extends DistributedWorker{
 		Converger.rankBased = rankBased;
 		Converger.convergeMethod = method;
 	}
+	public Converger(int id, int totalComputers, long jobID, int maxIter, boolean rankBased){
+		super(id, totalComputers, jobID);
+		Converger.maxIter = maxIter;
+		Converger.rankBased = rankBased;
+	}
 	private static float[] getMetaGene(float[][] data, ArrayList<ValIdx> idx, int n){
 		int m = idx.size();
 		float[] out = new float[n];
@@ -1047,7 +1052,7 @@ public class Converger extends DistributedWorker{
 		}
 		pw.close();
 	}
-	public void findWeightedCNVCoef(DataFile ma, Genome gn, int winSize, float power, boolean miDecay) throws Exception{
+	public void findWeightedCNVCoef(DataFile ma, Genome gn, int wstart, int wend, int delw, float pstart, float pend, float delp, int quantile) throws Exception{
 		gn.linkToDataFile(ma);
 		ma = ma.getSubProbes(gn.getAllGenes());
 		
@@ -1055,7 +1060,7 @@ public class Converger extends DistributedWorker{
 		int n = ma.getNumCols();
 		ArrayList<String> genes = ma.getProbes();
 		
-		int buf = (winSize - 1)/2;
+		int buf = (wend - 1)/2;
 		
 		int start = id * (m - 2*buf) / totalComputers;
 		int end = (id+1) * (m - 2*buf) / totalComputers;
@@ -1065,108 +1070,84 @@ public class Converger extends DistributedWorker{
 		new File("output/" + jobID).mkdir();
 		PrintWriter pw = new PrintWriter("output/" + jobID + "/basinScores." + String.format("%05d", id)+ ".txt");
 		
-		for(int idx = start; idx < end; idx++){
-			int ii = idx + buf;
-			String g = genes.get(ii);
-			String chr = gn.getChr(g);
-			String[] neighbors = gn.getNeighbors(g, winSize);
-			if(neighbors == null){
-				continue;
-			}
-			DataFile ma2 = ma.getSubProbes(neighbors);
-			ArrayList<String> genes2 = ma2.getProbes();
-			int m2 = ma2.getNumRows();
-			float[][] data = ma2.getData();
-			int idx2 = ma2.getRows().get(g);
-			float[] vec = data[idx2];
+		for(int idx = start; idx < end; idx++)
+		{
+			int iii = idx + buf;
+			float bestScore = -1;
+			int bestWinSize = -1;
+			float[] bestVec = null;
 			
-			float convergeTh = precision * precision /m2;
-			
-			System.out.print("Processing " + g + "..." + chr + "\t" + m2 + "\t" + convergeTh + "\t");
-						
-			float[] wVec = itc.getAllMIWith(vec, data);
-			//System.out.println(chr + "\t" + wVec.length);
-			//float[] wVec = StatOps.pearsonCorr(vec, data, m, n);
-			//float[] wVec = StatOps.cov(vec, data, m, n);
-			
-			/*if(excludeTop){
-				int maxIdx = -1;
-				float maxw = -1;
-				float nextMaxW = -1;
-				for(int i = 0; i < m; i++){
-					if(wVec[i] > maxw){
-						maxIdx = i;
-						nextMaxW = maxw;
-						maxw = wVec[i];
-					}
-				}
-				wVec[maxIdx] = 0;
-			}*/
-			
-			float center = gn.getCoord(g);
-			//System.out.println(center);
-			float range = gn.getChrCoordRange(chr);
-			if(miDecay){
-				for(int i = 0; i < m2; i++){
-					float f = Math.abs(gn.getCoord(genes2.get(i))-center) / (float)range;
-					wVec[i] *=(float) Math.exp(Math.log( 1 - f ) ); 
-					
-				}
-			}
-			
-			float[] preWVec = new float[m2];
-			System.arraycopy(wVec, 0, preWVec, 0, m2);
-			int c = 0;
-			
-			boolean converge = false;
-			
-			while(c < maxIter){
-				float[] metaGene = getWeightedMetaGene(data, wVec, power,  m2, n);
-				wVec = itc.getAllMIWith(metaGene, data);
-				//System.out.println(wVec[idx]);
-				//wVec = StatOps.pearsonCorr(metaGene, data, m, n);
-				//wVec = StatOps.cov(metaGene, data, m, n);
-				int maxIdx = -1;
-				float maxWVec = -1;
-				for(int i = 0; i < m2; i++){
-					if(wVec[i] > maxWVec){
-						maxIdx = i;
-						maxWVec = wVec[i];
-					}
-				}
-				center = gn.getCoord(genes2.get(maxIdx));
-				//System.out.println(center);
-				if(miDecay){
-					for(int i = 0; i < m2; i++){
-						float f = Math.abs(gn.getCoord(genes2.get(i))-center) / (float)range;
-						wVec[i] *= (float) Math.exp(Math.log( 1 - f ) ); 
-					}
-				}
+			for(int winSize = wstart; winSize <= wend; winSize += delw)
+			{
+				String g = genes.get(iii);
+				System.out.print("Processing " + g + "..."); 
 				
-				float err = calcMSE(wVec, preWVec, m2);
-				//System.out.println(err);
-				if(err < convergeTh){
-					//pw.close();
-					System.out.println("Converged.");
-					converge = true;
+				String[] neighbors = gn.getNeighbors(g, winSize);
+				if(neighbors == null){
+					System.out.println("No neighbors :(");
 					break;
 				}
-				System.arraycopy(wVec, 0, preWVec, 0, m2);
-				c++;
-			}
+				
+				DataFile ma2 = ma.getSubProbes(neighbors);
+				int m2 = ma2.getNumRows();
+				float[][] data = ma2.getData();
+				int idx2 = ma2.getRows().get(g);
+				float[] vec = data[idx2];
+				float convergeTh = precision * precision /m2;
+				
+				System.out.print("\t" + m2 + "\t" + convergeTh + "\t");
+				
+				for(float power = pstart; power <= pend; power += delp)
+				{
+					
+					float[] wVec = itc.getAllMIWith(vec, data);
+					float[] preWVec = new float[m2];
+					System.arraycopy(wVec, 0, preWVec, 0, m2);
+					int c = 0;
+					boolean converge = false;
+					float score = -1;
+					
+					while(c < maxIter){
+						float[] metaGene = getWeightedMetaGene(data, wVec, power,  m2, n);
+						wVec = itc.getAllMIWith(metaGene, data);
+						
+						float err = calcMSE(wVec, preWVec, m2);
+						System.arraycopy(wVec, 0, preWVec, 0, m2);
+						
+						if(err < convergeTh){
+							Arrays.sort(preWVec);
+							score = preWVec[m2 - quantile];
+							converge = true;
+							break;
+						}
+						
+						c++;
+					}
+					
+					if(converge && score > bestScore){
+						bestScore = score;
+						bestWinSize = winSize;
+						bestVec = new float[m2];
+						System.arraycopy(wVec, 0, bestVec, 0, m2);
+					}
+					
+					
+				} // END power iteration
 			
-			if(converge){
-				pw.print(g);
-				for(int i = 0; i < m2; i++){
-					pw.print("\t" + (idx+i) + ":" + wVec[i]);
-				}pw.println();
-			}else{
-				pw.println(g + "\t" + "-1");
-			}
+			} // END winSize iteration
 			
+			String g = genes.get(iii);
+			String chr = gn.getChr(g);
 			
-		}
+			pw.print(g + "\t" + chr);
+			for(int i = 0; i < bestWinSize; i++){
+				pw.print("\t" + (iii + i) + ":" + bestVec[i]);
+			}pw.println();
+			
+		}// END idx iteration
 		pw.close();
+		
+		
 	}
 
 	/*

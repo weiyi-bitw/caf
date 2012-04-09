@@ -33,53 +33,34 @@ public class CorrAttractorFinder {
 	private static int segment = 0;
 	private static int numSegments = 1;
 	private static long jobID;
-	private static int minSize = 10;
+	private static int winsize = 10;
 	private static boolean debugging = false;
 	private static boolean rankBased = false;
-	private static boolean normMI = false;
+	private static boolean normMI = true;
 	private static String breakPoint = "";
-	private static int maxIter = 150;
-	private static boolean rowNorm = false;
-	private static float zThreshold = -1;
-	private static String convergeMethod = "FIXEDSIZE";
-	private static String attractorFolder = "";
-	private static float ovlpTh = 0.5f;
+	private static int maxIter = 100;
 	private static float precision = (float) 1E-4;
+	
+	
+	// general attractor parameter
 	private static float weightExp = 5f;
 	
+	// MI parameter
 	private static int bins = 6;
 	private static int splineOrder = 3;
 	
+	// CNV parameter
+	private static int wstart = 11;
+	private static int wend = 51;
+	private static int delw = 10;
+	private static float pstart = 1;
+	private static float pend = 6;
+	private static float delp = 0.5f;
+	private static int quantile = 5;
+	
 	private static DataFile ma;
 	private static Annotations annot;
-	private static ArrayList<Chromosome> chrs;
 	private static Genome gn;
-	
-	static ArrayList<Chromosome> parseChromGenes(String file, ArrayList<String> genes, HashMap<String, Integer> geneMap) throws IOException{
-		ArrayList<Chromosome> chrs = new ArrayList<Chromosome>();
-		Chromosome.setGeneMap(geneMap);
-		Chromosome.setGeneNames(genes);
-		BufferedReader br = new BufferedReader(new FileReader(file));
-		br.readLine(); // first line header
-		
-		String line = br.readLine();
-		while(line != null){
-			//System.out.println(line);
-			String[] tokens = line.split("\t");
-			int nt = tokens.length;
-			Chromosome chr = new Chromosome(tokens[nt-1]);
-			float coord = Float.parseFloat(tokens[5]);
-			boolean strand = tokens[2].equals("(+)");
-			if(chrs.contains(chr)){
-				chrs.get(chrs.indexOf(chr)).addGene(tokens[0], coord, strand);
-			}else{
-				chr.addGene(tokens[0], coord, strand);
-				chrs.add(chr);
-			}
-			line = br.readLine();
-		}
-		return chrs;
-	}
 	
 	private static void SystemConfiguration() throws Exception{
 		String numSegmentsProperty = System.getProperty("SGE_TASK_LAST");
@@ -144,17 +125,6 @@ public class CorrAttractorFinder {
 		    }
 			
 		//========gene location file========================
-		    chrs = null;
-		    confLine = config.getProperty("gene_location");
-		    if(confLine != null){
-		    	System.out.printf("%-25s%s\n", "Gene Location:", confLine);
-		    	try {
-	                chrs = parseChromGenes(confLine, ma.getProbes(), ma.getRows());
-	            } catch (Exception e) {
-	                throw new RuntimeException("ERROR: Couldn't parse gene location file '" + confLine+ "\n" + e);
-	            }
-		    }
-		    
 		    gn = null;
 		    confLine = config.getProperty("genome");
 		    if(confLine != null){
@@ -166,17 +136,6 @@ public class CorrAttractorFinder {
 	            }
 		    }
 		    
-		    
-		    confLine = config.getProperty("converge_method");
-	    	if (confLine != null && confLine.length() > 0) {
-	    		confLine.toUpperCase();
-	    		if(! (confLine.equals("ZSCORE") || confLine.equals("FIXEDSIZE") || confLine.equals("WEIGHTED") || confLine.equals("WINDOW"))){
-	    			System.out.println("WARNING: Couldn't recognize converge method: " + confLine + ", using default = " + convergeMethod);
-	    		}
-	            convergeMethod = confLine;
-	        }
-	    	System.out.printf("%-25s%s\n", "Converge Method:", convergeMethod);
-		    
 		    confLine = config.getProperty("rank_based");
 	    	if (confLine != null && confLine.length() > 0) {
 	            try {
@@ -187,35 +146,15 @@ public class CorrAttractorFinder {
 	        }
 	    	System.out.printf("%-25s%s\n", "Rank-based correlation:", rankBased);
 	    	
-	    	/*confLine = config.getProperty("fdr");
-	    	if (confLine != null && confLine.length() > 0) {
-	            try {
-	               fdrThreshold = Double.parseDouble(confLine);
-	            } catch (NumberFormatException nfe) {
-	            	System.out.println("WARNING: Couldn't parse FDR threshold: " + confLine + ", using default = 0.05.");
-	            }
-	        }
-	    	System.out.printf("%-25s%s\n", "FDR threshold:", fdrThreshold);*/
-	    	
 	    	confLine = config.getProperty("max_iter");
 	    	if (confLine != null && confLine.length() > 0) {
 	            try {
 	               maxIter = Integer.parseInt(confLine);
 	            } catch (NumberFormatException nfe) {
-	            	System.out.println("WARNING: Couldn't parse Max Iteration: " + confLine + ", using default = 100");
+	            	System.out.println("WARNING: Couldn't parse Max Iteration: " + confLine + ", using default " + maxIter);
 	            }
 	        }
 	    	System.out.printf("%-25s%s\n", "Max Iteration:", maxIter);
-	    	
-	    	confLine = config.getProperty("row_normalization");
-	    	if (confLine != null && confLine.length() > 0) {
-	            try {
-	               rowNorm = Boolean.parseBoolean(confLine);
-	            } catch (NumberFormatException nfe) {
-	            	System.out.println("WARNING: Couldn't parse Row Normalization: " + confLine + ", using default = true");
-	            }
-	        }
-	    	System.out.printf("%-25s%s\n", "Row Normalization:", rowNorm);
 	    	
 	    	confLine = config.getProperty("MI_normalization");
 	    	if (confLine != null && confLine.length() > 0) {
@@ -226,75 +165,27 @@ public class CorrAttractorFinder {
 	            }
 	        }
 	    	System.out.printf("%-25s%s\n", "MI Normalization:", normMI);
-	    	/*confLine = config.getProperty("corr_threshold");
-	    	if (confLine != null && confLine.length() > 0) {
-	            try {
-	               corrThreshold = Float.parseFloat(confLine);
-	            } catch (NumberFormatException nfe) {
-	            	System.out.println("WARNING: Couldn't parse Correlation Threshold: " + confLine + ", using default = " + corrThreshold);
-	            }
-	        }
-	    	System.out.printf("%-25s%s\n", "Correlation Threshold:", corrThreshold);
-	    	*/
+
 	    	confLine = config.getProperty("min_size");
 	    	if (confLine != null && confLine.length() > 0) {
 	            try {
-	               minSize = Integer.parseInt(confLine);
+	               winsize = Integer.parseInt(confLine);
 	            } catch (NumberFormatException nfe) {
-	            	System.out.println("WARNING: Couldn't parse minimum attractor size : " + confLine + ", using default = " + minSize);
+	            	System.out.println("WARNING: Couldn't parse minimum attractor size : " + confLine + ", using default = " + winsize);
 	            }
 	        }
-	    	System.out.printf("%-25s%s\n", "Min Size:", minSize);
-	    	if(! convergeMethod.equals("WEIGHTED")){
-	    	
-	    		if(! convergeMethod.equals("WINDOW")){
-			    	
-	    			confLine = config.getProperty("z_threshold");
-			    	if (confLine != null && confLine.length() > 0) {
-			            try {
-			               zThreshold = Float.parseFloat(confLine);
-			            } catch (NumberFormatException nfe) {
-			            	System.out.println("WARNING: Couldn't parse Z score Threshold: " + confLine + ", using variable threshold.");
-			            }
-			        }
-			    	if(zThreshold >= 0){
-			    		System.out.printf("%-25s%s\n", "Z Threshold:", zThreshold);
-			    	}
-		    	
-	    		}
+	    	System.out.printf("%-25s%s\n", "Min Size:", winsize);
 	    		
-	    	}else{
-	    		confLine = config.getProperty("precision");
-		    	if (confLine != null && confLine.length() > 0) {
-		            try {
-		               precision = Float.parseFloat(confLine);
-		            } catch (NumberFormatException nfe) {
-		            	System.out.println("WARNING: Couldn't parse delta: " + confLine + ", using default " + precision);
-		            }
-		        }
-	    		System.out.printf("%-25s%s\n", "Precision:", precision);
-	    	}
-	    	confLine = config.getProperty("exp");
+    		confLine = config.getProperty("precision");
 	    	if (confLine != null && confLine.length() > 0) {
 	            try {
-	               weightExp = Float.parseFloat(confLine);
+	               precision = Float.parseFloat(confLine);
 	            } catch (NumberFormatException nfe) {
-	            	System.out.println("WARNING: Couldn't parse weight exponent: " + confLine + ", using default " + weightExp);
+	            	System.out.println("WARNING: Couldn't parse delta: " + confLine + ", using default " + precision);
 	            }
 	        }
-    		System.out.printf("%-25s%s\n", "Exponent:", weightExp);
-    		
-	    	/*confLine = config.getProperty("attractor_size");
-	    	if (confLine != null && confLine.length() > 0) {
-	            try {
-	               attractorSize = Integer.parseInt(confLine);
-	            } catch (NumberFormatException nfe) {
-	            	System.out.println("WARNING: Couldn't parse fixed attractor size: " + confLine + ", using default = " + attractorSize);
-	            }
-	        }
-	    	System.out.printf("%-25s%s\n", "Fixed Attractor Size:", attractorSize);
-	    	*/
-	    	
+    		System.out.printf("%-25s%s\n", "Precision:", precision);
+
 	    	confLine = config.getProperty("bins");
 	    	if (confLine != null && confLine.length() > 0) {
 	           try {
@@ -315,7 +206,107 @@ public class CorrAttractorFinder {
 	    	System.out.printf("%-25s%s\n", "Bins:", bins);
 	    	System.out.printf("%-25s%s\n", "Spline Order:", splineOrder);
 	}
+	
+	private static void CAFConfiguration(){
 		
+		String confLine = config.getProperty("exp");
+    	if (confLine != null && confLine.length() > 0) {
+            try {
+               weightExp = Float.parseFloat(confLine);
+            } catch (NumberFormatException nfe) {
+            	System.out.println("WARNING: Couldn't parse weight exponent: " + confLine + ", using default " + weightExp);
+            }
+        }
+		System.out.printf("%-25s%s\n", "Exponent:", weightExp);
+		
+	}
+	
+	private static void CNVConfiguration(){
+		
+		String confLine = config.getProperty("win_size_start");
+    	if (confLine != null && confLine.length() > 0) {
+            try {
+               wstart = Integer.parseInt(confLine);
+            } catch (NumberFormatException nfe) {
+            	System.out.println("WARNING: Couldn't parse starting window size: " + confLine + ", using default. ");
+            }
+        }
+    	if(wstart < 0){
+    		System.out.println("WARNING: window size cannot be negative! Using default." );
+    		wstart = 11;
+    	}
+    	
+		System.out.printf("%-25s%s\n", "Starting window size:", wstart);
+		
+		confLine = config.getProperty("win_size_end");
+    	if (confLine != null && confLine.length() > 0) {
+            try {
+               wend = Integer.parseInt(confLine);
+            } catch (NumberFormatException nfe) {
+            	System.out.println("WARNING: Couldn't parse max window size: " + confLine + ", using default. ");
+            }
+        }
+    	if(wend < 0){
+    		System.out.println("WARNING: Max window size cannot be negative or smaller than starting size! Using default." );
+    		wend = 51;
+    	}
+		System.out.printf("%-25s%s\n", "Max window size:", wend);
+		
+		confLine = config.getProperty("win_size_incre");
+    	if (confLine != null && confLine.length() > 0) {
+            try {
+               delw = Integer.parseInt(confLine);
+            } catch (NumberFormatException nfe) {
+            	System.out.println("WARNING: Couldn't parse window size increment: " + confLine + ", using default.");
+            }
+        }
+    	if(delw < 0){
+    		System.out.println("WARNING: Window size increment cannot be negative! Using default." );
+    		delw = 10;
+    	}
+		System.out.printf("%-25s%s\n", "Window size increment:", delw);
+		
+		confLine = config.getProperty("pow_start");
+    	if (confLine != null && confLine.length() > 0) {
+            try {
+               pstart = Float.parseFloat(confLine);
+            } catch (NumberFormatException nfe) {
+            	System.out.println("WARNING: Couldn't parse starting weight power: " + confLine + ", using default.");
+            }
+        }
+    	System.out.printf("%-25s%s\n", "Starting weight power:", pstart);
+		
+    	confLine = config.getProperty("pow_end");
+    	if (confLine != null && confLine.length() > 0) {
+            try {
+               pend = Float.parseFloat(confLine);
+            } catch (NumberFormatException nfe) {
+            	System.out.println("WARNING: Couldn't parse max weight power: " + confLine + ", using default.");
+            }
+        }
+    	System.out.printf("%-25s%s\n", "Starting weight power:", pend);
+		
+    	confLine = config.getProperty("pow_incre");
+    	if (confLine != null && confLine.length() > 0) {
+            try {
+               delp = Float.parseFloat(confLine);
+            } catch (NumberFormatException nfe) {
+            	System.out.println("WARNING: Couldn't parse weight power increment: " + confLine + ", using default.");
+            }
+        }
+    	System.out.printf("%-25s%s\n", "Weight power increment:", delp);
+		
+    	confLine = config.getProperty("max_rank");
+    	if (confLine != null && confLine.length() > 0) {
+            try {
+               quantile = Integer.parseInt(confLine);
+            } catch (NumberFormatException nfe) {
+            	System.out.println("WARNING: Couldn't parse maximized rank: " + confLine + ", using default.");
+            }
+        }
+    	System.out.printf("%-25s%s\n", "Maximized rank:", quantile);
+    	
+	}
 	/**
 	 * @param args
 	 * @throws Exception 
@@ -342,23 +333,10 @@ public class CorrAttractorFinder {
 				System.out.printf("%-25s%s\n", "BreakPoint:", breakPoint);
 			}else if(command.equalsIgnoreCase("CAF")){
 				System.out.println("-- Attractor finding");
+				CAFConfiguration();
 			}else if(command.equalsIgnoreCase("CNV")){
 				System.out.println("-- CNV Finding");
-			}else if(command.equalsIgnoreCase("MRC")){
-				System.out.println("-- Merge and reconverge");
-				attractorFolder = args[2];
-				if(!attractorFolder.endsWith("/")){
-					attractorFolder += "/";
-				}
-				System.out.printf("%-25s%s\n", "Attractor Folder:", attractorFolder);
-				minSize = Integer.parseInt(args[3]);
-				System.out.printf("%-25s%s\n", "Min size:", minSize);
-				ovlpTh = Float.parseFloat(args[4]);
-				System.out.printf("%-25s%s\n", "Overlap Threshold:", ovlpTh);
-				
-				
-				System.out.println("\n===================================================================================\n");
-				
+				CNVConfiguration();
 			}else{
 				throw new RuntimeException("ERROR: Cannot understand command: " + command);
 			}
@@ -370,23 +348,14 @@ public class CorrAttractorFinder {
 			fileConfiguration();
 		System.out.println("\n===================================================================================\n");
 		
-		GeneSet.setProbeNames(ma.getProbes());
-		GeneSet.setAnnotations(annot);
-		AttractorGrouper.setOvlpTh(ovlpTh);
-		
 		Scheduler scdr = new Scheduler(segment, numSegments, jobID);
-		Converger cvg = new Converger(segment, numSegments, jobID, convergeMethod, maxIter, rankBased);
+		Converger cvg = new Converger(segment, numSegments, jobID, maxIter, rankBased);
 		ITComputer itc = new ITComputer(bins, splineOrder, segment, numSegments, normMI);
-		AttractorGrouper ag = new AttractorGrouper(segment, numSegments, jobID);
 		cvg.linkITComputer(itc);
-		cvg.setAttractorSize(minSize);
 		cvg.setPrecision(precision);
 		int fold = (int) Math.round(Math.sqrt(numSegments));
 		if(!debugging)
 		{
-			if(rowNorm){
-				ma.normalizeRows();
-			}
 			float[][] data = ma.getData();
 			
 			int m = ma.getNumRows();
@@ -401,58 +370,24 @@ public class CorrAttractorFinder {
 			}else{
 				val = data;
 			}
-			if(zThreshold < 0){
-				cvg.setZThreshold(m);
-				System.out.printf("%-25s%s\n", "Z Threshold:", cvg.getZThreshold());
-			}else{
-				cvg.setZThreshold(zThreshold);
-			}
 			if(command.equalsIgnoreCase("CAF")){
-				if(convergeMethod.equalsIgnoreCase("WEIGHTED")){
-					cvg.findWeightedAttractor(val, weightExp);
-				}else{
-					cvg.findAttractor(val, data);
-				}
+				cvg.findWeightedAttractor(val, weightExp);
 			}else if(command.equalsIgnoreCase("CNV")){
-				if(convergeMethod.equalsIgnoreCase("WEIGHTED")){
-					cvg.findWeightedCNV(ma, gn, minSize, weightExp, true);
-				}else if (convergeMethod.equalsIgnoreCase("WINDOW")){
-					cvg.findWeightedCNVCoef(ma, gn, minSize, weightExp, false);
-					
-				}else{
-					cvg.findCNV(data, val, chrs, zThreshold);
-				}
-			}else if(command.equalsIgnoreCase("MRC")){
-				ag.mergeAndReconverge(attractorFolder, ma, cvg, minSize);
+				cvg.findWeightedCNVCoef(ma, gn, wstart, wend, delw, pstart, pend, delp, quantile);
 			}
 			
-			if(command.equalsIgnoreCase("MRC")){
-				scdr.waitTillFinished(0, 1);
-			}else{
-				// fold the number of workers to the squre root of the total number of workers
-				scdr.waitTillFinished(0, fold);
-			}
+			scdr.waitTillFinished(0, fold);
 		}
 		
-		if(!convergeMethod.equals("WINDOW")){
+		if(!command.equals("CNV")){
 		
-			if(command.equalsIgnoreCase("MRC")){
-				if(segment == 0){
-					ag.outputConvergedAttractors("tmp/" + jobID + "/geneset/", ma, minSize);
-				}
-			}else{
 				ma = null;
 			
 				if(!debugging || breakPoint.equalsIgnoreCase("merge"))
 				{
 					if(segment < fold){
 						GeneSetMerger mg = new GeneSetMerger(segment, fold, jobID);
-						mg.setMinSize(minSize);
-						if(convergeMethod.equals("WEIGHTED")){
-							mg.mergeWeightedGeneSets("tmp/" + jobID + "/geneset/", numSegments, precision, false);
-						}else{
-							mg.mergeGeneSets("tmp/" + jobID + "/geneset/", numSegments, false);
-						}
+						mg.mergeWeightedGeneSets("tmp/" + jobID + "/geneset/", numSegments, precision, false);
 					}else{
 						System.out.println("Job finished. Exit.");
 						System.exit(0);
@@ -464,24 +399,18 @@ public class CorrAttractorFinder {
 					if(annot != null)GeneSet.setAnnotations(annot);
 					if((scdr.allFinished(fold)|| breakPoint.equalsIgnoreCase("output")) && segment==0){
 						GeneSetMerger mg = new GeneSetMerger(segment, 1, jobID);
-						mg.setMinSize(minSize);
 						if(breakPoint.equalsIgnoreCase("output")){
 							GeneSetMerger.addMergeCount();
 						}
-						if(convergeMethod.equals("WEIGHTED")){
-							mg.mergeWeightedGeneSets("tmp/" + jobID + "/merge" + (GeneSetMerger.mergeCount-1), fold, precision, true);
-						}else{
-							mg.mergeGeneSets("tmp/" + jobID + "/merge" + (GeneSetMerger.mergeCount-1), fold, true);
-						}
+						mg.mergeWeightedGeneSets("tmp/" + jobID + "/merge" + (GeneSetMerger.mergeCount-1), fold, precision, true);
 					}
 				}
 			
-			}
 		
 		}
 		
 		System.out.println("Done in " + (System.currentTimeMillis() - tOrigin) + " msecs.");
-		System.out.println("\n====Thank you!!==================================@ Columbia University 2011=======\n");
+		System.out.println("\n====Thank you!!==================================@ Columbia University 2012=======\n");
 	}
 
 }
