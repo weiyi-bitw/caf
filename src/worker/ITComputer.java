@@ -24,6 +24,7 @@ public class ITComputer extends DistributedWorker{
 	private static boolean output2File = false;
 	private static boolean rankBased = false;
 	private static boolean negateMI = false;
+	private static boolean normalizeMI = true;
 	
 	public ITComputer(int bins, int splineOrder, int thisSeg, int totalSegs){
 		super(thisSeg, totalSegs);
@@ -32,7 +33,17 @@ public class ITComputer extends DistributedWorker{
 		int[] knots = new int[bins + splineOrder];
 		SplineMI.splineKnots(knots, bins, splineOrder);
 		ITComputer.knots = knots;
-		System.out.println("ITComputer " + (id+1) + " of " + totalComputers + " created.");
+		//System.out.println("ITComputer " + (id+1) + " of " + totalComputers + " created.");
+	}
+	public ITComputer(int bins, int splineOrder, int thisSeg, int totalSegs, boolean miNorm){
+		super(thisSeg, totalSegs);
+		ITComputer.bins = bins;
+		ITComputer.splineOrder = splineOrder;
+		int[] knots = new int[bins + splineOrder];
+		SplineMI.splineKnots(knots, bins, splineOrder);
+		ITComputer.knots = knots;
+		ITComputer.normalizeMI = miNorm;
+		//System.out.println("ITComputer " + (id+1) + " of " + totalComputers + " created.");
 	}
 	public float[][][] getWeights(DataFile mset){
 		int m = mset.getNumRows();
@@ -159,6 +170,7 @@ public class ITComputer extends DistributedWorker{
 		
 		
 		float[] mi = new float[m];
+		float miMax = 0;
 		for(int i = 0; i < m; i++){
 			float e1tf = 0, e1tg = 0; 
 			float[] histValtf = new float[bins];
@@ -189,7 +201,22 @@ public class ITComputer extends DistributedWorker{
 			}
 			
 			float e2 = (float)SplineMI.entropy2d(weights[idx], weights[i], n, bins);
-			mi[i] = e1tf + e1tg - e2;
+			if(!normalizeMI){
+				mi[i] = (e1tf + e1tg - e2);
+			}else{
+				float e2tf = (float)SplineMI.entropy2d(weights[idx], weights[idx], n, bins);
+				float e2tg = (float)SplineMI.entropy2d(weights[i], weights[i], n, bins);
+				float mitf = 2*e1tf - e2tf;
+				float mitg = 2*e1tg - e2tg;
+				
+				mi[i] = (e1tf + e1tg - e2) / Math.max(mitf, mitg);
+				if(miMax < mi[i]) miMax = mi[i];
+			}
+		}
+		if(normalizeMI){
+			for(int i = 0; i < m; i++){
+				mi[i] = mi[i]/miMax;
+			}
 		}
 		return mi;
 	}
@@ -216,8 +243,14 @@ public class ITComputer extends DistributedWorker{
 		int n = data[0].length;
 		int m = data.length;
 		
+	// calculate the MI of fixVec to itself (for normalization)
+		
 		float[][] weightFix = new float[bins][n];
 		SplineMI.findWeights(fixVec, knots, weightFix, n, splineOrder, bins);
+		float[] histValtf = new float[bins];
+		int numSamples = n;
+		
+		//float miMax = 2 * e1fix - e2fix;
 		
 		float[] mi = new float[m];
 		for(int i = 0; i < m; i++){
@@ -226,9 +259,9 @@ public class ITComputer extends DistributedWorker{
 			SplineMI.findWeights(data[i], knots, weightTg, n, splineOrder, bins);
 			
 			float e1tf = 0, e1tg = 0;
-			float[] histValtf = new float[bins];
+			histValtf = new float[bins];
 			float[] histValtg = new float[bins];
-			int numSamples = n;
+			numSamples = n;
 			
 			for(int curSample = 0; curSample < n; curSample++){
 				
@@ -254,10 +287,24 @@ public class ITComputer extends DistributedWorker{
 			}
 			
 			float e2 = (float)SplineMI.entropy2d(weightFix, weightTg, n, bins);
-			mi[i] = e1tf + e1tg - e2;
-			if(negateMI) mi[i] = mi[i] * getMomentSign(fixVec, data[i], n);
+			if(!normalizeMI){
+				mi[i] = (e1tf + e1tg - e2);
+				if(negateMI) mi[i] = mi[i] * getMomentSign(fixVec, data[i], n);
+			}else{
+				float e2tf = (float)SplineMI.entropy2d(weightFix, weightFix, n, bins);
+				float e2tg = (float)SplineMI.entropy2d(weightTg, weightTg, n, bins);
+				float mitf = 2*e1tf - e2tf;
+				float mitg = 2*e1tg - e2tg;
+				mi[i] = (e1tf + e1tg - e2) / Math.max(mitf, mitg);
+				if(negateMI) mi[i] = mi[i] * getMomentSign(fixVec, data[i], n);
+			}
+			
 		}
-		
+		/*if(normalizeMI){
+			for(int i = 0; i < m; i++){
+				mi[i] = mi[i]/miMax;
+			}
+		}*/
 		return mi;
 	}
 	public float[] getAllMIWith(float[] vec, DataFile ma)throws Exception{
@@ -701,5 +748,8 @@ public class ITComputer extends DistributedWorker{
 	}
 	public void negateMI(boolean b){
 		ITComputer.negateMI = b;
+	}
+	public void normalizeMI(boolean b){
+		ITComputer.normalizeMI = b;
 	}
 }

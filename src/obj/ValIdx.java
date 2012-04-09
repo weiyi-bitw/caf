@@ -1,8 +1,8 @@
 package obj;
 
 public class ValIdx implements Comparable<ValIdx>{
-	float val;
-	int idx;
+	public float val;
+	public int idx;
 	public ValIdx(int i, float v){
 		this.idx = i;
 		this.val = v;

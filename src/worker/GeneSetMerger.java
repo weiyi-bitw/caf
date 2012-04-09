@@ -12,7 +12,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 
 import obj.GeneSet;
-import worker.Converger.ValIdx;
+import obj.ValIdx;
 
 public class GeneSetMerger extends DistributedWorker{
 	ArrayList<GeneSet> allGeneSets;
@@ -24,6 +24,117 @@ public class GeneSetMerger extends DistributedWorker{
 		allGeneSets = new ArrayList<GeneSet>();
 	}
 	
+	
+	public void mergeWeightedGeneSets(String path, int numFiles, float precision, boolean finalOutput) throws IOException{
+		if(!path.endsWith("/")) path = path + "/";
+		int start = id * numFiles/totalComputers;
+		int end = (id+1) * numFiles/totalComputers;
+		BufferedReader br;
+		ArrayList<float[]> wVecs = new ArrayList<float[]>();
+		ArrayList<ArrayList<Integer>> basins = new ArrayList<ArrayList<Integer>>();
+		ArrayList<String> chrs = new ArrayList<String>(); 
+		
+		System.out.println("Processing file " + start + " to file " + end );
+		for(int i = start; i < end; i++){
+			System.out.println(i);
+			br = new BufferedReader(new FileReader(path + "caf."+ String.format("%05d", i)+".txt"));
+			String line = br.readLine();
+			// Greedily merge gene set
+			while(line != null){
+				String[] tokens = line.split("\t");
+				String tag = tokens[0];
+				int nt = tokens.length;
+				int m = nt-2;
+				float[] wvec = new float[m];
+				ArrayList<Integer> basin = new ArrayList<Integer>();
+				String[] t2 = tokens[1].split(",");
+				int nt2 = t2.length;
+				if(finalOutput && nt2 < 2){
+					line = br.readLine();
+					continue;
+				}
+				for(int j = 0; j < nt2; j++){
+					basin.add(Integer.parseInt(t2[j]));
+				}
+				for(int j = 0; j < m; j++){
+					wvec[j] = Float.parseFloat(tokens[j+2]);
+				}
+				boolean newOne = true;
+				int foundIdx = -1;
+				for(int j = 0; j < wVecs.size(); j++){
+					if(tag.equals(chrs.get(j))){
+						float[] fs = wVecs.get(j);
+						float err = Converger.calcMSE(fs, wvec, m);
+						if(err < precision/m){
+							foundIdx = j;
+							newOne = false;
+							break;
+						}
+					}
+				}
+				if(newOne){
+					wVecs.add(wvec);
+					basins.add(basin);
+					chrs.add(tag);
+				}else{
+					basins.get(foundIdx).addAll(basin);
+				}
+				line = br.readLine();
+			}
+			br.close();
+		}
+		if(finalOutput){
+			new File("output").mkdir();
+			new File("output/" + jobID).mkdir();
+			PrintWriter pw = new PrintWriter(new FileWriter("output/" + jobID + "/attractors.gwt"));
+			PrintWriter pw2 = new PrintWriter(new FileWriter("output/" + jobID + "/attractees.gwt"));
+			
+			for(int i = 0; i < wVecs.size(); i++){
+				ArrayList<Integer> basin = basins.get(i);
+				if(basin.size() < 2){
+					continue;
+				}
+				String name = "Attractor" + String.format("%05d", i);
+				pw2.print(name + "\t" + chrs.get(i));
+				pw.print(name+ "\t" + chrs.get(i));
+				
+				for(int j : basin){
+					pw2.print("\t" + j);
+				}pw2.println();
+				
+				float[] fs = wVecs.get(i);
+				for(float f : fs){
+					pw.print("\t" + f);
+				}pw.println();
+			}
+			pw2.close();
+			pw.close();
+		}else{
+			prepare("merge" + mergeCount);
+			PrintWriter pw = new PrintWriter(new FileWriter("tmp/" + jobID + "/merge" + mergeCount+ "/caf."+ String.format("%05d", id)+".txt"));
+			for(int i = 0; i < wVecs.size(); i++){
+				pw.print(chrs.get(i));
+				ArrayList<Integer> basin = basins.get(i);
+				int k = basin.size();
+				for(int j = 0; j < k; j++){
+					if(j == 0){
+						pw.print("\t" + basin.get(j));
+					}else{
+						pw.print("," + basin.get(j));
+					}
+				}
+				float[] fs = wVecs.get(i);
+				for(float f : fs){
+					pw.print("\t" + f);
+				}
+				pw.println();
+			}
+			pw.close();
+			
+			mergeCount++;
+		
+		}
+	}
 	public void mergeGeneSets(String path, int numFiles, boolean finalOutput) throws IOException{
 		if(!path.endsWith("/")) path = path + "/";
 		int start = id * numFiles/totalComputers;
@@ -46,6 +157,7 @@ public class GeneSetMerger extends DistributedWorker{
 					}
 					int nt = tokens.length;
 					ValIdx[] geneIdx = new ValIdx[nt-2];
+					float[] Zs = new float[nt-2];
 					
 					//int[] gIdx = new int[nt-2];
 					//float[] wts = new float[nt-2]; // mi with metagene
@@ -53,11 +165,12 @@ public class GeneSetMerger extends DistributedWorker{
 					for(int j = 2; j < nt; j++){
 						t2 = tokens[j].split(",");
 						geneIdx[j-2] = new ValIdx(Integer.parseInt(t2[0]), Float.parseFloat(t2[1]));
+						Zs[j-2] = t2.length > 2 ? Float.parseFloat(t2[2]) : Float.NaN;
 						//gIdx[j-2] = Integer.parseInt(t2[0]);
 						//wts[j-2] = Float.parseFloat(t2[1]);
 					}
 					//GeneSet rookie = new GeneSet(attr,gIdx, wts, numChild); 
-					GeneSet rookie = new GeneSet(attr, geneIdx, numChild);
+					GeneSet rookie = new GeneSet(attr, geneIdx, Zs, numChild);
 					int origSize = allGeneSets.size();
 					if(origSize == 0){
 						allGeneSets.add(rookie);
@@ -89,7 +202,7 @@ public class GeneSetMerger extends DistributedWorker{
 		if(finalOutput){
 			new File("output").mkdir();
 			new File("output/" + jobID).mkdir();
-			new File("output/" + jobID + "/lists").mkdir();
+			//new File("output/" + jobID + "/lists").mkdir();
 			PrintWriter pw = new PrintWriter(new FileWriter("output/" + jobID + "/attractors.gwt"));
 			PrintWriter pw2 = new PrintWriter(new FileWriter("output/" + jobID + "/attractees.gwt"));
 			//PrintWriter pw3 = new PrintWriter(new FileWriter("output/" + jobID + "/weights.txt"));
@@ -114,7 +227,7 @@ public class GeneSetMerger extends DistributedWorker{
 						pw.println(gs.toProbes());
 					}
 					
-					PrintWriter pw4 = new PrintWriter(new FileWriter("output/" + jobID + "/lists/" + name + ".txt"));
+					/*PrintWriter pw4 = new PrintWriter(new FileWriter("output/" + jobID + "/lists/" + name + ".txt"));
 					if(GeneSet.hasAnnot()){
 						pw4.println("Probe\tGene\tWeight");
 						//int[] indices = gs.getGeneIdx();
@@ -128,7 +241,7 @@ public class GeneSetMerger extends DistributedWorker{
 						}
 					}
 					
-					pw4.close();
+					pw4.close();*/
 					cnt++;
 				//}
 			}
@@ -148,5 +261,7 @@ public class GeneSetMerger extends DistributedWorker{
 	public void setMinSize(int minSize){
 		GeneSetMerger.minSize = minSize;
 	}
-	
+	public static void addMergeCount(){
+		mergeCount++;
+	}
 }

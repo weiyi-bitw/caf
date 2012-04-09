@@ -5,10 +5,5 @@ genome=/home/weiyi/data/annot/affy/u133p2/gene.location3
 
 # =======parameters======
 rank_based=false
-z_threshold=8
-row_normalization=false
-MI_normalization=true
-min_size=0
-converge_method=WEIGHTED
 bins=6
 spline_order=3

@@ -1,6 +1,8 @@
 package obj;
 
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 
 /**
  * @author John Watkinson
@@ -51,5 +53,37 @@ public class Annotations {
     
     public int getSize() {
         return geneName.size();
+    }
+    public String[] getAllGenes(){
+    	HashSet<String> allpbs = new HashSet<String>(geneName.keySet());
+    	HashSet<String> allgenes = new HashSet<String>(); 
+    	for(String s : allpbs){
+    		String g = geneName.get(s);
+    		if(g.contains(" /// ") || g.contains("_at")) continue;
+    		allgenes.add(g);
+    	}
+    	String[] out = allgenes.toArray(new String[0]);
+    	Arrays.sort(out);
+    	return out;
+    }
+    public InverseAnnotations getInvAnnot(){
+    	HashMap<String, String[]> invmap = new HashMap<String, String[]>();
+    	HashSet<String> allpbs = new HashSet<String>(geneName.keySet());
+    	for(String s : allpbs){
+    		String g = geneName.get(s);
+    		if(g.contains(" /// ") || g.contains("_at")) continue;
+    		if(invmap.get(g)==null){
+    			String[] ss = {s};
+    			invmap.put(g, ss);
+    		}else{
+    			String[] ss = invmap.get(g);
+    			String[] sss = new String[ss.length + 1];
+    			System.arraycopy(ss, 0, sss, 0, ss.length);
+    			sss[sss.length-1] = s;
+    			invmap.put(g, sss);
+    		}
+    	}
+    	return new InverseAnnotations(invmap);
+    	
     }
 }

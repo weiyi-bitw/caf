@@ -7,7 +7,7 @@ import java.util.HashMap;
 
 import obj.DataFile;
 import obj.GeneSet;
-import worker.Converger.ValIdx;
+import obj.ValIdx;
  
 public class CreateAttractorDataset {
 

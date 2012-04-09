@@ -1,4 +1,4 @@
-package caf;
+package bkup;
 
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
@@ -9,13 +9,9 @@ import java.util.HashMap;
 
 import obj.Chromosome;
 import obj.DataFile;
+import obj.ValIdx;
+
 import worker.Converger;
-import worker.Converger.ValIdx;
-
-
-
-
-
 
 public class CNVFinder {
 	static ArrayList<Chromosome> parseChromGenes(String file, ArrayList<String> genes, HashMap<String, Integer> geneMap) throws IOException{
@@ -55,12 +51,12 @@ public class CNVFinder {
 		ArrayList<Chromosome> chrs = parseChromGenes("/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3", 
 				ma.getProbes(), ma.getRows());
 		ArrayList<Chromosome> chr2 = new ArrayList<Chromosome>();
-		chr2.add(chrs.get(chrs.size()-1));
+		chr2.add(chrs.get(10));
 		
-		Converger cvg = new Converger(0, 1, System.currentTimeMillis(), "FIXEDSIZE", 100, false);
+		Converger cvg = new Converger(0, 1, System.currentTimeMillis(), "ZSCORE", 100, false);
 		System.out.println("Finding CNVs...");
 		
-		cvg.findCNV(ma, chr2, 10);
+		cvg.findCNV(ma.getData(),ma.getData(), chr2, 4.0f);
 		
 		System.out.println("Done.");
 	}

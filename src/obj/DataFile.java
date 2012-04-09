@@ -11,7 +11,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.PrintStream;
 
-import worker.Converger.ValIdx;
+import obj.ValIdx;
 
 /**
  * @author John Watkinson

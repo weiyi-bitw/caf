@@ -3,7 +3,7 @@ package obj;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import worker.Converger.ValIdx;
+import obj.ValIdx;
 
 public class Chromosome{
 	String name;

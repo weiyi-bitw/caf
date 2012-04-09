@@ -6,21 +6,25 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 
-import worker.Converger.ValIdx;
+import obj.ValIdx;
 
 
 public class GeneSet implements Comparable<GeneSet>{
 	static ArrayList<String> probeNames;
 	static Annotations annot;
 	static int lowestMergeFold = 2; 
+	static float overlapRatio = 0.9f;
 	
 	HashSet<Integer> attractees;
 	ArrayList<String> geneNames;
 	ValIdx[] geneIdx;
+	float[] zScore;
 	String name;
 	int sz;
 	int minIdx; // used as an temporary id
 	int numChild;
+	int group;
+	boolean grouped = false;
 	
 	public GeneSet(ValIdx[] idx){
 		Arrays.sort(idx);
@@ -52,7 +56,22 @@ public class GeneSet implements Comparable<GeneSet>{
 		}
 		this.numChild = numChild;
 	}
-	
+	public GeneSet(String name, ValIdx[] idx, float[] zScore, int numChild){
+		this.name = name;
+		Arrays.sort(idx);
+		this.geneIdx = idx;
+		if(annot != null){
+			HashSet<String> genes = new HashSet<String>();
+			for(ValIdx vi : geneIdx){
+				genes.add(annot.getGene(probeNames.get(vi.idx())));
+			}
+			this.sz = genes.size();
+		}else{
+			this.sz = geneIdx.length;
+		}
+		this.numChild = numChild;
+		this.zScore = zScore;
+	}
 	public GeneSet(HashSet<Integer> attractees, ValIdx[] idx){
 		Arrays.sort(idx);
 		this.geneIdx = idx;
@@ -85,6 +104,22 @@ public class GeneSet implements Comparable<GeneSet>{
 		Arrays.sort(this.geneIdx);
 	}
 	
+	public GeneSet(HashSet<Integer> attractees, ValIdx[] idx, float[] zScore, int numChild){
+		this.geneIdx = idx;
+		this.zScore = zScore;
+		if(annot != null){
+			HashSet<String> genes = new HashSet<String>();
+			for(ValIdx vi : geneIdx){
+				genes.add(annot.getGene(probeNames.get(vi.idx())));
+			}
+			this.sz = genes.size();
+		}else{
+			this.sz = geneIdx.length;
+		}
+		this.attractees = attractees;
+		this.numChild = numChild;
+		Arrays.sort(this.geneIdx);
+	}
 	
 	public static void setProbeNames(ArrayList<String> probeNames){
 		GeneSet.probeNames = probeNames;
@@ -94,6 +129,9 @@ public class GeneSet implements Comparable<GeneSet>{
 	}
 	public static void setMergeThreshold(int th){
 		GeneSet.lowestMergeFold = th;
+	}
+	public static void setOverlapRatio(float f){
+		GeneSet.overlapRatio = f;
 	}
 	public int compareTo(GeneSet other) {
 		return Double.compare(this.minIdx, other.minIdx);
@@ -137,9 +175,14 @@ public class GeneSet implements Comparable<GeneSet>{
 			viList.add(vi);
 		}
 		for(GeneSet gs : others){
+			int cnt = 0;
+			int th = (int) (Math.min(this.sz, gs.size()) * overlapRatio);
 			for(ValIdx vi : gs.geneIdx){
 				if(viList.contains(vi)){
-					return true;
+					cnt++;
+					if(cnt > th){
+						return true;
+					}
 				}
 			}
 		}
@@ -231,8 +274,11 @@ public class GeneSet implements Comparable<GeneSet>{
 		}
 		
 		s = s + "\t" + numChild;
+		int cnt = 0;
 		for(ValIdx vi : geneIdx){
 				s = s + "\t" + vi.idx() + "," + vi.val();
+				if(!Float.isNaN(zScore[cnt])) s = s + "," + zScore[cnt];
+				cnt++;
 		}
 		return s;
 	}
@@ -244,6 +290,7 @@ public class GeneSet implements Comparable<GeneSet>{
 	public String toProbes(){
 		String s = "";
 		boolean first = true;
+		int cnt = 0;
 		for(ValIdx vi : geneIdx){
 			if(first){
 				s = probeNames.get(vi.idx()) + ":" + vi.val();
@@ -251,6 +298,10 @@ public class GeneSet implements Comparable<GeneSet>{
 			}else{
 				s = s + "\t" + probeNames.get(vi.idx()) + ":" + vi.val();
 			}
+			if(zScore != null){
+				if(!Float.isNaN(zScore[cnt])) s = s + ":" + zScore[cnt];
+			}
+			cnt++;
 		}
 		return s;
 	}
@@ -260,12 +311,20 @@ public class GeneSet implements Comparable<GeneSet>{
 		ArrayList<String> output = new ArrayList<String>();
 		
 		String s;
+		int cnt = 0;
 		for(ValIdx vi : geneIdx){
 			s = annot.getGene(probeNames.get(vi.idx()));
 			if(!geneNames.contains(s)){
 				geneNames.add(s);
-				output.add(s + ":" + vi.val());
+				if(zScore != null){
+					if(Float.isNaN(zScore[cnt])){
+						output.add(s + ":" + vi.val());
+					}else{
+						output.add(s + ":" + vi.val() + ":" + zScore[cnt]);
+					}
+				}
 			}
+			cnt++;
 		}
 		s = "";
 		boolean first = true;
@@ -411,6 +470,9 @@ public class GeneSet implements Comparable<GeneSet>{
 	public ValIdx[] getGeneIdx(){
 		return geneIdx;
 	}
+	public float getZ(int i ){
+		return zScore[i];
+	}
 	/*public float getOneWeight(int i ){
 		return weightMap.get(i)/numChild;
 	}*/
@@ -424,7 +486,18 @@ public class GeneSet implements Comparable<GeneSet>{
 			s +=  "\t" + annot.getGene(probeNames.get(geneIdx[i].idx()));
 		}
 		s += "\t" + geneIdx[i].val();
+		if(!Float.isNaN(zScore[i])) s = s + "\t" + zScore[i];
 		
 		return s;
+	}
+	public void setGroup(int i){
+		this.grouped = true;
+		this.group = i;
+	}
+	public int getGroup(){
+		return this.group;
+	}
+	public boolean grouped(){
+		return this.grouped;
 	}
 }

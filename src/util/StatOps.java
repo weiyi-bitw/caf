@@ -116,7 +116,15 @@ public class StatOps {
 		Arrays.sort(in);
 		return in[ (int) (numIn*pct)];
 	}
-	
+	public static float mse(float[] x, float[] y){
+		int n = x.length;
+		int q = 0;
+		for(int i = 0; i < n; i++){
+			q += (x[i] - y[i]) * (x[i] - y[i]);
+		}
+		q /= n;
+		return (float) Math.sqrt(q);
+	}
 	
 	public static float pearsonCorr(float[] x, float[] y){
 		float xMean = 0;
@@ -149,7 +157,86 @@ public class StatOps {
 		rho = (float) ((rho - n * xMean * yMean)/xSd/ySd);
 		return rho;
 	}
+	public static float cov(float[] x, float[] y, int n){
+		float xMean = 0, yMean = 0;
+		float q = 0;
+		for(int i = 0; i < n; i++){
+			xMean += x[i];
+			yMean += y[i];
+			q += x[i] * y[i];
+		}
+		xMean /= n;
+		yMean /= n;
+		q = (q - n*xMean*yMean)/(n-1);
+		return q;
+	}
+	public static float[] cov(float[] x, float[][] y, int m, int n){
+		float xMean = 0;
+		float[] yMean = new float[m];
+		float[] rho = new float[m];
+		for(int i = 0; i < n; i++){
+			xMean += x[i];
+			for(int j = 0; j < m; j++){
+				yMean[j] += y[j][i];
+				rho[j] += x[i] * y[j][i];
+			}
+		}
+		xMean /= n;
+
+		for(int i = 0; i < m; i++){
+			yMean[i] /= n;
+			rho[i] = (float) ((rho[i] - n * xMean * yMean[i])/(n-1));
+		}
+		//System.out.println();
+		return rho;
+	}
+	public static float var(float[] x, int n){
+		float xMean = 0;
+		float v = 0;
+		for(int i = 0; i < n; i++){
+			xMean += x[i];
+			v += x[i] * x[i];
+		}
+		xMean /= n;
+		v = (v - n * xMean * xMean)/(n-1);
+		return v;
+	}
 	
+	
+	public static float[] pearsonCorr(float[] x, float[][] y, int m, int n){
+		float xMean = 0;
+		float[] yMean = new float[m];
+		double xSd = 0;
+		double[] ySd = new double[m];
+		float[] rho = new float[m];
+		for(int i = 0; i < n; i++){
+			xMean += x[i];
+			xSd += x[i] * x[i];	
+			for(int j = 0; j < m; j++){
+				yMean[j] += y[j][i];
+				ySd[j] += y[j][i] * y[j][i];
+				rho[j] += x[i] * y[j][i];
+			}
+		}
+		xMean /= n;
+		xSd = Math.sqrt((xSd - n*xMean*xMean));
+
+		if(xSd == 0){
+			return rho;
+		}
+		
+		for(int i = 0; i < m; i++){
+			yMean[i] /= n;
+			ySd[i] = Math.sqrt((ySd[i] - n*yMean[i]*yMean[i]));
+			if(ySd[i]==0){
+				rho[i] = 0;
+			}else{
+				rho[i] = (float) ((rho[i] - n * xMean * yMean[i])/xSd/ySd[i]);
+			}
+		}
+		//System.out.println();
+		return rho;
+	}
 	public static float beta1(float[] y, float[] x){
 		float xMean = 0;
 		float yMean = 0;
