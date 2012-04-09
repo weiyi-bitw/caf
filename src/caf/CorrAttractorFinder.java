@@ -333,19 +333,25 @@ public class CorrAttractorFinder {
 				System.out.printf("%-25s%s\n", "BreakPoint:", breakPoint);
 			}else if(command.equalsIgnoreCase("CAF")){
 				System.out.println("-- Attractor finding");
-				CAFConfiguration();
+				
 			}else if(command.equalsIgnoreCase("CNV")){
 				System.out.println("-- CNV Finding");
-				CNVConfiguration();
+				
 			}else{
 				throw new RuntimeException("ERROR: Cannot understand command: " + command);
 			}
 		}
-		
+			
 			configFile = args[0];
 			config = new Properties();
 			config.load(new FileInputStream(configFile));	
 			fileConfiguration();
+		System.out.println("\n===================================================================================\n");
+		if(command.equalsIgnoreCase("CAF")){
+			CAFConfiguration();
+		}else if(command.equalsIgnoreCase("CNV")){
+			CNVConfiguration();
+		}
 		System.out.println("\n===================================================================================\n");
 		
 		Scheduler scdr = new Scheduler(segment, numSegments, jobID);
