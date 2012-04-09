@@ -1365,19 +1365,21 @@ public class Converger extends DistributedWorker{
 			while(c < maxIter){
 				float[] metaGene = getWeightedMetaGene(data, wVec, power,  m, n);
 				wVec = itc.getAllMIWith(metaGene, data);
-				//wVec = StatOps.pearsonCorr(metaGene, data, m, n);
-				//wVec = StatOps.cov(metaGene, data, m, n);
-				//System.out.println(err);
 				
 				float err = calcMSE(wVec, preWVec, m);
-				//System.out.println(err);
+				System.arraycopy(wVec, 0, preWVec, 0, m);
 				if(err < convergeTh){
-					//pw.close();
-					System.out.println("Converged.");
-					converge=true;
+					Arrays.sort(preWVec);
+					if(preWVec[m-1] - preWVec[m-2] > 0.5){
+						System.out.println("Top dominated.");
+						converge=false;
+					}else{
+						System.out.println("Converged.");
+						converge=true;
+					}
 					break;
 				}
-				System.arraycopy(wVec, 0, preWVec, 0, m);
+				
 				c++;
 			}
 			if(converge){
