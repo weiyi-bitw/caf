@@ -1,11 +1,14 @@
 # =======Data sets=======
-ge=/home/weiyi/workspace/javaworks/goldilox/testDataFor2.txt
-annot=/home/weiyi/workspace/javaworks/goldilox/testAnnot.csv
+ge=test.txt
+#annot=/home/weiyi/data/annot/affy/u133p2/annot.csv
+genome=/home/weiyi/data/annot/affy/u133p2/gene.location3
 
 # =======parameters======
 rank_based=false
-#fdrThreshold=0.05
 z_threshold=8
 row_normalization=false
+MI_normalization=true
 min_size=0
-attractor_size=4
+converge_method=WEIGHTED
+bins=6
+spline_order=3
