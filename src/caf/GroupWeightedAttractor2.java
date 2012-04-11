@@ -411,12 +411,12 @@ public class GroupWeightedAttractor2 {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String inPath = "/home/weiyi/workspace/javaworks/caf/output/weighted.5/";
+		String inPath = "/home/weiyi/workspace/javaworks/caf/output/weighted/";
 		if(!inPath.endsWith("/")){
 			inPath += "/";
 		}
 		
-		String[] files = new File(inPath + "mergeroom").list();
+		String[] files = new File(inPath + "manual.mergeroom.stage2").list();
 		Arrays.sort(files);
 		int nf = files.length;
 		System.out.println(nf + " files in the directory.");
@@ -427,10 +427,11 @@ public class GroupWeightedAttractor2 {
 		for(String f : files){
 			System.out.println("Loading file " + f + "...");
 			ArrayList<WtdAttractor> waInThisFile = new ArrayList<WtdAttractor>();
-			BufferedReader br = new BufferedReader(new FileReader(inPath + "mergeroom/" + f));
+			BufferedReader br = new BufferedReader(new FileReader(inPath + "manual.mergeroom.stage2/" + f));
 			String line = br.readLine();
 			while(line != null){
-				waInThisFile.add(WtdAttractor.parseWtdAttractor(line, cnt));
+				WtdAttractor wa = WtdAttractor.parseWtdAttractor(line, cnt);
+				waInThisFile.add(wa);
 				line = br.readLine();
 			}
 			/*Collections.sort(waInThisFile);
@@ -545,7 +546,7 @@ public class GroupWeightedAttractor2 {
 		}*/
 		Collections.sort(out);
 		System.out.println("Output to file...");
-		PrintWriter pw = new PrintWriter(new FileWriter(inPath + "/matchTable.txt"));
+		PrintWriter pw = new PrintWriter(new FileWriter(inPath + "/matchTable.stage2.txt"));
 		int ii = 1;
 		
 		for(WtdAttractorSet was : out){

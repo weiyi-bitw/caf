@@ -131,11 +131,10 @@ public class TestField {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String path = "/home/weiyi/workspace/data/brca/tcga/ge/";
+		String path = "/home/weiyi/workspace/data/brca/gse2034/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
-		
 		
 		System.out.println("Loading files...");
 		
@@ -144,8 +143,7 @@ public class TestField {
 		if(!outPath.endsWith("/")){
 			outPath = outPath + "/";
 		}
-		DataFile ma = DataFile.parse(path + "ge.17814x536.knn.txt");
-		
+		DataFile ma = DataFile.parse(path + "ge.12160x286.jetset.mean.txt");
 		
 		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3";
 		//final String geneLocFile = "/home/weiyi/workspace/javaworks/caf/output/639/gene.location3";
@@ -184,7 +182,8 @@ public class TestField {
 		if(command.equals("CNV")) gn.linkToDataFile(ma);
 		
 		
-		gs.add("LAPTM5");
+		gs.add("ESR1");
+		//gs.add("COL5A2");
 		/*gs.add("EXOSC10");
 		gs.add("ASH2L");
 		gs.add("EXOSC4");*/
