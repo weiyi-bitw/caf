@@ -29,18 +29,35 @@ public class FineTuning {
 		
 		//String outPath = "/home/weiyi/workspace/javaworks/caf/output/656/";
 		new File("output").mkdir();
-		String outPath = "/home/weiyi/workspace/javaworks/caf/output/caf.finetune/cenpa/";
+		String outPath = "/home/weiyi/workspace/javaworks/caf/output/caf.finetune/maf/";
 		if(!outPath.endsWith("/")){
 			outPath = outPath + "/";
 		}
-		final String dataFile = "/home/weiyi/workspace/data/brca/gse2034/ge.12764x286.mean.txt";
-		//final String dataFile = "/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt";
-		//final String dataFile = "/home/weiyi/workspace/data/coad/gse14333/ge.19189x290.geo.jetset.mean.txt";
-		//final String dataFile = "/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt";
-		//final String dataFile = "/home/weiyi/workspace/data/ov/gse9891/ge.19177x285.geo.jetset.mean.txt";
-		//final String dataFile = "/home/weiyi/workspace/data/ov/tcga/ge/ge.17814x584.knn.txt";
-		//final String dataFile = "/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt";
-		DataFile ma = DataFile.parse(dataFile);
+		final String[] dataFiles={
+				"/home/weiyi/workspace/data/brca/gse2034/ge.12160x286.jetset.mean.txt",
+				"/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt",
+				"/home/weiyi/workspace/data/coad/gse14333/ge.19189x290.jetset.mean.txt",
+				"/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt",
+				"/home/weiyi/workspace/data/ov/gse9891/ge.19189x285.jetset.mean.txt",
+				//"/home/weiyi/workspace/data/ov/tcga/ge/ge.17814x584.knn.txt"
+				"/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt"
+		};
+			
+		final String[] outputDirs={
+			"brca.gse2034.jetset.mean",
+			"brca.tcga",
+			"coad.gse14333.jetset.mean",
+			"coad.tcga",
+			"ov.gse9891.jetset.mean",
+			"ov.tcga.affy"
+		};
+			
+		
+		for(int qq = 0; qq < dataFiles.length; qq++)
+		{
+		System.out.println("Data: " + dataFiles[qq]);
+		
+		DataFile ma = DataFile.parse(dataFiles[qq]);
 		
 		int m = ma.getNumRows();
 		int n = ma.getNumCols();
@@ -55,7 +72,7 @@ public class FineTuning {
 		cvg.linkITComputer(itc);
 		HashMap<String, Integer> geneMap = ma.getRows();
 		
-		gs.add("CENPA");
+		gs.add("COL11A1");
 		
 		for(String g : gs){
 			ArrayList<String> geneNames = ma.getProbes();
@@ -91,7 +108,8 @@ public class FineTuning {
 						}
 						Arrays.sort(vis);
 						
-						String outFile = outPath + g + "_Attractor" + power + ".txt";
+						new File(outPath + "mergeroom").mkdir();
+						String outFile = outPath + "mergeroom/" + outputDirs[qq];
 						PrintWriter pw = new PrintWriter(new FileWriter(outFile));
 						for(int i = 0; i < m; i++){
 							String gg = geneNames.get(vis[i].idx);
@@ -136,6 +154,7 @@ public class FineTuning {
 			}
 		}
 		
+		}
 	}
 
 }

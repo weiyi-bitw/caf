@@ -20,12 +20,12 @@ public class FineTuningCNV {
 	 * @param args
 	 */
 	public static void main(String[] args) throws Exception {
-		int wstart = 21;
+		int wstart = 11;
 		int wend = 51;
 		float estart = 1;
 		float eend = 6f;
 		
-		int quantile = 10;
+		int quantile = 5;
 		
 		String targetArm = "chr8q24";
 		
@@ -35,22 +35,22 @@ public class FineTuningCNV {
 		
 		
 		final String[] dataFiles={
-			"/home/weiyi/workspace/data/brca/gse2034/ge.12764x286.mean.txt",
+			"/home/weiyi/workspace/data/brca/gse2034/ge.12160x286.jetset.mean.txt",
 			//"/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt",
-			"/home/weiyi/workspace/data/coad/gse14333/ge.19964x290.mean.txt",
+			"/home/weiyi/workspace/data/coad/gse14333/ge.19189x290.jetset.mean.txt",
 			//"/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt",
-			"/home/weiyi/workspace/data/ov/gse9891/ge.19964x285.mean.txt"
+			"/home/weiyi/workspace/data/ov/gse9891/ge.19189x285.jetset.mean.txt",
 			//"/home/weiyi/workspace/data/ov/tcga/ge/ge.17814x584.knn.txt"
-			//"/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt"
+			"/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt"
 		};
 		
 		final String[] outputDirs={
-			"brca.gse2034.mean",
+			"brca.gse2034.jetset.mean",
 			//"brca.tcga",
-			"coad.gse14333.mean",
+			"coad.gse14333.jetset.mean",
 			//"coad.tcga",
-			"ov.gse9891.mean"
-			//"ov.tcga"
+			"ov.gse9891.jetset.mean",
+			"ov.tcga.affy"
 		};
 		
 		

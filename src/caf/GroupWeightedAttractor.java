@@ -21,19 +21,19 @@ public class GroupWeightedAttractor {
 	 */
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-		String path = "/home/weiyi/workspace/javaworks/caf/output/weighted/brca.tcga";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/weighted/ov.gse9891.jetset.mean";
 		if(path.endsWith("/")){
 			path = path.substring(0, path.length()-1);
 		}
 		System.out.println("Loading files...");
-		int IDX = 3;
+		int IDX = 2;
 		int outgenes = 30;
 		int quantile = 30;
 		
 		String[] dataFiles = {
-				"/home/weiyi/workspace/data/brca/gse2034/ge.12160x286.geo.jetset.mean.txt",
-				"/home/weiyi/workspace/data/coad/gse14333/ge.19189x290.geo.jetset.mean.txt",
-				"/home/weiyi/workspace/data/ov/gse9891/ge.19177x285.geo.jetset.mean.txt",
+				"/home/weiyi/workspace/data/brca/gse2034/ge.12160x286.jetset.mean.txt",
+				"/home/weiyi/workspace/data/coad/gse14333/ge.19189x290.jetset.mean.txt",
+				"/home/weiyi/workspace/data/ov/gse9891/ge.19189x285.jetset.mean.txt",
 				"/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt",
 				"/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt",
 				"/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt"
