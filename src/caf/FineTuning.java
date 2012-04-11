@@ -33,11 +33,11 @@ public class FineTuning {
 		if(!outPath.endsWith("/")){
 			outPath = outPath + "/";
 		}
-		final String dataFile = "/home/weiyi/workspace/data/brca/gse2034/ge.12160x286.jetset.txt";
+		final String dataFile = "/home/weiyi/workspace/data/brca/gse2034/ge.12764x286.mean.txt";
 		//final String dataFile = "/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt";
-		//final String dataFile = "/home/weiyi/workspace/data/coad/gse14333/ge.19189x290.jetset.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/coad/gse14333/ge.19189x290.geo.jetset.mean.txt";
 		//final String dataFile = "/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt";
-		//final String dataFile = "/home/weiyi/workspace/data/ov/gse9891/ge.19189x285.jetset.txt";
+		//final String dataFile = "/home/weiyi/workspace/data/ov/gse9891/ge.19177x285.geo.jetset.mean.txt";
 		//final String dataFile = "/home/weiyi/workspace/data/ov/tcga/ge/ge.17814x584.knn.txt";
 		//final String dataFile = "/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt";
 		DataFile ma = DataFile.parse(dataFile);

@@ -885,13 +885,13 @@ public class Converger extends DistributedWorker{
 			//System.out.println(err);
 			if(err < convergeTh){
 				//pw.close();
-				System.out.println("Converged.");
+				//System.out.println("Converged.");
 				return wVec;
 			}
 			System.arraycopy(wVec, 0, preWVec, 0, m);
 			c++;
 		}
-		System.out.println("Not converged.");
+		//System.out.println("Not converged.");
 		//pw.close();
 		wVec[0] = -1;
 		return wVec;

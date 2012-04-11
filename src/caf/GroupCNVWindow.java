@@ -23,7 +23,7 @@ public class GroupCNVWindow {
 	static class Window implements Comparable<Window>{
 		static ArrayList<String> genes;
 		static Genome gn;
-		static int quantile = 10;
+		static int quantile = 5;
 		int startIdx;
 		ValIdx[] mis;
 		String name;

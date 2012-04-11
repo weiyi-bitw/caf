@@ -411,7 +411,7 @@ public class GroupWeightedAttractor2 {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String inPath = "/home/weiyi/workspace/javaworks/caf/output/weighted.5/";
+		String inPath = "/home/weiyi/workspace/javaworks/caf/output/weighted/";
 		if(!inPath.endsWith("/")){
 			inPath += "/";
 		}
