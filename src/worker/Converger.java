@@ -1085,7 +1085,7 @@ public class Converger extends DistributedWorker{
 				
 				
 				String[] neighbors = gn.getNeighbors(g, winSize);
-				if(neighbors == null || neighbors.length < quantile){
+				if(neighbors == null){
 					System.out.println("No neighbors :(");
 					break;
 				}
@@ -1093,6 +1093,9 @@ public class Converger extends DistributedWorker{
 				DataFile ma2 = ma.getSubProbes(neighbors);
 				ArrayList<String> ma2Genes = ma2.getProbes();
 				int m2 = ma2.getNumRows();
+				if(m2 < quantile){
+					continue;
+				}
 				float[][] data = ma2.getData();
 				int idx2 = ma2.getRows().get(g);
 				float[] vec = data[idx2];
@@ -1148,7 +1151,7 @@ public class Converger extends DistributedWorker{
 			String chr = gn.getChr(g);
 			
 			pw.print(g + "\t" + chr);
-			for(int i = 0; i < bestWinSize; i++){
+			for(int i = 0; i < bestVec.length; i++){
 				pw.print("\t" + bestVec[i].idx + "\t" + bestVec[i].val);
 			}pw.println();
 			
