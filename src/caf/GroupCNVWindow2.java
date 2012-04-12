@@ -260,7 +260,7 @@ public class GroupCNVWindow2 {
 		int cnt = 0;
 		for(String f : files){
 			System.out.println("Loading file " + f + "...");
-			BufferedReader br = new BufferedReader(new FileReader(inPath + "mergeroom/" + f));
+			BufferedReader br = new BufferedReader(new FileReader(inPath + "mergeroom" + f));
 			String line = br.readLine();
 			int cnt2 = 0;
 			while(line != null && cnt2 < loadIn){
@@ -307,7 +307,7 @@ public class GroupCNVWindow2 {
 		Collections.sort(out);
 		
 		System.out.println("Output to file...");
-		PrintWriter pw = new PrintWriter(new FileWriter(inPath + "/matchTable." + loadIn + ".txt"));
+		PrintWriter pw = new PrintWriter(new FileWriter(inPath + "/matchTable.noopt" + loadIn + ".txt"));
 		int ii = 1;
 		for(CNVWindowSet cnvws : out){
 			pw.print(ii + "\t");

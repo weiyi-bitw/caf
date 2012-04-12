@@ -257,6 +257,7 @@ public class GroupCNVWindow {
 		int excludeSize = 25;
 		int quantile = 5;
 		
+		ArrayList<Integer> allSizes = new ArrayList<Integer>();
 		
 		for(int qq = 0; qq < dataFiles.length; qq++)
 		{
@@ -279,6 +280,9 @@ public class GroupCNVWindow {
 		
 		System.out.println("Parsing windows...");
 		ArrayList<Window> out = slidingWindowSelector(outPath + outputDirs[qq] + "/basinScores.txt", excludeSize);
+		for(Window w : out){
+			allSizes.add(w.mis.length);
+		}
 		System.out.println(out.size() + " CNVWindow selected.");
 		
 		String outFileName = outputDirs[qq];
@@ -289,6 +293,8 @@ public class GroupCNVWindow {
 		}
 		
 		pw.close();
+		
+		
 		
 		
 		/*
@@ -361,7 +367,12 @@ public class GroupCNVWindow {
 		pw.close();*/
 		
 		}
+		PrintWriter pw = new PrintWriter(new FileWriter(outPath + "mergeroom/sizes.txt" ));
+		for(Integer i : allSizes){
+			pw.println(i);
+		}
 		
+		pw.close();
 		System.out.println("Done.");
 	}
 
