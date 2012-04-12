@@ -123,7 +123,7 @@ public class FineTuningCNV {
 					//System.out.println("Window size " + wsize + "\tPower " + power + "...");
 								
 					String[] neighbors = gn.getNeighbors(gtest, wsize);
-					if(neighbors == null || neighbors.length < quantile){
+					if(neighbors == null){
 						//pw.println("No neighbors");
 						//pw.close();
 						continue;
@@ -131,11 +131,16 @@ public class FineTuningCNV {
 					DataFile ma2 = ma.getSubProbes(neighbors);
 					geneNames = ma2.getProbes();
 					m = ma2.getNumRows();
+					if(m < quantile){
+						continue;
+					}
 					int idx = ma2.getRows().get(gtest);
 					data = ma2.getData();
 					float[] vec = data[idx];
 					float[] out = cvg.findWeightedCNV(ma2, gtest, gn, vec, wsize, power,  false, false);
-								
+					
+					
+				
 					if(out[0] == -1){
 						//pw.println("Not converged.");
 						//pw.close();
