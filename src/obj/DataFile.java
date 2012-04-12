@@ -659,17 +659,17 @@ public class DataFile {
     	int mm = numProbes;
     	for(int i = 0; i < numProbes; i++){
     		if(rows.get(probeNames[i])==null){
-    			System.out.println("At row " + i + ": no probe name " + probeNames[i] + "!!");
+    			//System.out.println("At row " + i + ": no probe name " + probeNames[i] + "!!");
     			mm--;
     		}
     	}
     	float[][] subData = new float[mm][n];
     	int cnt = 0;
-    	for(int i = 0; i < mm; i++){
+    	for(int i = 0; i < numProbes; i++){
     		if(rows.get(probeNames[i])!=null){
     			int probeInd = rows.get(probeNames[i]);
     			subProbes.add(probeNames[i]);
-    			subRows.put(probeNames[i], i);
+    			subRows.put(probeNames[i], cnt);
     			System.arraycopy(data[probeInd], 0, subData[cnt], 0, n);
     			cnt++;
     		}

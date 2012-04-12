@@ -153,7 +153,7 @@ public class GroupCNVWindow2 {
 				s += "\t" + content[i] + "\n";
 			}
 			s += "Top genes:";
-			for(int i = 0; i < 20; i++){
+			for(int i = 0; i < 10; i++){
 				s += "\t" + allGenes.get(i);
 			}
 			s += "\n";
@@ -244,8 +244,8 @@ public class GroupCNVWindow2 {
 	 * @param args
 	 */
 	public static void main(String[] args) throws Exception {
-		String inPath = "/home/weiyi/workspace/javaworks/caf/output/window51/";
-		int loadIn = 300;
+		String inPath = "/home/weiyi/workspace/javaworks/caf/output/window/";
+		int loadIn = 500;
 		
 		String[] files = new File(inPath + "mergeroom").list();
 		Arrays.sort(files);
@@ -260,7 +260,7 @@ public class GroupCNVWindow2 {
 		int cnt = 0;
 		for(String f : files){
 			System.out.println("Loading file " + f + "...");
-			BufferedReader br = new BufferedReader(new FileReader(inPath + "mergeroom/" + f));
+			BufferedReader br = new BufferedReader(new FileReader(inPath + "mergeroom" + f));
 			String line = br.readLine();
 			int cnt2 = 0;
 			while(line != null && cnt2 < loadIn){
@@ -307,7 +307,7 @@ public class GroupCNVWindow2 {
 		Collections.sort(out);
 		
 		System.out.println("Output to file...");
-		PrintWriter pw = new PrintWriter(new FileWriter(inPath + "/matchTable." + loadIn + ".txt"));
+		PrintWriter pw = new PrintWriter(new FileWriter(inPath + "/matchTable.noopt" + loadIn + ".txt"));
 		int ii = 1;
 		for(CNVWindowSet cnvws : out){
 			pw.print(ii + "\t");

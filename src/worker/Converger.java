@@ -1053,12 +1053,12 @@ public class Converger extends DistributedWorker{
 		pw.close();
 	}
 	public void findWeightedCNVCoef(DataFile ma, Genome gn, int wstart, int wend, int delw, float pstart, float pend, float delp, int quantile) throws Exception{
-		gn.linkToDataFile(ma);
 		ma = ma.getSubProbes(gn.getAllGenes());
 		
 		int m = ma.getNumRows();
 		int n = ma.getNumCols();
 		ArrayList<String> genes = ma.getProbes();
+		HashMap<String, Integer> maMap = ma.getRows();
 		
 		int buf = (wend - 1)/2;
 		
@@ -1075,7 +1075,8 @@ public class Converger extends DistributedWorker{
 			int iii = idx + buf;
 			float bestScore = -1;
 			int bestWinSize = -1;
-			float[] bestVec = null;
+			float bestExp = -1;
+			ValIdx[] bestVec = null;
 			String g = genes.get(iii);
 			System.out.print("Processing " + g + "..."); 
 			
@@ -1084,12 +1085,13 @@ public class Converger extends DistributedWorker{
 				
 				
 				String[] neighbors = gn.getNeighbors(g, winSize);
-				if(neighbors == null){
+				if(neighbors == null || neighbors.length < quantile){
 					System.out.println("No neighbors :(");
 					break;
 				}
 				
 				DataFile ma2 = ma.getSubProbes(neighbors);
+				ArrayList<String> ma2Genes = ma2.getProbes();
 				int m2 = ma2.getNumRows();
 				float[][] data = ma2.getData();
 				int idx2 = ma2.getRows().get(g);
@@ -1126,8 +1128,10 @@ public class Converger extends DistributedWorker{
 					if(converge && score > bestScore){
 						bestScore = score;
 						bestWinSize = winSize;
-						bestVec = new float[m2];
-						System.arraycopy(wVec, 0, bestVec, 0, m2);
+						bestVec = new ValIdx[m2];
+						for(int i = 0; i < m2; i++){
+							bestVec[i] = new ValIdx(maMap.get(ma2Genes.get(i)), wVec[i]);
+						}
 					}
 					
 					
@@ -1145,12 +1149,11 @@ public class Converger extends DistributedWorker{
 			
 			pw.print(g + "\t" + chr);
 			for(int i = 0; i < bestWinSize; i++){
-				pw.print("\t" + (iii - bestWinSize/2 + i) + ":" + bestVec[i]);
+				pw.print("\t" + bestVec[i].idx + "\t" + bestVec[i].val);
 			}pw.println();
 			
 		}// END idx iteration
 		pw.close();
-		
 		
 	}
 
@@ -1248,83 +1251,24 @@ public class Converger extends DistributedWorker{
 	}
 	
 	
-	public float[] findWeightedAttractor(DataFile ma, String gene, float[] vec, float power, boolean excludeTop) throws Exception{
+	public float[] findWeightedAttractor(DataFile ma, String gene, float[] vec, float power, boolean verbose) throws Exception{
 		float[][] data = ma.getData();
 		int m = data.length;
 		int n = data[0].length;
 		//ArrayList<String> genes = ma.getProbes();
 		
 		float[] wVec = itc.getAllMIWith(vec, data);
-		//float[] wVec = StatOps.pearsonCorr(vec, data, m, n);
-		//float[] wVec = StatOps.cov(vec, data, m, n);
-		
-		/*PrintWriter pw = new PrintWriter(new FileWriter("tmp/" + gene + "_CNV.wt.txt"));
-		pw.print("Gene"); fs[j]
-		for(String g : genes){
-			pw.print("\t" + g);
-		}pw.println();
-		pw.print("-1");
-		for(int i = 0; i < m; i++){
-			pw.print("\t" + wVec[i]);
-		}pw.println();*/
-		
-		if(excludeTop){
-			int maxIdx = -1;
-			float maxw = -1;
-			float nextMaxW = -1;
-			for(int i = 0; i < m; i++){
-				if(wVec[i] > maxw){
-					maxIdx = i;
-					nextMaxW = maxw;
-					maxw = wVec[i];
-				}
-			}
-			wVec[maxIdx] = 0;
-		}
 		
 		float[] preWVec = new float[m];
 		System.arraycopy(wVec, 0, preWVec, 0, m);
 		int c = 0;
 		float convergeTh = precision * precision / m;
 		
-		/*float[] mis = new float[m];
-		System.arraycopy(wVec, 0, mis, 0, m);
-		Arrays.sort(mis);
-		float mi20th = mis[m-20];
-		
-		float prePower = 0;
-		float lPower = 2;
-		float hPower = power;*/
-		
-		
 		while(c < maxIter){
 			float[] metaGene = getWeightedMetaGene(data, wVec, power,  m, n);
 			wVec = itc.getAllMIWith(metaGene, data);
-			/*System.arraycopy(wVec, 0, mis, 0, m);
-			Arrays.sort(mis);
-			
-			if(mis[m-20] > mi20th){
-				prePower = power;
-				power = (power + lPower)/2;
-				hPower = prePower;
-			}else{
-				prePower = power;
-				power = (power + hPower)/2;
-				lPower = prePower;
-			}
-			mi20th = mis[m-20];*/
-			//System.out.println(wVec[idx]);
-			//wVec = StatOps.pearsonCorr(metaGene, data, m, n);
-			//wVec = StatOps.cov(metaGene, data, m, n);
-			
-			/*pw.print(c);
-			for(int i = 0; i < m; i++){
-				pw.print("\t" + wVec[i]);
-			}pw.println();*/
 			
 			float err = calcMSE(wVec, preWVec, m);
-			//System.out.println("delta: " + err + "\t20th MI:" + mi20th + "\tpower: " + power + " (" + hPower + "/" + lPower + ")");
-			//System.out.println("delta: " + err);
 			if(err < convergeTh){
 				System.out.println("Converged.");
 				return wVec;
@@ -1333,7 +1277,6 @@ public class Converger extends DistributedWorker{
 			c++;
 		}
 		System.out.println("Not converged.");
-		//pw.close();
 		wVec[0] = -1;
 		return wVec;
 	}

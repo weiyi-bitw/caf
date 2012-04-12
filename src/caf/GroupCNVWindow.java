@@ -49,7 +49,7 @@ public class GroupCNVWindow {
 				mis[i-2] = new ValIdx(Integer.parseInt(t2[0]), Float.parseFloat(t2[1]));
 			}
 			Arrays.sort(mis);
-			return new Window(name, startIdx, mis[0].idx, mis);
+			return new Window(name, startIdx, gn.getIdx(genes.get(mis[0].idx)), mis);
 		}
 		
 		public int hashCode(){
@@ -203,7 +203,15 @@ public class GroupCNVWindow {
 		br.close();
 		
 		int k = out.size();
+		
 		Collections.sort(out);
+		
+		PrintWriter pw = new PrintWriter(new FileWriter("debug.txt"));
+		for(Window w : out){
+			pw.println(w.name + "\t" + w.centerIdx + "\t" + w.mis[4].val);
+		}
+		
+		pw.close();
 		
 		for(int i = k -1; i >=0; i--){
 			Window w = out.get(i);
@@ -246,9 +254,10 @@ public class GroupCNVWindow {
 		String outPath = "/home/weiyi/workspace/javaworks/caf/output/window/";
 
 		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3";
-		int excludeSize = 50;
+		int excludeSize = 25;
 		int quantile = 5;
 		
+		ArrayList<Integer> allSizes = new ArrayList<Integer>();
 		
 		for(int qq = 0; qq < dataFiles.length; qq++)
 		{
@@ -262,9 +271,8 @@ public class GroupCNVWindow {
 		float[][] data = ma.getData();
 		
 		Genome gn = Genome.parseGeneLocation(geneLocFile);
-		gn.linkToDataFile(ma);
+		//gn.linkToDataFile(ma);
 		ma = ma.getSubProbes(gn.getAllGenes());
-		CNVWindow.linkGenome(gn);
 		
 		Window.linkGenes(ma.getProbes());
 		Window.linkGenome(gn);
@@ -272,6 +280,9 @@ public class GroupCNVWindow {
 		
 		System.out.println("Parsing windows...");
 		ArrayList<Window> out = slidingWindowSelector(outPath + outputDirs[qq] + "/basinScores.txt", excludeSize);
+		for(Window w : out){
+			allSizes.add(w.mis.length);
+		}
 		System.out.println(out.size() + " CNVWindow selected.");
 		
 		String outFileName = outputDirs[qq];
@@ -282,6 +293,8 @@ public class GroupCNVWindow {
 		}
 		
 		pw.close();
+		
+		
 		
 		
 		/*
@@ -354,7 +367,12 @@ public class GroupCNVWindow {
 		pw.close();*/
 		
 		}
+		PrintWriter pw = new PrintWriter(new FileWriter(outPath + "mergeroom/sizes.txt" ));
+		for(Integer i : allSizes){
+			pw.println(i);
+		}
 		
+		pw.close();
 		System.out.println("Done.");
 	}
 
