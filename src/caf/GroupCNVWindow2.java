@@ -153,7 +153,7 @@ public class GroupCNVWindow2 {
 				s += "\t" + content[i] + "\n";
 			}
 			s += "Top genes:";
-			for(int i = 0; i < 20; i++){
+			for(int i = 0; i < 10; i++){
 				s += "\t" + allGenes.get(i);
 			}
 			s += "\n";
@@ -244,8 +244,8 @@ public class GroupCNVWindow2 {
 	 * @param args
 	 */
 	public static void main(String[] args) throws Exception {
-		String inPath = "/home/weiyi/workspace/javaworks/caf/output/window51/";
-		int loadIn = 300;
+		String inPath = "/home/weiyi/workspace/javaworks/caf/output/window/";
+		int loadIn = 500;
 		
 		String[] files = new File(inPath + "mergeroom").list();
 		Arrays.sort(files);
