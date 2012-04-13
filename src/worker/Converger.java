@@ -1152,7 +1152,7 @@ public class Converger extends DistributedWorker{
 			
 			pw.print(g + "\t" + chr);
 			for(int i = 0; i < bestVec.length; i++){
-				pw.print("\t" + bestVec[i].idx + "\t" + bestVec[i].val);
+				pw.print("\t" + bestVec[i].idx + ":" + bestVec[i].val);
 			}pw.println();
 			
 		}// END idx iteration
