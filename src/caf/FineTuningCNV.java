@@ -20,14 +20,13 @@ public class FineTuningCNV {
 	 * @param args
 	 */
 	public static void main(String[] args) throws Exception {
-		int wstart = 51;
-		int wend = 301;
+		int[] ws = {21, 51, 101, 201};
+		int wstart = 21;
+		int wend = 201;
 		float estart = 1;
-		float eend = 6f;
+		float eend = 5f;
 		
 		int quantile = 5;
-		
-		String targetArm = "chr8q24";
 		
 		System.out.println("Loading files...");
 		
@@ -36,25 +35,25 @@ public class FineTuningCNV {
 		
 		final String[] dataFiles={
 			"/home/weiyi/workspace/data/brca/gse2034/ge.12160x286.jetset.mean.txt",
-			"/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt",
-			"/home/weiyi/workspace/data/coad/gse14333/ge.19189x290.jetset.mean.txt",
-			"/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt",
-			"/home/weiyi/workspace/data/ov/gse9891/ge.19189x285.jetset.mean.txt",
-			"/home/weiyi/workspace/data/ov/tcga/ge/ge.17814x584.knn.txt",
-			"/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt"
+			"/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt"
+			//"/home/weiyi/workspace/data/coad/gse14333/ge.19189x290.jetset.mean.txt",
+			//"/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt",
+			//"/home/weiyi/workspace/data/ov/gse9891/ge.19189x285.jetset.mean.txt",
+			//"/home/weiyi/workspace/data/ov/tcga/ge/ge.17814x584.knn.txt",
+			//"/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt"
 		};
 		
 		final String[] outputDirs={
 			"brca.gse2034.jetset.mean",
-			"brca.tcga",
-			"coad.gse14333.jetset.mean",
-			"coad.tcga",
-			"ov.gse9891.jetset.mean",
-			"ov.tcga.affy"
+			"brca.tcga"
+			//"coad.gse14333.jetset.mean",
+			//"coad.tcga",
+			//"ov.gse9891.jetset.mean",
+			//"ov.tcga.affy"
 		};
 		
 		
-		String outPath = "/home/weiyi/workspace/javaworks/caf/output/cnv.finetune/hsf1.try/";
+		String outPath = "/home/weiyi/workspace/javaworks/caf/output/cnv.finetune/erbb2/";
 		if(!outPath.endsWith("/")){
 			outPath = outPath + "/";
 		}
@@ -62,7 +61,7 @@ public class FineTuningCNV {
 		new File("output/cnv.finetune").mkdir();
 		new File(outPath).mkdir();
 		
-		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location4";
+		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3";
 		//final String geneLocFile = "output/window/gene.location3";
 		Genome gn = Genome.parseGeneLocation(geneLocFile);
 		
@@ -82,7 +81,7 @@ public class FineTuningCNV {
 		
 		//gn.linkToDataFile(ma);
 		//String[] testList = gn.getAllGenesInChrArm(targetArm);
-		String[] testList = gn.getNeighbors("HSF1", 31);
+		String[] testList = gn.getNeighbors("ERBB2", 51);
 				
 		long jobID = System.currentTimeMillis();
 		Converger cvg = new Converger(0, 1, jobID);
@@ -108,18 +107,19 @@ public class FineTuningCNV {
 			float power = estart;
 			float bestScore = -1;
 			System.out.print("Testing " + gtest + "...");
-			ValIdx[] bestVec = new ValIdx[wstart];
+			ValIdx[] bestVec = new ValIdx[ws[0]];
 			int bestWSize = 0;
 			float bestPow = 0;
 			while(true){
 				if(power > eend){
 					break;
 				}
-				int wsize = wstart;
-				while(true){
+				//int wsize = wstart;
+				for(int wsize:ws){
+				/*while(true){
 					if(wsize > wend){
 						break;
-					}
+					}*/
 					//System.out.println("Window size " + wsize + "\tPower " + power + "...");
 								
 					String[] neighbors = gn.getNeighbors(gtest, wsize);
@@ -137,7 +137,7 @@ public class FineTuningCNV {
 					int idx = ma2.getRows().get(gtest);
 					data = ma2.getData();
 					float[] vec = data[idx];
-					float[] out = cvg.findWeightedCNV(ma2, gtest, gn, vec, wsize, power,  false, false);
+					float[] out = cvg.findWeightedAttractor(ma2, vec, power);
 					
 					
 				
@@ -163,7 +163,7 @@ public class FineTuningCNV {
 						bestPow = power;
 					}
 					//System.out.println("\tScore: " + score);
-					wsize += 50;
+					//wsize += 50;
 				}
 				power += 0.5;	
 			}
@@ -171,9 +171,9 @@ public class FineTuningCNV {
 				undisputedScore = bestScore;
 				undisputedSeed = gtest;
 			}
-			System.out.println("\tScore: " + bestScore);
+			System.out.println("\tScore: " + bestScore + "\tPower: " + bestPow);
 			pw2.println(gtest + "\t" + bestScore);
-			String outFile = outPath + outputDirs[qq] + "/" + targetArm + "_Attractor_" + gtest + ".txt";
+			String outFile = outPath + outputDirs[qq] + "/Attractor_" + gtest + ".txt";
 			String[] neighbors = gn.getNeighbors(gtest, bestWSize);
 			DataFile ma2 = ma.getSubProbes(neighbors);
 			geneNames = ma2.getProbes();
