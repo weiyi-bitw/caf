@@ -861,6 +861,9 @@ public class Converger extends DistributedWorker{
 		for(int idx = start; idx < end; idx++){
 			String g = genes.get(idx);
 			String chrarm = gn.getChrArm(g);
+			if(chrarm.equals("---")){
+				continue;
+			}
 			String[] neighbors = gn.getAllGenesInChrArm(chrarm);
 			DataFile ma2 = ma.getSubProbes(neighbors);
 			ArrayList<String> genes2 = ma2.getProbes();
