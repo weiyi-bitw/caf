@@ -914,6 +914,8 @@ public class Converger extends DistributedWorker{
 				}
 			}
 			
+			System.out.println(bestScore);
+			
 			}// END power iteration
 			if(bestWVec != null){
 				pw.print(g + "\t" + chrarm);
