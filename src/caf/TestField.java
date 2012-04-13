@@ -131,7 +131,7 @@ public class TestField {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String path = "/home/weiyi/workspace/data/ov/tcga/ge";
+		String path = "/home/weiyi/workspace/data/ov/gse9891";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
@@ -143,7 +143,7 @@ public class TestField {
 		if(!outPath.endsWith("/")){
 			outPath = outPath + "/";
 		}
-		DataFile ma = DataFile.parse(path + "ge.12042x582.txt");
+		DataFile ma = DataFile.parse(path + "ge.19189x285.jetset.mean.txt");
 		ArrayList<String> genes = ma.getProbes();
 		
 		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location4";
@@ -152,10 +152,7 @@ public class TestField {
 		//ma.normalizeRows();
 		
 		ArrayList<String> gs = new ArrayList<String>();
-		gs.add("CYC1");
-		gs.add("EXOSC4");
-		gs.add("PSMD12");
-		gs.add("AEBP1");
+		gs.add("TPTE");
 		
 		long jobID = System.currentTimeMillis();
 		
@@ -178,6 +175,11 @@ public class TestField {
 				}
 				
 				DataFile ma2 = ma.getSubProbes(neighbors);
+				
+				if (ma2.getNumRows() < 5){
+					continue;
+				}
+				
 				HashMap<String, Integer> rowmap = ma2.getRows();
 				ArrayList<String> genes2 = ma2.getProbes();
 				int idx = rowmap.get(g);
