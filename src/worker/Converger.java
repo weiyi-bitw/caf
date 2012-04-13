@@ -1062,8 +1062,8 @@ public class Converger extends DistributedWorker{
 		
 		int buf = (wend - 1)/2;
 		
-		int start = id * (m - 2*buf) / totalComputers;
-		int end = (id+1) * (m - 2*buf) / totalComputers;
+		int start = id * m / totalComputers;
+		int end = (id+1) * m / totalComputers;
 		
 		System.out.println("Processing gene " + (start+1) + " to " + end);
 		new File("output").mkdir();
