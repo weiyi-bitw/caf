@@ -875,7 +875,7 @@ public class Converger extends DistributedWorker{
 			for(float power = pstart; power <= pend; power+=delp)
 			{
 			
-			float convergeTh = precision * precision /m2;
+			float convergeTh = precision * precision /m;
 			System.out.print("Processing " + g + "..." + chrarm + "\t" + m2 + "\t" + convergeTh + "\t");
 						
 			float[] wVec = itc.getAllMIWith(vec, data);
