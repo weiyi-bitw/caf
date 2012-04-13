@@ -851,6 +851,7 @@ public class Converger extends DistributedWorker{
 		
 		int start = id * m / totalComputers;
 		int end = (id+1) * m / totalComputers;
+		float convergeTh = precision * precision /m;
 		
 		System.out.println("Processing gene " + (start+1) + " to " + end);
 		
@@ -871,12 +872,9 @@ public class Converger extends DistributedWorker{
 			ValIdx[] bestWVec = null;
 			float bestScore = -1;
 			float bestPow = -1;
-			
+			System.out.print("Processing " + g + "..." + chrarm + "\t" + m2 + "\t" + convergeTh + "\t");
 			for(float power = pstart; power <= pend; power+=delp)
 			{
-			
-			float convergeTh = precision * precision /m;
-			System.out.print("Processing " + g + "..." + chrarm + "\t" + m2 + "\t" + convergeTh + "\t");
 						
 			float[] wVec = itc.getAllMIWith(vec, data);
 			float[] preWVec = new float[m2];
