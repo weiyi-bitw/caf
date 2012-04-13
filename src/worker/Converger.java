@@ -855,8 +855,9 @@ public class Converger extends DistributedWorker{
 		
 		System.out.println("Processing gene " + (start+1) + " to " + end);
 		
-		prepare("geneset");
-		PrintWriter pw = new PrintWriter(new FileWriter("tmp/" + jobID + "/geneset/caf." + String.format("%05d", id)+".txt"));
+		new File("output").mkdir();
+		new File("output/" + jobID).mkdir();
+		PrintWriter pw = new PrintWriter(new FileWriter("output/" + jobID + "/caf." + String.format("%05d", id)+".txt"));
 		
 		for(int idx = start; idx < end; idx++){
 			String g = genes.get(idx);
@@ -865,9 +866,16 @@ public class Converger extends DistributedWorker{
 				continue;
 			}
 			String[] neighbors = gn.getAllGenesInChrArm(chrarm);
+			if(neighbors == null){
+				continue;
+			}
 			DataFile ma2 = ma.getSubProbes(neighbors);
 			ArrayList<String> genes2 = ma2.getProbes();
 			int m2 = ma2.getNumRows();
+			if(m2 < quantile){
+				continue;
+			}
+			
 			float[][] data = ma2.getData();
 			int idx2 = ma2.getRows().get(g);
 			float[] vec = data[idx2];
@@ -956,7 +964,7 @@ public class Converger extends DistributedWorker{
 			{
 				
 				String[] neighbors = gn.getNeighbors(g, winSize);
-				if(neighbors == null || neighbors.length < quantile){
+				if(neighbors == null){
 					System.out.println("No neighbors :(");
 					break;
 				}
