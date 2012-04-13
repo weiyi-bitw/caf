@@ -94,7 +94,7 @@ public class FineTuning {
 						float[] vec = new float[n];
 						int idx = geneMap.get(g);
 						vec = data[idx];
-						float[] tmp = cvg.findWeightedAttractor(ma, g, vec, power, false);
+						float[] tmp = cvg.findWeightedAttractor(ma, vec, power);
 						
 						if(tmp[0] == -1){
 							/*pw.println("Not converged.");

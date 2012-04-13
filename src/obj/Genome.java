@@ -38,15 +38,17 @@ public class Genome {
 		String name;
 		String chr;
 		String chrArm;
+		String chrBand;
 		float coord;
 		
 		Gene(String name){
 			this.name = name;
 		}
-		Gene(String name, String chr, String chrArm, float coord){
+		Gene(String name, String chr, String chrArm, String chrBand, float coord){
 			this.name = name;
 			this.chr = chr;
 			this.chrArm = chrArm;
+			this.chrBand = chrBand;
 			this.coord = coord;
 		}
 		public int hashCode(){
@@ -94,7 +96,13 @@ public class Genome {
 			String[] tokens = line.split("\t");
 			String name = tokens[0];
 			String chr = tokens[6];
-			String chrArm = tokens[1];
+			String chrBand = tokens[1];
+			String chrArm = "---";
+			if (tokens[1].contains("p")){
+				chrArm = chr + "p";
+			}else if(tokens[1].contains("q")){
+				chrArm = chr + "q";
+			}
 			int startCoord = Integer.parseInt(tokens[3]);
 			int endCoord = Integer.parseInt(tokens[4]);
 			
@@ -107,7 +115,7 @@ public class Genome {
 			}
 			
 			float chrCoord = Float.parseFloat(tokens[5]);
-			genes.add(new Gene(name, chr, chrArm, chrCoord));
+			genes.add(new Gene(name, chr, chrArm, chrBand, chrCoord));
 			preMaxCoord = endCoord;
 			lncnt++;
 			line = br.readLine();
@@ -142,7 +150,7 @@ public class Genome {
 				
 			}
 			
-			chrArmMap.put(g.name, g.chrArm);
+			chrArmMap.put(g.name, g.chrBand);
 			chrMap.put(g.name, chr);
 			idxMap.put(g.name, cnt);
 			coordMap.put(g.name, g.coord);
@@ -169,7 +177,17 @@ public class Genome {
 	public String[] getAllGenesInChrArm(String chrArm){
 		ArrayList<String> out = new ArrayList<String>();
 		for(Gene g: genes){
-			if (g.chrArm.contains(chrArm)){
+			if (g.chrArm.equals(chrArm)){
+				out.add(g.name);
+			}
+		}
+		return out.toArray(new String[0]);
+	}
+	
+	public String[] getAllGenesInChrBand(String chrBand){
+		ArrayList<String> out = new ArrayList<String>();
+		for(Gene g: genes){
+			if (g.chrBand.contains(chrBand)){
 				out.add(g.name);
 			}
 		}

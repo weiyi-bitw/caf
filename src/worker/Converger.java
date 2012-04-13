@@ -782,117 +782,29 @@ public class Converger extends DistributedWorker{
 		
 	}
 	
-	public float[] findWeightedCNV(DataFile ma, String gene, Genome gn, float[] vec, int winSize, float power, boolean excludeTop, boolean miDecay) throws Exception{
+	public float[] findWeightedCNV(DataFile ma, String gene, Genome gn, float[] vec, int winSize, float power) throws Exception{
 		float[][] data = ma.getData();
 		int m = data.length;
 		int n = data[0].length;
-		ArrayList<String> genes = ma.getProbes();
 		
 		float[] wVec = itc.getAllMIWith(vec, data);
-		//float[] wVec = StatOps.pearsonCorr(vec, data, m, n);
-		//float[] wVec = StatOps.cov(vec, data, m, n);
 		
-		/*PrintWriter pw = new PrintWriter(new FileWriter("tmp/" + gene + "_CNV.wt.txt"));
-		pw.print("Gene");
-		for(String g : genes){
-			pw.print("\t" + g);
-		}pw.println();
-		pw.print("-1");
-		for(int i = 0; i < m; i++){
-			pw.print("\t" + wVec[i]);
-		}pw.println();*/
-		
-		if(excludeTop){
-			int maxIdx = -1;
-			float maxw = -1;
-			float nextMaxW = -1;
-			for(int i = 0; i < m; i++){
-				if(wVec[i] > maxw){
-					maxIdx = i;
-					nextMaxW = maxw;
-					maxw = wVec[i];
-				}
-			}
-			wVec[maxIdx] = 0;
-		}
-		
-		float center = genes.indexOf(gene);
-		//float center = gn.getIdx(gene);
-		//System.out.println(center);
-		float range = gn.getChrCoordRange(gn.getChr(gene));
-		//float range = gn.getChrIdxRange(gn.getChr(gene));
-		
-		if(miDecay){
-			System.out.println(gene);
-			for(int i = 0; i < m; i++){
-				if(Math.abs(center - i) > (winSize/2)){
-					wVec[i] = 0;
-				}//System.out.print(gn.getIdx(genes.get(i)) + ":" + wVec[i] + "\t");
-				
-				//float f = Math.abs(gn.getCoord(genes.get(i))-center) / (float) range;
-				//float f = Math.abs(gn.getIdx(genes.get(i))-center) / (float)range;
-				
-				//System.out.print("\t" + f + "\t" + wVec[i]);
-				//wVec[i] *=(float) Math.exp(2 * Math.log( 1-f ) ); 
-				//System.out.println("\t" + wVec[i]);
-			
-			}//System.out.println();
-		
-		}
 		float[] preWVec = new float[m];
 		System.arraycopy(wVec, 0, preWVec, 0, m);
 		int c = 0;
 		float convergeTh = precision * precision / m;
-		//System.out.println("m : " + m);
-		//System.out.println("Convergence threshold : " + convergeTh);
 		
 		while(c < maxIter){
 			float[] metaGene = getWeightedMetaGene(data, wVec, power,  m, n);
 			wVec = itc.getAllMIWith(metaGene, data);
-			int maxIdx = -1;
-			float maxWVec = -1;
-			for(int i = 0; i < m; i++){
-				if(wVec[i] > maxWVec){
-					maxIdx = i;
-					maxWVec = wVec[i];
-				}
-			}
-			
-			//center = gn.getIdx(genes.get(maxIdx));
-			//System.out.println(center);
-			if(miDecay){
-				System.out.println(genes.get(maxIdx) + "\t" + maxIdx + "\t" + center);
-				for(int i = 0; i < m; i++){
-					if(Math.abs(center - i) > (winSize/2) && Math.abs(maxIdx - i) > (winSize / 2)){
-						wVec[i] = 0;
-					}//System.out.print(gn.getIdx(genes.get(i)) + ":" + wVec[i] + "\t");
-					center = maxIdx;
-					//float f = Math.abs(gn.getCoord(genes.get(i))-center) / range;
-					//float f = Math.abs(gn.getIdx(genes.get(i))-center) / (float)range;
-					//wVec[i] *= (float) Math.exp(2 * Math.log( 1-f ) ); 
-				}//System.out.println();
-			}
-			//System.out.println(wVec[idx]);
-			//wVec = StatOps.pearsonCorr(metaGene, data, m, n);
-			//wVec = StatOps.cov(metaGene, data, m, n);
-			
-			/*pw.print(c);
-			for(int i = 0; i < m; i++){
-				pw.print("\t" + wVec[i]);
-			}pw.println();*/
-			
 			float err = calcMSE(wVec, preWVec, m);
 			//System.out.println(err);
 			if(err < convergeTh){
-				//pw.close();
-				//System.out.println("Converged.");
 				return wVec;
 			}
 			System.arraycopy(wVec, 0, preWVec, 0, m);
 			c++;
 		}
-		//System.out.println("Not converged.");
-		//pw.close();
 		wVec[0] = -1;
 		return wVec;
 	}
@@ -1250,7 +1162,7 @@ public class Converger extends DistributedWorker{
 	}
 	
 	
-	public float[] findWeightedAttractor(DataFile ma, String gene, float[] vec, float power, boolean verbose) throws Exception{
+	public float[] findWeightedAttractor(DataFile ma, float[] vec, float power) throws Exception{
 		float[][] data = ma.getData();
 		int m = data.length;
 		int n = data[0].length;
