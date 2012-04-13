@@ -1060,8 +1060,6 @@ public class Converger extends DistributedWorker{
 		ArrayList<String> genes = ma.getProbes();
 		HashMap<String, Integer> maMap = ma.getRows();
 		
-		int buf = (wend - 1)/2;
-		
 		int start = id * m / totalComputers;
 		int end = (id+1) * m / totalComputers;
 		
@@ -1072,17 +1070,15 @@ public class Converger extends DistributedWorker{
 		
 		for(int idx = start; idx < end; idx++)
 		{
-			int iii = idx + buf;
 			float bestScore = -1;
 			int bestWinSize = -1;
 			float bestExp = -1;
 			ValIdx[] bestVec = null;
-			String g = genes.get(iii);
+			String g = genes.get(idx);
 			System.out.print("Processing " + g + "..."); 
 			
 			for(int winSize = wstart; winSize <= wend; winSize += delw)
 			{
-				
 				
 				String[] neighbors = gn.getNeighbors(g, winSize);
 				if(neighbors == null){
