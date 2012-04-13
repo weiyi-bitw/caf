@@ -131,7 +131,7 @@ public class TestField {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String path = "/home/weiyi/workspace/data/brca/gse2034/";
+		String path = "/home/weiyi/workspace/data/ov/tcga/ge";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
@@ -143,50 +143,62 @@ public class TestField {
 		if(!outPath.endsWith("/")){
 			outPath = outPath + "/";
 		}
-		/*DataFile ma = DataFile.parse(path + "ge.12160x286.jetset.mean.txt");
-		int m = ma.getNumRows();
-		int n = ma.getNumCols();
-		float[][] data = ma.getData();*/
+		DataFile ma = DataFile.parse(path + "ge.12042x582.txt");
+		ArrayList<String> genes = ma.getProbes();
 		
 		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location4";
 		//final String geneLocFile = "/home/weiyi/workspace/javaworks/caf/output/639/gene.location3";
 		
-		String command = "CNV";
-		float power = 5f;
-		boolean excludeTop = false;
-		boolean miDecay = false;
-		int winSize = 51;
-		
 		//ma.normalizeRows();
 		
 		ArrayList<String> gs = new ArrayList<String>();
-		/*BufferedReader br = new BufferedReader(new FileReader("COL11A1_50"));
-		br.readLine();
-		String line = br.readLine();
-		while(line != null){
-			String[] tokens = line.split("\t");
-			gs.add(tokens[0]);
-			line = br.readLine();
-		}
-		br.close();*/
+		gs.add("CYC1");
+		gs.add("EXOSC4");
+		gs.add("PSMD12");
+		gs.add("AEBP1");
 		
 		long jobID = System.currentTimeMillis();
 		
 		//String annotPath = "/home/weiyi/workspace/data/annot/affy/u133p2/annot.csv";
 		//Annotations annot = Annotations.parseAnnotations(annotPath);
-		Annotations annot = null;
 		
 		Converger cvg = new Converger(0, 1, jobID);
+		ITComputer itc = new ITComputer(6, 3, 0, 1, true);
+		cvg.linkITComputer(itc);
 		
 		Genome gn = Genome.parseGeneLocation(geneLocFile);
-		String[] chr17q = gn.getAllGenesInChrArm("chr17q");
-		
-		for(String s : chr17q){
-			System.out.println(s);
-		}
 		//if(command.equals("CNV")) gn.linkToDataFile(ma);
-		
-		
+		for(String g : gs){
+			if(genes.contains(g)){
+				System.out.println("Processing " + g + " (" + gn.getChrArm(g) + ")" + "...");
+				String[] neighbors = gn.getAllGenesInChrArm(gn.getChrArm(g));
+				if(neighbors == null){
+					System.out.println("No neighbors :(");
+					break;
+				}
+				
+				DataFile ma2 = ma.getSubProbes(neighbors);
+				HashMap<String, Integer> rowmap = ma2.getRows();
+				ArrayList<String> genes2 = ma2.getProbes();
+				int idx = rowmap.get(g);
+				ValIdx[] out = cvg.findWeightedAttractorOptimizePower(ma2, idx, 1f, 6, 0.5f, 5);
+				
+				if(out == null){
+					System.out.println("No legit attractor.");
+					continue;
+				}
+				
+				new File("tmp").mkdir();
+				PrintWriter pw = new PrintWriter(new FileWriter("tmp/CNV_" + g + ".txt"));
+				for(int i = 0; i < out.length; i++){
+					pw.println(genes2.get(out[i].idx) + "\t" + out[i].val);
+				}
+				pw.close();
+			}else{
+				System.out.println("Does not contain gene " + g);
+			}
+			
+		}
 		
 		System.out.println("Done.");
 	}

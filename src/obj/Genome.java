@@ -76,6 +76,7 @@ public class Genome {
 	ArrayList<Gene> genes;
 	HashMap<String, String> chrMap;
 	HashMap<String, String> chrArmMap;
+	HashMap<String, String> chrBandMap;
 	HashMap<String, Integer> idxMap;
 	HashMap<String, Float> coordMap;
 	HashMap<String, IntPair> chrIdxRangeMap;
@@ -133,6 +134,7 @@ public class Genome {
 		Collections.sort(genes);
 		this.chrMap = new HashMap<String, String>();
 		this.chrArmMap = new HashMap<String, String>();
+		this.chrBandMap = new HashMap<String, String>();
 		this.idxMap = new HashMap<String, Integer>();
 		this.coordMap = new HashMap<String, Float>();
 		this.chrIdxRangeMap = new HashMap<String, IntPair>();
@@ -150,7 +152,8 @@ public class Genome {
 				
 			}
 			
-			chrArmMap.put(g.name, g.chrBand);
+			chrArmMap.put(g.name, g.chrArm);
+			chrBandMap.put(g.name, g.chrBand);
 			chrMap.put(g.name, chr);
 			idxMap.put(g.name, cnt);
 			coordMap.put(g.name, g.coord);
@@ -321,6 +324,9 @@ public class Genome {
 	}
 	public String getChrArm(String gene){
 		return chrArmMap.get(gene);
+	}
+	public String getChrBand(String gene){
+		return chrBandMap.get(gene);
 	}
 	
 	
