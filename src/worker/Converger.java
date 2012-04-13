@@ -956,7 +956,7 @@ public class Converger extends DistributedWorker{
 			{
 				
 				String[] neighbors = gn.getNeighbors(g, winSize);
-				if(neighbors == null){
+				if(neighbors == null || neighbors.length < quantile){
 					System.out.println("No neighbors :(");
 					break;
 				}
