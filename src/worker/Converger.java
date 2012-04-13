@@ -1062,8 +1062,8 @@ public class Converger extends DistributedWorker{
 		
 		int buf = (wend - 1)/2;
 		
-		int start = id * (m - 2*buf) / totalComputers;
-		int end = (id+1) * (m - 2*buf) / totalComputers;
+		int start = id * m / totalComputers;
+		int end = (id+1) * m / totalComputers;
 		
 		System.out.println("Processing gene " + (start+1) + " to " + end);
 		new File("output").mkdir();
@@ -1152,7 +1152,7 @@ public class Converger extends DistributedWorker{
 			
 			pw.print(g + "\t" + chr);
 			for(int i = 0; i < bestVec.length; i++){
-				pw.print("\t" + bestVec[i].idx + "\t" + bestVec[i].val);
+				pw.print("\t" + bestVec[i].idx + ":" + bestVec[i].val);
 			}pw.println();
 			
 		}// END idx iteration
