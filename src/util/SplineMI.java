@@ -472,7 +472,7 @@ public class SplineMI {
 		}
 		return weights;
 	}
-    public static void findWeights(float[] x, int[] knots, float[][] weights, int numSamples, int splineOrder, int numBins) {
+    public static void findWeights(float[] x, int[] knots, double[][] weights, int numSamples, int splineOrder, int numBins) {
         int curSample;
         int curBin;
         float[] z = new float[numSamples];
@@ -486,15 +486,27 @@ public class SplineMI {
 
         for (curSample = 0; curSample < numSamples; curSample++) {
             for (curBin = 0; curBin < numBins; curBin++) {
-                weights[curBin][curSample] = Float.isNaN(z[curSample])? (float)1/numBins :(float) SplineBlend(curBin, splineOrder, knots, z[curSample], numBins);
+                weights[curBin][curSample] = Float.isNaN(z[curSample])? (double)(1/numBins) :SplineBlend(curBin, splineOrder, knots, z[curSample], numBins);
                 /* weights[curBin * numSamples + curSample] = splineFunction(z[curSample], splineOrder, curBin + 1, numBins); */
                 /* mexPrintf("%d|%f(%f)\t", curBin, weights[curBin * numSamples + curSample],z[curSample]); */
             }
         }
     }
+    public static void findWeights(float[] x, int[] knots, float[][] weights, int numSamples, int splineOrder, int numBins) {
+        int curSample;
+        int curBin;
+        float[] z = new float[numSamples];
+
+        xToZ(x, z, numSamples, splineOrder, numBins);
+
+        for (curSample = 0; curSample < numSamples; curSample++) {
+            for (curBin = 0; curBin < numBins; curBin++) {
+                weights[curBin][curSample] = Float.isNaN(z[curSample])? (float)(1/numBins) : (float)SplineBlend(curBin, splineOrder, knots, z[curSample], numBins);
+            }
+        }
+    }
     
-    
-    public static void findWeights(float[] x, int[] knots, float[][] weights,	boolean[] valid, int numSamples, int splineOrder, int numBins) {
+    public static void findWeights(float[] x, int[] knots, double[][] weights,	boolean[] valid, int numSamples, int splineOrder, int numBins) {
     	int curSample;
         int curBin;
         float[] z = new float[numSamples];
@@ -509,7 +521,7 @@ public class SplineMI {
         for (curSample = 0; curSample < numSamples; curSample++) {
         	valid[curSample] = Float.isNaN(x[curSample])? false : true;
         	for (curBin = 0; curBin < numBins; curBin++) {
-                weights[curBin][curSample] =Float.isNaN(z[curSample])? (float)1/numBins : (float) SplineBlend(curBin, splineOrder, knots, z[curSample], numBins);
+                weights[curBin][curSample] =Float.isNaN(z[curSample])? (double)(1/numBins) : SplineBlend(curBin, splineOrder, knots, z[curSample], numBins);
             }
         }
 	}
@@ -591,15 +603,36 @@ public class SplineMI {
         }
     }
     */
-    public static double entropy1d(float[][] weights, float numSamples, int numBins) {
+    public static double entropy1f(float[][] weights, float numSamples, int numBins) {
+        double H = 0;
+        float w;
+         for (int curBin = 0; curBin < numBins; curBin++) {
+        	 float histVal = 0;
+        	 float n = numSamples;
+             for(int curSample = 0; curSample < numSamples; curSample++){
+             	w = weights[curBin][curSample];
+             	if(!Double.isNaN(w)){
+             		histVal += w;
+             	}else{
+             		n--;
+             	}
+             }
+             histVal /= n;
+             if (histVal > 0) {
+         		H -= histVal * log2d(histVal);
+         	}
+         }
+         return H;
+     }
+    public static double entropy1d(double[][] weights, double numSamples, int numBins) {
        double H = 0;
-       float w;
+       double w;
         for (int curBin = 0; curBin < numBins; curBin++) {
-            float histVal = 0;
-            float n = numSamples;
+            double histVal = 0;
+            double n = numSamples;
             for(int curSample = 0; curSample < numSamples; curSample++){
             	w = weights[curBin][curSample];
-            	if(!Float.isNaN(w)){
+            	if(!Double.isNaN(w)){
             		histVal += w;
             	}else{
             		n--;
@@ -612,18 +645,43 @@ public class SplineMI {
         }
         return H;
     }
-    public static double entropy2d(float[][] wx, float[][] wy, float numSamples, int numBins) {
+    public static double entropy2f(float[][] wx, float[][] wy, float numSamples, int numBins) {
         int curBinX, curBinY;
         double H = 0;
         float wxy;
         //int base = numBins * numBins;
         for (curBinX = 0; curBinX < numBins; curBinX++) {
             for (curBinY = 0; curBinY < numBins; curBinY++) {
-                float histVal = 0;
-                float n = numSamples;
+            	float histVal = 0;
+            	float n = numSamples;
                 for (int curSample = 0; curSample < numSamples; curSample++) {
                 	wxy = wx[curBinX][curSample] * wy[curBinY][curSample];
-                	if(!Float.isNaN(wxy)){
+                	if(!Double.isNaN(wxy)){
+                		histVal += wxy;
+                	}else{
+                		n--;
+                	}
+                }
+                histVal /= n;
+            	if (histVal > 0) {
+                    H -= histVal * log2d(histVal);
+                }
+            }
+        }
+        return H;
+    }
+    public static double entropy2d(double[][] wx, double[][] wy, float numSamples, int numBins) {
+        int curBinX, curBinY;
+        double H = 0;
+        double wxy;
+        //int base = numBins * numBins;
+        for (curBinX = 0; curBinX < numBins; curBinX++) {
+            for (curBinY = 0; curBinY < numBins; curBinY++) {
+                double histVal = 0;
+                double n = numSamples;
+                for (int curSample = 0; curSample < numSamples; curSample++) {
+                	wxy = wx[curBinX][curSample] * wy[curBinY][curSample];
+                	if(!Double.isNaN(wxy)){
                 		histVal += wxy;
                 	}else{
                 		n--;
@@ -638,18 +696,43 @@ public class SplineMI {
         return H;
     }
     
-    public static double entropy2d(float[][] wx, float[][] wy, float numSamples, int nbx, int nby) {
+    public static double entropy2d(double[][] wx, double[][] wy, float numSamples, int nbx, int nby) {
         int curBinX, curBinY;
         double H = 0;
+        double wxy;
+        //int base = nbx * nby;
+        for (curBinX = 0; curBinX < nbx; curBinX++) {
+            for (curBinY = 0; curBinY < nby; curBinY++) {
+                double histVal = 0;
+                double n = numSamples;
+                for (int curSample = 0; curSample < numSamples; curSample++) {
+                	wxy = wx[curBinX][curSample] * wy[curBinY][curSample];
+                	if(!Double.isNaN(wxy)){
+                		histVal += wxy;
+                	}else{
+                		n--;
+                	}
+                }
+                histVal /= n;
+            	if (histVal > 0) {
+                    H -= histVal * log2d(histVal);
+                }
+            }
+        }
+        return H;
+    }
+    public static double entropy2f(float[][] wx, float[][] wy, float numSamples, int nbx, int nby) {
+        int curBinX, curBinY;
+        float H = 0;
         float wxy;
         //int base = nbx * nby;
         for (curBinX = 0; curBinX < nbx; curBinX++) {
             for (curBinY = 0; curBinY < nby; curBinY++) {
-                float histVal = 0;
-                float n = numSamples;
+            	float histVal = 0;
+            	float n = numSamples;
                 for (int curSample = 0; curSample < numSamples; curSample++) {
                 	wxy = wx[curBinX][curSample] * wy[curBinY][curSample];
-                	if(!Float.isNaN(wxy)){
+                	if(!Double.isNaN(wxy)){
                 		histVal += wxy;
                 	}else{
                 		n--;
@@ -663,8 +746,7 @@ public class SplineMI {
         }
         return H;
     }
-    
-    public static double entropy3d(float[][] wx, float[][] wy, float[][] wz, float numSamples, int numBins) {
+    public static double entropy3f(float[][] wx, float[][] wy, float[][] wz, float numSamples, int numBins) {
         int curBinX, curBinY, curBinZ, curSample;
         double H = 0;
         float wxyz;
@@ -673,10 +755,38 @@ public class SplineMI {
         for (curBinX = 0; curBinX < numBins; curBinX++) {
             for (curBinY = 0; curBinY < numBins; curBinY++) {
                 for (curBinZ = 0; curBinZ < numBins; curBinZ++) {
-                    float histVal = 0;
+                	float histVal = 0;
                     for (curSample = 0; curSample < numSamples; curSample++) {
                         wxyz = wx[curBinX][curSample] * wy[curBinY][curSample] * wz[curBinZ][curSample];
-                    	if(!Float.isNaN(wxyz)){
+                    	if(!Double.isNaN(wxyz)){
+                    		histVal += wxyz;
+                    	}else{
+                    		n--;
+                    	}
+                    
+                    }
+                	histVal/=n;
+                	if(histVal > 0){
+                		H -= histVal * log2d(histVal);
+                	}
+                }
+            }
+        }
+        return H;
+    }
+    public static double entropy3d(double[][] wx, double[][] wy, double[][] wz, double numSamples, int numBins) {
+        int curBinX, curBinY, curBinZ, curSample;
+        double H = 0;
+        double wxyz;
+        double n = numSamples;
+        //int base = numBins * numBins * numBins;
+        for (curBinX = 0; curBinX < numBins; curBinX++) {
+            for (curBinY = 0; curBinY < numBins; curBinY++) {
+                for (curBinZ = 0; curBinZ < numBins; curBinZ++) {
+                    double histVal = 0;
+                    for (curSample = 0; curSample < numSamples; curSample++) {
+                        wxyz = wx[curBinX][curSample] * wy[curBinY][curSample] * wz[curBinZ][curSample];
+                    	if(!Double.isNaN(wxyz)){
                     		histVal += wxyz;
                     	}else{
                     		n--;
@@ -715,9 +825,9 @@ public class SplineMI {
     	float x[] = {1f, 2f, 3f, 4f, 5f, 6f, 7f};
     	float y[] = {1f, 2f, 3f, 4f, 5f, 6f, 7f};
     	float z[] = {3f, 6f, 7f, 2f, 5f, 3f, 2f};
-    	float wx[][] = new float[7][7];
-    	float wy[][] = new float[7][7];
-    	float wz[][] = new float[7][7];
+    	double wx[][] = new double[7][7];
+    	double wy[][] = new double[7][7];
+    	double wz[][] = new double[7][7];
     	
     	splineKnots(u, 7, 3);
     	findWeights(x, u, wx, 7, 3, 7);

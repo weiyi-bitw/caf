@@ -29,27 +29,27 @@ public class FineTuning {
 		
 		//String outPath = "/home/weiyi/workspace/javaworks/caf/output/656/";
 		new File("output").mkdir();
-		String outPath = "/home/weiyi/workspace/javaworks/caf/output/caf.finetune/maf/";
+		String outPath = "/home/weiyi/workspace/javaworks/caf/output/caf.finetune/test/";
 		if(!outPath.endsWith("/")){
 			outPath = outPath + "/";
 		}
 		final String[] dataFiles={
-				"/home/weiyi/workspace/data/brca/gse2034/ge.12160x286.jetset.mean.txt",
-				"/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt",
-				"/home/weiyi/workspace/data/coad/gse14333/ge.19189x290.jetset.mean.txt",
-				"/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt",
-				"/home/weiyi/workspace/data/ov/gse9891/ge.19189x285.jetset.mean.txt",
+				"/home/weiyi/workspace/data/brca/gse2034/ge.12160x286.jetset.mean.txt"
+				//"/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt",
+				//"/home/weiyi/workspace/data/coad/gse14333/ge.19189x290.jetset.mean.txt",
+				//"/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt",
+				//"/home/weiyi/workspace/data/ov/gse9891/ge.19189x285.jetset.mean.txt",
 				//"/home/weiyi/workspace/data/ov/tcga/ge/ge.17814x584.knn.txt"
-				"/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt"
+				//"/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt"
 		};
 			
 		final String[] outputDirs={
 			"brca.gse2034.jetset.mean",
-			"brca.tcga",
-			"coad.gse14333.jetset.mean",
-			"coad.tcga",
-			"ov.gse9891.jetset.mean",
-			"ov.tcga.affy"
+			//"brca.tcga",
+			//"coad.gse14333.jetset.mean",
+			//"coad.tcga",
+			//"ov.gse9891.jetset.mean",
+			//"ov.tcga.affy"
 		};
 			
 		
@@ -72,7 +72,9 @@ public class FineTuning {
 		cvg.linkITComputer(itc);
 		HashMap<String, Integer> geneMap = ma.getRows();
 		
-		gs.add("COL11A1");
+		gs.add("CENPA");
+		gs.add("KIF2C");
+		gs.add("CEP55");
 		
 		for(String g : gs){
 			ArrayList<String> geneNames = ma.getProbes();
@@ -94,7 +96,7 @@ public class FineTuning {
 						float[] vec = new float[n];
 						int idx = geneMap.get(g);
 						vec = data[idx];
-						float[] tmp = cvg.findWeightedAttractor(ma, vec, power);
+						double[] tmp = cvg.findWeightedAttractorDouble(ma, vec, power);
 						
 						if(tmp[0] == -1){
 							/*pw.println("Not converged.");
@@ -104,12 +106,12 @@ public class FineTuning {
 						}
 						ValIdx[] vis = new ValIdx[m];
 						for(int i = 0; i < m; i++){
-							vis[i] = new ValIdx(i, tmp[i]);
+							vis[i] = new ValIdx(i, (float)tmp[i]);
 						}
 						Arrays.sort(vis);
 						
 						new File(outPath + "mergeroom").mkdir();
-						String outFile = outPath + "mergeroom/" + outputDirs[qq];
+						String outFile = outPath + "mergeroom/" + outputDirs[qq] + "_" + g;
 						PrintWriter pw = new PrintWriter(new FileWriter(outFile));
 						for(int i = 0; i < m; i++){
 							String gg = geneNames.get(vis[i].idx);

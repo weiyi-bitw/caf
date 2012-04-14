@@ -31,6 +31,7 @@ public class Converger extends DistributedWorker{
 	private static int splineOrder = 3;
 	private static boolean miNorm = false;
 	private static float precision = (float) 1E-4;
+	private static double epsilon = 1E-14;
 	static ITComputer itc;
 	
 	
@@ -200,6 +201,23 @@ public class Converger extends DistributedWorker{
 		}
 		return out;
 	}
+	private static float[] getWeightedMetaGene(float[][] data, double[] w, float power, int m, int n){
+		float[] out = new float[n];
+		double sum = 0;
+		for(int i = 0; i < m; i++){
+			if(w[i] > 0){
+				double f = Math.exp(power*Math.log(w[i]));
+				sum += f;
+				for(int j = 0; j < n; j++){
+					out[j] += data[i][j] * f;
+				}
+			}
+		}
+		for(int j = 0; j < n; j++){
+			out[j] /= sum;
+		}
+		return out;
+	}
 	private static float[] getChrWeightedMetaGene(float[][] data, float[] w, ArrayList<String> genes, 
 			String chr, Genome gn, float power, int m, int n){
 		float[] out = new float[n];
@@ -258,6 +276,13 @@ public class Converger extends DistributedWorker{
 		}
 		return err / n;
 	}
+	public static double calcMSE(double[] a, double[] b, int n){
+		double err = 0;
+		for(int i = 0; i < n; i++){
+			err += (a[i] - b[i]) * (a[i] - b[i]);
+		}
+		return err / n;
+	}
 	public static boolean equal(float[] a, float[] b, int n, float delta){
 		for(int i = 0; i < n; i++){
 			if(Math.abs(a[i] - b[i]) > delta){
@@ -267,6 +292,13 @@ public class Converger extends DistributedWorker{
 		}
 		return true;
 	}
+	public static boolean identical(double[] w1, double[] w2, int n, float precision){
+		for(int i = 0; i < n ;i++){
+			if(w1[i] - w2[i] > precision) return false;
+		}
+		return true;
+	}
+	
 	public ArrayList<ValIdx> findAttractor(float[][] data, int idx) throws Exception{
 		int m = data.length;
 		int n = data[0].length;
@@ -851,7 +883,6 @@ public class Converger extends DistributedWorker{
 		
 		int start = id * m / totalComputers;
 		int end = (id+1) * m / totalComputers;
-		float convergeTh = precision * precision /m;
 		
 		System.out.println("Processing gene " + (start+1) + " to " + end);
 		
@@ -883,7 +914,7 @@ public class Converger extends DistributedWorker{
 			ValIdx[] bestWVec = null;
 			float bestScore = -1;
 			float bestPow = -1;
-			System.out.print("Processing " + g + "..." + chrarm + "\t" + m2 + "\t" + convergeTh + "\t");
+			System.out.print("Processing " + g + "..." + chrarm + "\t" + m2 + "\t");
 			for(float power = pstart; power <= pend; power+=delp)
 			{
 						
@@ -900,7 +931,7 @@ public class Converger extends DistributedWorker{
 				
 				float err = calcMSE(wVec, preWVec, m2);
 				//System.out.println(err);
-				if(err < convergeTh){
+				if(err < epsilon){
 					converge = true;
 					break;
 				}
@@ -1162,6 +1193,36 @@ public class Converger extends DistributedWorker{
 		wVec[0] = -1;
 		return wVec;
 	}
+	public double[] findWeightedAttractorDouble(DataFile ma, float[] vec, float power) throws Exception{
+		float[][] data = ma.getData();
+		int m = data.length;
+		int n = data[0].length;
+		//ArrayList<String> genes = ma.getProbes();
+		
+		double[] wVec = itc.getAllDoubleMIWith(vec, data);
+		
+		double[] preWVec = new double[m];
+		System.arraycopy(wVec, 0, preWVec, 0, m);
+		int c = 0;
+		double convergeTh = 1E-14;
+		
+		while(c < maxIter){
+			float[] metaGene = getWeightedMetaGene(data, wVec, power,  m, n);
+			wVec = itc.getAllDoubleMIWith(metaGene, data);
+			
+			double err = calcMSE(wVec, preWVec, m);
+			System.out.println(err);
+			if(err < convergeTh){
+				System.out.println("Converged.");
+				return wVec;
+			}
+			System.arraycopy(wVec, 0, preWVec, 0, m);
+			c++;
+		}
+		System.out.println("Not converged.");
+		wVec[0] = -1;
+		return wVec;
+	}
 	public void findWeightedAttractor(float[][] data, float power) throws Exception{
 		int m = data.length;
 		int n = data[0].length;
@@ -1171,27 +1232,25 @@ public class Converger extends DistributedWorker{
 		
 		System.out.println("Processing gene " + (start+1) + " to " + end);
 		
-		ArrayList<float[]> wVecs = new ArrayList<float[]>();
+		ArrayList<double[]> wVecs = new ArrayList<double[]>();
 		ArrayList<ArrayList<Integer>> basins = new ArrayList<ArrayList<Integer>>();
-		
-		float convergeTh = precision * precision / m;
 		
 		for(int idx = start; idx < end; idx++){
 			System.out.print("Processing " + idx + "...");
-			float[] wVec = itc.getAllMIWith(data[idx], data);
+			double[] wVec = itc.getAllDoubleMIWith(data[idx], data);
 			//float[] wVec = StatOps.pearsonCorr(vec, data, m, n);
 			//float[] wVec = StatOps.cov(vec, data, m, n);
-			float[] preWVec = new float[m];
+			double[] preWVec = new double[m];
 			System.arraycopy(wVec, 0, preWVec, 0, m);
 			int c = 0;
 			boolean converge = false;
 			while(c < maxIter){
 				float[] metaGene = getWeightedMetaGene(data, wVec, power,  m, n);
-				wVec = itc.getAllMIWith(metaGene, data);
+				wVec = itc.getAllDoubleMIWith(metaGene, data);
 				
-				float err = calcMSE(wVec, preWVec, m);
+				double err = calcMSE(wVec, preWVec, m);
 				System.arraycopy(wVec, 0, preWVec, 0, m);
-				if(err < convergeTh){
+				if(err < epsilon){
 					Arrays.sort(preWVec);
 					if(preWVec[m-1] - preWVec[m-2] > 0.5){
 						System.out.println("Top dominated.");
@@ -1208,9 +1267,8 @@ public class Converger extends DistributedWorker{
 			if(converge){
 				boolean newOne = true;
 				for(int i = 0; i < wVecs.size(); i++){
-					float[] fs = wVecs.get(i);
-					float err = calcMSE(wVec, fs, m);
-					if(err < precision / m){ 
+					double[] fs = wVecs.get(i);
+					if(identical(fs, wVec, m, precision)){ 
 						newOne = false;
 						basins.get(i).add(idx);
 						break;
@@ -1239,7 +1297,7 @@ public class Converger extends DistributedWorker{
 					pw.print("," + basin.get(j));
 				}
 			}
-			float[] fs = wVecs.get(i);
+			double[] fs = wVecs.get(i);
 			for(int j = 0; j < m; j++){
 				pw.print("\t" + fs[j]);
 			}

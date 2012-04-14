@@ -77,7 +77,7 @@ public class ITComputer extends DistributedWorker{
 		int n = weights[0][0].length;
 		float[] e1 = new float[m];
 		for(int i = 0; i < m; i++){
-			e1[i] = (float)SplineMI.entropy1d(weights[i], n, bins);
+			e1[i] = (float)SplineMI.entropy1f(weights[i], n, bins);
 		}
 		return e1;
 	}
@@ -88,7 +88,7 @@ public class ITComputer extends DistributedWorker{
 		for(int i = 0; i < m; i++){
 			float[][] w = weights.get(i);
 			int b = w.length;
-			e1[i] = (float)SplineMI.entropy1d(w, w[0].length, b);
+			e1[i] = (float)SplineMI.entropy1f(w, w[0].length, b);
 		}
 		return e1;
 	}
@@ -104,7 +104,7 @@ public class ITComputer extends DistributedWorker{
 		for(int i = 0; i < m; i++){
 			for(int j = i; j < m; j++){
 				//System.out.println("Processing probe " + (i+1) + "," + (j+1));
-				e2[i][j] = (float)SplineMI.entropy2d(weights[i], weights[j], n, bins);
+				e2[i][j] = (float)SplineMI.entropy2f(weights[i], weights[j], n, bins);
 				e2[j][i] = e2[i][j];
 			}
 		}
@@ -134,7 +134,7 @@ public class ITComputer extends DistributedWorker{
 		for(int i = start; i < end; i++){
 			DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream("tmp/" + jobID + "/ent/entropy2-" + String.format("%05d", i) + ".bin")));
 			for(int j = 0; j < m; j++){
-				float e2 = (float)SplineMI.entropy2d(weights[i], weights[j], n, bins);
+				float e2 = (float)SplineMI.entropy2f(weights[i], weights[j], n, bins);
 				out.writeFloat(e2);
 			}
 			out.close();
@@ -167,8 +167,6 @@ public class ITComputer extends DistributedWorker{
 		int n = weights[0][0].length;
 		int m = weights.length;
 		
-		
-		
 		float[] mi = new float[m];
 		float miMax = 0;
 		for(int i = 0; i < m; i++){
@@ -200,12 +198,12 @@ public class ITComputer extends DistributedWorker{
 	        	}
 			}
 			
-			float e2 = (float)SplineMI.entropy2d(weights[idx], weights[i], n, bins);
+			float e2 = (float)SplineMI.entropy2f(weights[idx], weights[i], n, bins);
 			if(!normalizeMI){
 				mi[i] = (e1tf + e1tg - e2);
 			}else{
-				float e2tf = (float)SplineMI.entropy2d(weights[idx], weights[idx], n, bins);
-				float e2tg = (float)SplineMI.entropy2d(weights[i], weights[i], n, bins);
+				float e2tf = (float)SplineMI.entropy2f(weights[idx], weights[idx], n, bins);
+				float e2tg = (float)SplineMI.entropy2f(weights[i], weights[i], n, bins);
 				float mitf = 2*e1tf - e2tf;
 				float mitg = 2*e1tg - e2tg;
 				
@@ -238,6 +236,69 @@ public class ITComputer extends DistributedWorker{
 		
 	}
 	
+	public double[] getAllDoubleMIWith(float[] fixVec, float[][] data) throws Exception{
+		int n = data[0].length;
+		int m = data.length;
+		
+	// calculate the MI of fixVec to itself (for normalization)
+		
+		double[][] weightFix = new double[bins][n];
+		SplineMI.findWeights(fixVec, knots, weightFix, n, splineOrder, bins);
+		double[] histValtf = new double[bins];
+		int numSamples = n;
+		
+		//float miMax = 2 * e1fix - e2fix;
+		
+		double[] mi = new double[m];
+		for(int i = 0; i < m; i++){
+			
+			double[][] weightTg = new double[bins][n];
+			SplineMI.findWeights(data[i], knots, weightTg, n, splineOrder, bins);
+			
+			double e1tf = 0, e1tg = 0;
+			histValtf = new double[bins];
+			double[] histValtg = new double[bins];
+			numSamples = n;
+			
+			for(int curSample = 0; curSample < n; curSample++){
+				
+				if(!Double.isNaN(weightFix[0][curSample]) && !Double.isNaN(weightTg[0][curSample])){
+					for (int curBin = 0; curBin < bins; curBin++) {
+						histValtf[curBin] += weightFix[curBin][curSample];
+						histValtg[curBin] += weightTg[curBin][curSample];
+		            }
+	        	}else{
+	        		numSamples--;
+	        	}
+	        }
+			
+			for (int curBin = 0; curBin < bins; curBin++){
+				histValtg[curBin] /= numSamples;
+				if (histValtg[curBin] > 0) {
+	        		e1tg -= histValtg[curBin] * SplineMI.log2d(histValtg[curBin]);
+	        	}
+				histValtf[curBin] /= numSamples;
+				if (histValtf[curBin] > 0) {
+	        		e1tf -= histValtf[curBin] * SplineMI.log2d(histValtf[curBin]);
+	        	}
+			}
+			
+			double e2 = SplineMI.entropy2d(weightFix, weightTg, n, bins);
+			if(!normalizeMI){
+				mi[i] = (e1tf + e1tg - e2);
+				if(negateMI) mi[i] = mi[i] * getMomentSign(fixVec, data[i], n);
+			}else{
+				double e2tf = SplineMI.entropy2d(weightFix, weightFix, n, bins);
+				double e2tg = SplineMI.entropy2d(weightTg, weightTg, n, bins);
+				double mitf = 2*e1tf - e2tf;
+				double mitg = 2*e1tg - e2tg;
+				mi[i] = (e1tf + e1tg - e2) / Math.max(mitf, mitg);
+				if(negateMI) mi[i] = mi[i] * getMomentSign(fixVec, data[i], n);
+			}
+			
+		}
+		return mi;
+	}
 	
 	public float[] getAllMIWith(float[] fixVec, float[][] data) throws Exception{
 		int n = data[0].length;
@@ -286,13 +347,13 @@ public class ITComputer extends DistributedWorker{
 	        	}
 			}
 			
-			float e2 = (float)SplineMI.entropy2d(weightFix, weightTg, n, bins);
+			float e2 = (float)SplineMI.entropy2f(weightFix, weightTg, n, bins);
 			if(!normalizeMI){
 				mi[i] = (e1tf + e1tg - e2);
 				if(negateMI) mi[i] = mi[i] * getMomentSign(fixVec, data[i], n);
 			}else{
-				float e2tf = (float)SplineMI.entropy2d(weightFix, weightFix, n, bins);
-				float e2tg = (float)SplineMI.entropy2d(weightTg, weightTg, n, bins);
+				float e2tf = (float)SplineMI.entropy2f(weightFix, weightFix, n, bins);
+				float e2tg = (float)SplineMI.entropy2f(weightTg, weightTg, n, bins);
 				float mitf = 2*e1tf - e2tf;
 				float mitg = 2*e1tg - e2tg;
 				mi[i] = (e1tf + e1tg - e2) / Math.max(mitf, mitg);
@@ -324,7 +385,7 @@ public class ITComputer extends DistributedWorker{
 			int tf = tfs[i];
 			for(int j = 0; j < numTargets; j++){
 				int target = targets[j];
-				float e2 = (float)SplineMI.entropy2d(weights[tf], weights[target], n, bins);
+				float e2 = (float)SplineMI.entropy2f(weights[tf], weights[target], n, bins);
 				mi[i][j] = e1[tf] + e1[target] - e2;
 				
 			}
@@ -357,7 +418,7 @@ public class ITComputer extends DistributedWorker{
 		for(int i = start; i < end; i++){
 			DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream("tmp/" + jobID + "/mi/probe" + String.format("%05d", i) + ".bin")));
 			for(int j = 0; j < m; j++){
-				float e2 = (float)SplineMI.entropy2d(weights[i], weights[j], n, bins);
+				float e2 = (float)SplineMI.entropy2f(weights[i], weights[j], n, bins);
 				out.writeFloat(e1[i] + e1[j] - e2);
 			}
 			out.close();
@@ -390,7 +451,7 @@ public class ITComputer extends DistributedWorker{
 				//if(tfMap.containsKey(j)){
 					//int tfIdx = tfMap.get(j);
 					int tfIdx = tfMap.get(tf); 
-					e2 = (float)SplineMI.entropy2d(weightsTg[i], weightsTf[tfIdx], k, bins);
+					e2 = (float)SplineMI.entropy2f(weightsTg[i], weightsTf[tfIdx], k, bins);
 					out.writeFloat(e1Tg[i] + e1Tf[tfIdx] - e2);
 					tfIdx++;
 				//}
@@ -456,7 +517,7 @@ public class ITComputer extends DistributedWorker{
 	            
 	            
 	            
-				float e2 = (float)SplineMI.entropy2d(weightsGe[i], w, n, bins, b);
+				float e2 = (float)SplineMI.entropy2f(weightsGe[i], w, n, bins, b);
 				out.writeFloat(e1g + e1f - e2);
 			}
 			out.close();
@@ -510,7 +571,7 @@ public class ITComputer extends DistributedWorker{
 	            
 	            
 	            
-				float e2 = (float)SplineMI.entropy2d(wRegulon[j], wRegulator[i], n, bins);
+				float e2 = (float)SplineMI.entropy2f(wRegulon[j], wRegulator[i], n, bins);
 				out.writeFloat(e1tg + e1tf - e2);
 			}
 			out.close();
@@ -535,7 +596,7 @@ public class ITComputer extends DistributedWorker{
 			DataOutputStream out = new DataOutputStream(new BufferedOutputStream(new FileOutputStream("tmp/" + jobID + "/mi/probe" + String.format("%05d", i) + ".bin")));
 			for(int j = 0; j < numTargets; j++){
 				int target = targets[j];
-				float e2 = (float)SplineMI.entropy2d(weights[tf], weights[target], n, bins);
+				float e2 = (float)SplineMI.entropy2f(weights[tf], weights[target], n, bins);
 				out.writeFloat(e1[tf] + e1[target] - e2);
 			}
 			out.close();
@@ -594,7 +655,7 @@ public class ITComputer extends DistributedWorker{
 							
 							if((mi2 >= miTfP) && (miTgP >= miTfP)){
 							
-								float e3 = (float) SplineMI.entropy3d(weights[tf], weights[tg], weights[ptn], n, bins);
+								float e3 = (float) SplineMI.entropy3f(weights[tf], weights[tg], weights[ptn], n, bins);
 								float mi3 = e1[tf] + e1[tg] + e1[ptn] - e2Tf[ptn] - e2Tg[ptn] - e2Tg[tf] + e3;
 								if(-mi3 > syn){
 									syn = -mi3;
@@ -658,7 +719,7 @@ public class ITComputer extends DistributedWorker{
 							
 							if((mi2 >= miTfP) && (miTgP >= miTfP)){
 							
-								float e3 = (float) SplineMI.entropy3d(weights[j], weights[i], weights[ptn], n, bins);
+								float e3 = (float) SplineMI.entropy3f(weights[j], weights[i], weights[ptn], n, bins);
 								float mi3 = e1[j] + e1[i] + e1[ptn] - e2Tf[ptn] - e2Tg[ptn] - e2Tg[j] + e3;
 								
 								if(-mi3 > syn){
@@ -727,7 +788,7 @@ public class ITComputer extends DistributedWorker{
 				int target = targets[i];
 				for(int j = 0; j < numTfs; j++){
 					int tf = tfs[j];
-					float e2 = (float)SplineMI.entropy2d(weights[tf], weights[target], n, bins);
+					float e2 = (float)SplineMI.entropy2f(weights[tf], weights[target], n, bins);
 					out.writeFloat(e1[tf] + e1[target] - e2);
 				}
 			}
