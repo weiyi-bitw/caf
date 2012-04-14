@@ -383,7 +383,9 @@ public class CorrAttractorFinder {
 				cvg.findWeightedCNV(ma, gn, pstart, pend, delp, quantile);
 			}
 			
-			scdr.waitTillFinished(0, fold);
+			if(command.equalsIgnoreCase("CAF")){
+				scdr.waitTillFinished(0, fold);
+			}
 		}
 		
 		if(!command.equals("CNV")){
