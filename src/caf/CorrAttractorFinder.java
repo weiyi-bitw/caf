@@ -379,8 +379,8 @@ public class CorrAttractorFinder {
 			if(command.equalsIgnoreCase("CAF")){
 				cvg.findWeightedAttractor(val, weightExp);
 			}else if(command.equalsIgnoreCase("CNV")){
-				//cvg.findWeightedCNVCoef(ma, gn, wstart, wend, delw, pstart, pend, delp, quantile);
-				cvg.findWeightedCNV(ma, gn, pstart, pend, delp, quantile);
+				cvg.findWeightedCNVCoef(ma, gn, wstart, wend, delw, pstart, pend, delp, quantile);
+				//cvg.findWeightedCNV(ma, gn, pstart, pend, delp, quantile);
 			}
 			
 			if(command.equalsIgnoreCase("CAF")){

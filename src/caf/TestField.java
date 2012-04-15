@@ -152,7 +152,12 @@ public class TestField {
 		//ma.normalizeRows();
 		
 		ArrayList<String> gs = new ArrayList<String>();
-		gs.add("TPTE");
+		gs.add("MAF1");
+		gs.add("CYHR1");
+		gs.add("ZNF7");
+		
+		boolean seedOnly = false;
+		int winsize = 20;
 		
 		long jobID = System.currentTimeMillis();
 		
@@ -160,6 +165,7 @@ public class TestField {
 		//Annotations annot = Annotations.parseAnnotations(annotPath);
 		
 		Converger cvg = new Converger(0, 1, jobID);
+		cvg.setEpsilon(1E-13);
 		ITComputer itc = new ITComputer(6, 3, 0, 1, true);
 		cvg.linkITComputer(itc);
 		
@@ -183,7 +189,7 @@ public class TestField {
 				HashMap<String, Integer> rowmap = ma2.getRows();
 				ArrayList<String> genes2 = ma2.getProbes();
 				int idx = rowmap.get(g);
-				ValIdx[] out = cvg.findWeightedAttractorOptimizePower(ma2, idx, 1f, 6, 0.5f, 5);
+				ValIdx[] out = cvg.findWeightedCNVOptimizePower(ma2, idx, gn, 1f, 6, 0.5f, 5, true);
 				
 				if(out == null){
 					System.out.println("No legit attractor.");

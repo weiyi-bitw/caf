@@ -23,11 +23,11 @@ import util.StatOps;
 
 public class Converger extends DistributedWorker{
 	private static float zThreshold = 10;
-	private static int maxIter = 150;
+	private static int maxIter = 100;
 	private static boolean rankBased = false;
 	private static int attractorSize = 10; // minimum size of an attractor
-	private static String convergeMethod = "FIXEDSIZE";
-	private static int bins = 7;
+	private static String convergeMethod = "WEIGHTED";
+	private static int bins = 6;
 	private static int splineOrder = 3;
 	private static boolean miNorm = false;
 	private static float precision = (float) 1E-4;
@@ -814,7 +814,7 @@ public class Converger extends DistributedWorker{
 		
 	}
 	
-	public ValIdx[] findWeightedAttractorOptimizePower(DataFile ma, int idx, float pstart, float pend, float delp, int quantile) throws Exception{
+	public ValIdx[] findWeightedCNVOptimizePower(DataFile ma, int idx, Genome gn, float pstart, float pend, float delp, int quantile, boolean seedOnly) throws Exception{
 		float[][] data = ma.getData();
 		float[] vec = data[idx];
 		int m = data.length;
@@ -824,24 +824,25 @@ public class Converger extends DistributedWorker{
 		float bestScore = -1;
 		float bestPow = -1;
 		
+		String seed = ma.getProbes().get(idx);
+		
 		for(float power = pstart; power <= pend; power+=delp)
 		{
 		
 		
-		float[] wVec = itc.getAllMIWith(vec, data);
+		double[] wVec = itc.getAllDoubleMIWith(vec, data);
 		
-		float[] preWVec = new float[m];
+		double[] preWVec = new double[m];
 		System.arraycopy(wVec, 0, preWVec, 0, m);
 		int c = 0;
-		float convergeTh = 5E-13f;//precision * precision / m;
 		boolean converge = false;
 		
 		while(c < maxIter){
 			float[] metaGene = getWeightedMetaGene(data, wVec, power,  m, n);
-			wVec = itc.getAllMIWith(metaGene, data);
-			float err = calcMSE(wVec, preWVec, m);
+			wVec = itc.getAllDoubleMIWith(metaGene, data);
+			double err = calcMSE(wVec, preWVec, m);
 			//System.out.println(err);
-			if(err < convergeTh){
+			if(err < epsilon){
 				converge = true;
 				break;
 			}
@@ -851,13 +852,20 @@ public class Converger extends DistributedWorker{
 		if(converge){
 			ValIdx[] vis = new ValIdx[m];
 			for(int i = 0; i < m; i++){
-				vis[i] = new ValIdx(i, wVec[i]);
+				vis[i] = new ValIdx(i, (float)wVec[i]);
 			}
 			Arrays.sort(vis);
 			
+			String center = ma.getProbes().get(vis[0].idx);
+			/*if( (gn.getIdx(seed) - gn.getIdx(center)) > 10 ){
+				System.out.println("Moved way.");
+				continue;
+			}*/
+			
 			float score = vis[quantile-1].val;
 			System.out.println(ma.getProbes().get(vis[0].idx) + "\t" + power + "\t" + score);
-			if(vis[0].idx != idx){
+			
+			if(seedOnly && vis[0].idx != idx){
 				System.out.println("Not seed.");
 				continue;
 			}
@@ -945,6 +953,9 @@ public class Converger extends DistributedWorker{
 				}
 				Arrays.sort(vis);
 				if(vis[0].idx != idx2){
+					continue;
+				}
+				if(vis[0].val - vis[1].val > 0.5){
 					continue;
 				}
 				if(vis[quantile-1].val > bestScore){
@@ -1589,6 +1600,9 @@ public class Converger extends DistributedWorker{
 	}
 	public void setPrecision(float precision){
 		Converger.precision = precision;
+	}
+	public void setEpsilon(double epsilon){
+		Converger.epsilon = epsilon;
 	}
 	public void miNormalization(boolean miNorm){
 		Converger.miNorm = miNorm;
