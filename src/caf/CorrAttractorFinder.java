@@ -379,11 +379,13 @@ public class CorrAttractorFinder {
 			if(command.equalsIgnoreCase("CAF")){
 				cvg.findWeightedAttractor(val, weightExp);
 			}else if(command.equalsIgnoreCase("CNV")){
-				//cvg.findWeightedCNVCoef(ma, gn, wstart, wend, delw, pstart, pend, delp, quantile);
-				cvg.findWeightedCNV(ma, gn, pstart, pend, delp, quantile);
+				cvg.findWeightedCNVCoef(ma, gn, wstart, wend, delw, pstart, pend, delp, quantile);
+				//cvg.findWeightedCNV(ma, gn, pstart, pend, delp, quantile);
 			}
 			
-			scdr.waitTillFinished(0, fold);
+			if(command.equalsIgnoreCase("CAF")){
+				scdr.waitTillFinished(0, fold);
+			}
 		}
 		
 		if(!command.equals("CNV")){

@@ -20,7 +20,7 @@ public class FineTuningCNV {
 	 * @param args
 	 */
 	public static void main(String[] args) throws Exception {
-		int[] ws = {21, 51, 101, 201};
+		int[] ws = {51};
 		int wstart = 21;
 		int wend = 201;
 		float estart = 1;
@@ -35,25 +35,25 @@ public class FineTuningCNV {
 		
 		final String[] dataFiles={
 			"/home/weiyi/workspace/data/brca/gse2034/ge.12160x286.jetset.mean.txt",
-			"/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt"
+			"/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt",
 			//"/home/weiyi/workspace/data/coad/gse14333/ge.19189x290.jetset.mean.txt",
 			//"/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt",
 			//"/home/weiyi/workspace/data/ov/gse9891/ge.19189x285.jetset.mean.txt",
-			//"/home/weiyi/workspace/data/ov/tcga/ge/ge.17814x584.knn.txt",
-			//"/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt"
+			"/home/weiyi/workspace/data/ov/tcga/ge/ge.17814x584.knn.txt",
+			"/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt"
 		};
 		
 		final String[] outputDirs={
 			"brca.gse2034.jetset.mean",
-			"brca.tcga"
+			"brca.tcga",
 			//"coad.gse14333.jetset.mean",
 			//"coad.tcga",
-			//"ov.gse9891.jetset.mean",
-			//"ov.tcga.affy"
+			"ov.gse9891.jetset.mean",
+			"ov.tcga.affy"
 		};
 		
 		
-		String outPath = "/home/weiyi/workspace/javaworks/caf/output/cnv.finetune/erbb2/";
+		String outPath = "/home/weiyi/workspace/javaworks/caf/output/cnv.finetune/erbb2.test/";
 		if(!outPath.endsWith("/")){
 			outPath = outPath + "/";
 		}
@@ -61,7 +61,7 @@ public class FineTuningCNV {
 		new File("output/cnv.finetune").mkdir();
 		new File(outPath).mkdir();
 		
-		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3";
+		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location4";
 		//final String geneLocFile = "output/window/gene.location3";
 		Genome gn = Genome.parseGeneLocation(geneLocFile);
 		

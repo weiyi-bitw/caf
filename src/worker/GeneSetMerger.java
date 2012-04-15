@@ -30,7 +30,7 @@ public class GeneSetMerger extends DistributedWorker{
 		int start = id * numFiles/totalComputers;
 		int end = (id+1) * numFiles/totalComputers;
 		BufferedReader br;
-		ArrayList<float[]> wVecs = new ArrayList<float[]>();
+		ArrayList<double[]> wVecs = new ArrayList<double[]>();
 		ArrayList<ArrayList<Integer>> basins = new ArrayList<ArrayList<Integer>>();
 		ArrayList<String> chrs = new ArrayList<String>(); 
 		
@@ -45,7 +45,7 @@ public class GeneSetMerger extends DistributedWorker{
 				String tag = tokens[0];
 				int nt = tokens.length;
 				int m = nt-2;
-				float[] wvec = new float[m];
+				double[] wvec = new double[m];
 				ArrayList<Integer> basin = new ArrayList<Integer>();
 				String[] t2 = tokens[1].split(",");
 				int nt2 = t2.length;
@@ -57,15 +57,14 @@ public class GeneSetMerger extends DistributedWorker{
 					basin.add(Integer.parseInt(t2[j]));
 				}
 				for(int j = 0; j < m; j++){
-					wvec[j] = Float.parseFloat(tokens[j+2]);
+					wvec[j] = Double.parseDouble(tokens[j+2]);
 				}
 				boolean newOne = true;
 				int foundIdx = -1;
 				for(int j = 0; j < wVecs.size(); j++){
 					if(tag.equals(chrs.get(j))){
-						float[] fs = wVecs.get(j);
-						float err = Converger.calcMSE(fs, wvec, m);
-						if(err < precision/m){
+						double[] fs = wVecs.get(j);
+						if(Converger.identical(fs, wvec, m, precision)){
 							foundIdx = j;
 							newOne = false;
 							break;
@@ -102,9 +101,9 @@ public class GeneSetMerger extends DistributedWorker{
 					pw2.print("\t" + j);
 				}pw2.println();
 				
-				float[] fs = wVecs.get(i);
-				for(float f : fs){
-					pw.print("\t" + f);
+				double[] fs = wVecs.get(i);
+				for(double f : fs){
+					pw.print("\t" + (float) f);
 				}pw.println();
 			}
 			pw2.close();
@@ -123,8 +122,8 @@ public class GeneSetMerger extends DistributedWorker{
 						pw.print("," + basin.get(j));
 					}
 				}
-				float[] fs = wVecs.get(i);
-				for(float f : fs){
+				double[] fs = wVecs.get(i);
+				for(double f : fs){
 					pw.print("\t" + f);
 				}
 				pw.println();
