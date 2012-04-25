@@ -328,7 +328,9 @@ public class Genome {
 	public String getChrBand(String gene){
 		return chrBandMap.get(gene);
 	}
-	
+	public String getGene(int idx){
+		return genes.get(idx).name;
+	}
 	
 	public boolean contains(String gene){
 		return genes.contains(new Gene(gene));

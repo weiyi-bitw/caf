@@ -5,46 +5,16 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
 import obj.Genome;
+import obj.IntPair;
+import obj.ValString;
 
 public class GroupCNVWindow2 {
-	static class IntPair{
-		int x;
-		int y;
-		
-		IntPair(int x, int y){
-			if(x <= y){
-				this.x = x;
-				this.y = y;
-			}else{
-				this.x = y;
-				this.y = x;
-			}
-		}
-		
-		public boolean overlapWith(IntPair ip2){
-			if(this.x > ip2.y && this.y > ip2.y){
-				return false;
-			}else if(this.x < ip2.x && this.y < ip2.x){
-				return false;
-			}else{
-				return true;
-			}
-		}
-		
-		void setX(int x){
-			this.x = x;
-		}
-		
-		void setY(int y){
-			this.y = y;
-		}
-		
-	}
 	static class StringIntPair implements Comparable<StringIntPair>{
 		String s;
 		int i;
@@ -116,8 +86,8 @@ public class GroupCNVWindow2 {
 					if(cnvw.val < minMI){
 						minMI = cnvw.val;
 					}
-					for(String g : cnvw.geneNames){
-						StringIntPair sip = new StringIntPair(g);
+					for(ValString g : cnvw.geneNames){
+						StringIntPair sip = new StringIntPair(g.s);
 						if(allGenes.contains(sip)){
 							allGenes.get(allGenes.indexOf(sip)).incre();
 						}else{
@@ -147,7 +117,7 @@ public class GroupCNVWindow2 {
 		}
 		
 		public String toString(){
-			String s = chr + "\t" + matchNumber + "\t" + allGenes.size() + "\t" + minMI + "\t" + numCommonGenes + "\n";
+			String s = chr + "\t" + matchNumber + "\t" + minMI + "\n";
 			for(int i = 0; i < k; i++){
 				s += names[i];
 				s += "\t" + content[i] + "\n";
@@ -162,6 +132,28 @@ public class GroupCNVWindow2 {
 		public int getNumGenes(){
 			return allGenes.size();
 		}
+		
+		public ArrayList<ValString> calAverageMI(){
+			ArrayList<ValString> out = new ArrayList<ValString>();
+			for(int i = 0; i < k; i++){
+				if(content[i] != null){
+					for(ValString g : content[i].geneNames){
+						if(out.contains(g)){
+							out.get(out.indexOf(g)).val += g.val;
+						}else{
+							out.add(g);
+						}
+					}
+				}
+			}
+			
+			for(int i = 0; i < out.size(); i++){
+				out.get(i).val /= this.matchNumber;
+			}
+			Collections.sort(out);
+			
+			return out;
+		}
 	}
 	
 	static class CNVWindow implements Comparable<CNVWindow>{
@@ -170,7 +162,7 @@ public class GroupCNVWindow2 {
 		String chr;
 		String chrArm;
 		int source;
-		ArrayList<String> geneNames;
+		ArrayList<ValString> geneNames;
 		IntPair range;
 		
 		float val;
@@ -179,7 +171,7 @@ public class GroupCNVWindow2 {
 			CNVWindow.gn = gn;
 		}
 		
-		CNVWindow(String name, String chr, String chrArm, ArrayList<String> geneNames, IntPair range, float val, int source){
+		CNVWindow(String name, String chr, String chrArm, ArrayList<ValString> geneNames, IntPair range, float val, int source){
 			this.name = name;
 			this.chr = chr;
 			this.chrArm = chrArm;
@@ -196,12 +188,14 @@ public class GroupCNVWindow2 {
 			int nt = tokens.length;
 			String chrArm = tokens[nt-2];
 			float val = Float.parseFloat(tokens[nt-1]);
-			ArrayList<String> genes = new ArrayList<String>();
+			ArrayList<ValString> genes = new ArrayList<ValString>();
 			int x = Integer.MAX_VALUE;
 			int y = -1;
 			for(int i = 2; i < nt-2; i++){
-				String g = tokens[i];
-				genes.add(g);
+				String[] t2 = tokens[i].split(":");
+				String g = t2[0];
+				float v = Float.parseFloat(t2[1]);
+				genes.add(new ValString(g, v));
 				int j = gn.getIdx(g);
 				if(j < x){
 					x = j;
@@ -231,9 +225,25 @@ public class GroupCNVWindow2 {
 		}
 		
 		public String toString(){
-			String s = name + "\t" + chr + "\t" + chrArm;
-			for(String g : geneNames){
-				s += "\t" + g;
+			String a = gn.getChrBand(gn.getGene(range.x));
+			String b = gn.getChrBand(gn.getGene(range.y));
+			
+			String s = "";
+			if(a.equals(b)){
+				s = a;
+			}else{
+				int idx = 0;
+				if(b.contains("p")) idx = b.lastIndexOf("p");
+				if(b.contains("q")) idx = b.lastIndexOf("q");
+				
+				int idxa = a.length();
+				if(a.contains("-")) idxa = a.indexOf("-");
+				if(a.contains("|")) idxa = a.indexOf("|");
+				s = a.substring(0, idxa)+ "-" +b.substring(idx) ;
+			}
+			
+			for(ValString g : geneNames){
+				s += "\t" + g.s;
 			}
 			s += "\t" + val;
 			return s;
@@ -244,7 +254,7 @@ public class GroupCNVWindow2 {
 	 * @param args
 	 */
 	public static void main(String[] args) throws Exception {
-		String inPath = "/home/weiyi/workspace/javaworks/caf/output/window/";
+		String inPath = "/home/weiyi/workspace/javaworks/caf/output/window51/";
 		int loadIn = 500;
 		
 		String[] files = new File(inPath + "mergeroom").list();
@@ -252,7 +262,7 @@ public class GroupCNVWindow2 {
 		int nf = files.length;
 		System.out.println(nf + " files in the directory.");
 		
-		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location3";
+		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location4";
 		Genome gn = Genome.parseGeneLocation(geneLocFile);
 		CNVWindow.linkGenome(gn);
 		
@@ -260,7 +270,7 @@ public class GroupCNVWindow2 {
 		int cnt = 0;
 		for(String f : files){
 			System.out.println("Loading file " + f + "...");
-			BufferedReader br = new BufferedReader(new FileReader(inPath + "mergeroom" + f));
+			BufferedReader br = new BufferedReader(new FileReader(inPath + "mergeroom/" + f));
 			String line = br.readLine();
 			int cnt2 = 0;
 			while(line != null && cnt2 < loadIn){
@@ -307,16 +317,37 @@ public class GroupCNVWindow2 {
 		Collections.sort(out);
 		
 		System.out.println("Output to file...");
-		PrintWriter pw = new PrintWriter(new FileWriter(inPath + "/matchTable.noopt" + loadIn + ".txt"));
+		PrintWriter pw = new PrintWriter(new FileWriter(inPath + "/matchTable." + loadIn + ".txt"));
 		int ii = 1;
 		for(CNVWindowSet cnvws : out){
 			pw.print(ii + "\t");
 			pw.println(cnvws);
 			ii++;
 		}
-		
 		pw.close();
-
+		
+		PrintWriter pw2 = new PrintWriter(new FileWriter(inPath + "/consensus." + loadIn + ".txt"));
+		DecimalFormat df = new DecimalFormat("0.0000"); 
+		ii = 1;
+		for(CNVWindowSet cnvws : out){
+			ArrayList<ValString> consensus = cnvws.calAverageMI();
+			pw2.println();
+			pw2.println(ii + ". " + gn.getChrBand(consensus.get(0).s) + "\t\t\tMinimum Strength: " 
+			+ df.format(cnvws.minMI) + "\t\t\tCommon Dataset: " + cnvws.matchNumber);
+			pw2.print("Gene");
+			for(int i = 0; i < 10; i++){
+				ValString vs = consensus.get(i);
+				pw2.print("\t" + vs.s);
+			}pw2.println();
+			pw2.print("Avg MI");
+			for(int i = 0; i < 10; i++){
+				ValString vs = consensus.get(i);
+				pw2.print("\t" + df.format(vs.val));
+			}pw2.println();
+			ii++;
+		}
+		pw2.close();
+		
 		System.out.println("Done.");
 		
 	}
