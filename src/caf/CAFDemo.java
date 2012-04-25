@@ -1,0 +1,161 @@
+package caf;
+
+import java.io.BufferedReader;
+import java.io.FileWriter;
+import java.io.InputStreamReader;
+import java.io.PrintWriter;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+
+import obj.DataFile;
+import obj.ValIdx;
+import worker.ITComputer;
+
+public class CAFDemo {
+
+	private static float[] getWeightedMetaGene(float[][] data, double[] w, float power, int m, int n){
+		float[] out = new float[n];
+		double sum = 0;
+		for(int i = 0; i < m; i++){
+			if(w[i] > 0){
+				double f = Math.exp(power*Math.log(w[i]));
+				sum += f;
+				for(int j = 0; j < n; j++){
+					out[j] += data[i][j] * f;
+				}
+			}
+		}
+		for(int j = 0; j < n; j++){
+			out[j] /= sum;
+		}
+		return out;
+	}
+	private static float calcMSE(float[] a, float[] b, int n){
+		float err = 0;
+		for(int i = 0; i < n; i++){
+			err += (a[i] - b[i]) * (a[i] - b[i]);
+		}
+		return err / n;
+	}
+	private static double calcMSE(double[] a, double[] b, int n){
+		double err = 0;
+		for(int i = 0; i < n; i++){
+			err += (a[i] - b[i]) * (a[i] - b[i]);
+		}
+		return err / n;
+	}
+	/**
+	 * @param args
+	 * @throws Exception 
+	 */
+	public static void main(String[] args) throws Exception {
+		String datafile = args[0];
+		String seed = "CENPA";
+		final float pow = 5f;
+		final float precision = 1E-4f;
+		final int maxIter = 100;
+		final int rank = 20;
+		DecimalFormat df = new DecimalFormat("0.0000"); 
+		
+		System.out.println("==Correlation Attractor Finder==========Wei-Yi Cheng==wc2302@columbia.edu======\n");
+		System.out.println("-- CAF DEMO");
+		System.out.printf("%-25s%s\n", "Expression Data:", datafile);
+		System.out.println("\n==DEMO default setting=========================================================\n");
+		System.out.printf("%-25s%s\n", "Weight Power:",pow);
+		System.out.printf("%-25s%s\n", "Converge threshold:", precision);
+		System.out.printf("%-25s%s\n", "Max Iterations:", maxIter);
+		System.out.println("\n===============================================================================\n");
+		
+		BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
+		System.out.print("Please enter the seed gene (Default=CENPA):");
+		String in = br.readLine();
+		if(!in.equals("")){
+			seed = in;
+		}
+		System.out.println("\n===============================================================================\n");
+		System.out.printf("%-25s%s\n", "Seed:", seed);
+		System.out.println("\n===============================================================================\n");
+		
+		System.out.println("Loading files...");
+		DataFile ma = DataFile.parse(datafile);
+		int m = ma.getNumRows();
+		int n = ma.getNumCols();
+		float[][] data = ma.getData();
+		HashMap<String, Integer> geneMap = ma.getRows();
+		ArrayList<String> geneNames = ma.getProbes();
+		
+		ITComputer itc = new ITComputer(6, 3, 0, 1, true);
+		
+		double convergeTh = 1E-14;
+		
+		if(geneNames.contains(seed)){
+			
+			int idx = geneMap.get(seed);
+			float[] vec = data[idx];
+			
+			double[] wVec = itc.getAllDoubleMIWith(vec, data);
+			double[] preWVec = new double[m];
+			System.arraycopy(wVec, 0, preWVec, 0, m);
+			
+		// initial output
+			ValIdx[] out = new ValIdx[m];
+			for(int i = 0; i < m; i++){
+				out[i] = new ValIdx(i, (float) wVec[i]);
+			}
+			Arrays.sort(out);
+			int cnt = 0;
+			System.out.println("Iteration " + cnt);
+			System.out.printf("Rank\t%-15s\t%s\n", "Gene", "MI");
+			for(int i = 0; i < rank; i++){
+				System.out.printf("%s\t%-15s\t%s\n", (i+1), geneNames.get(out[i].idx) , df.format(out[i].val));
+			}
+			boolean converge = false;
+			while(cnt < maxIter){
+				float[] metaGene = getWeightedMetaGene(data, wVec, pow,  m, n);
+				wVec = itc.getAllDoubleMIWith(metaGene, data);
+			// output
+				out = new ValIdx[m];
+				for(int i = 0; i < m; i++){
+					out[i] = new ValIdx(i, (float)Math.floor(10000*wVec[i])/10000);
+				}
+				Arrays.sort(out);
+				double err = calcMSE(wVec, preWVec, m);
+				System.out.println("\nIteration " + (cnt+1));
+				System.out.printf("Rank\t%-15s\t%s\n", "Gene", "MI");
+				for(int i = 0; i < rank; i++){
+					System.out.printf("%s\t%-15s\t%s\n", (i+1), geneNames.get(out[i].idx) , df.format(out[i].val));
+				}
+				
+				if(err < convergeTh){
+					System.out.println("Converged.");
+					converge = true;
+					break;
+				}
+				System.arraycopy(wVec, 0, preWVec, 0, m);
+				cnt++;
+			}
+			
+			if(converge){
+				String outFile = seed + "_attractor.txt";
+				System.out.println("\nAttractor was written to file " + outFile);
+				PrintWriter pw = new PrintWriter(new FileWriter(outFile));
+				pw.println("Rank\tGene\tMI");
+				for(int i = 0; i < m; i++){
+					pw.println((i+1) + "\t" + geneNames.get(out[i].idx) + "\t" + df.format(out[i].val));
+				}
+				pw.close();	
+			}else{
+				System.out.println("Not converged.");
+			}
+			
+			
+		}else{
+			System.out.println("Dataset does not contain seed gene " + seed + "!!");
+		}
+		System.out.println("\nPress < Enter > to exit, thank you :)");
+		System.in.read();
+	}
+
+}
