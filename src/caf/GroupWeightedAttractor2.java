@@ -6,9 +6,12 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+
+import obj.ValString;
 
 public class GroupWeightedAttractor2 {
 	static class DistPair implements Comparable<DistPair>{
@@ -95,17 +98,18 @@ public class GroupWeightedAttractor2 {
 	}
 	
 	static class WtdAttractor implements Comparable<WtdAttractor>{
+		static int quantile = 50;
 		String name;
 		int source;
-		ArrayList<String> geneNames;
+		ArrayList<ValString> genes;
 		int basins;
 		float val;
 		
-		WtdAttractor(String name, int basins, ArrayList<String> geneNames, float val,int source){
+		WtdAttractor(String name, int basins, ArrayList<ValString> genes,int source){
 			this.name = name;
 			this.basins = basins;
-			this.geneNames = geneNames;
-			this.val = val;
+			this.genes = genes;
+			this.val = genes.get(quantile-1).val;
 			this.source = source;
 		}
 		static WtdAttractor parseWtdAttractor(String line, int source){
@@ -113,19 +117,42 @@ public class GroupWeightedAttractor2 {
 			int nt = tokens.length;
 			String name = tokens[0];
 			int basins = Integer.parseInt(tokens[1]);
-			float val = Float.parseFloat(tokens[nt-1]);
-			ArrayList<String> genes = new ArrayList<String>();
-			for(int i = 2; i < nt-1; i++){
-				String g = tokens[i];
-				genes.add(g);
+			ArrayList<ValString> genes = new ArrayList<ValString>();
+			for(int i = 2; i < nt; i++){
+				String[] t2 = tokens[i].split(":");
+				genes.add(new ValString(t2[0], Float.parseFloat(t2[1])));
 			}
-			return new WtdAttractor(name, basins, genes, val, source);
+			return new WtdAttractor(name, basins, genes, source);
 		}
-		public int overlapWith(WtdAttractor other){
+		public ArrayList<ValString> getOvlp(WtdAttractor other){
+			if(other == null) return null;
+			ArrayList<ValString> al = new ArrayList<ValString>();
+			for(ValString g : other.genes){
+				if(this.genes.contains(g)){
+					int idx = this.genes.indexOf(g);
+					ValString gb = this.genes.get(idx);
+					al.add(new ValString(g.s, 2));
+				}
+			}
+			return al;
+		}
+		public ArrayList<ValString> getOvlp(ArrayList<ValString> in){
+			ArrayList<ValString> al = new ArrayList<ValString>();
+			for(ValString g : in){
+				if(this.genes.contains(g)){
+					al.add(new ValString(g.s, g.val+1));
+				}
+			}
+			return al;
+		}
+		
+		public float overlapWith(WtdAttractor other){
 			if(other == null) return 0;
-			int cnt = 0;
-			for(String g : other.geneNames){
-				if(this.geneNames.contains(g)){
+			float cnt = 0;
+			for(ValString g : other.genes){
+				if(this.genes.contains(g)){
+					int i = this.genes.indexOf(g);
+					//cnt += (g.val + this.genes.get(i).val);
 					cnt ++;
 				}
 			}
@@ -150,13 +177,14 @@ public class GroupWeightedAttractor2 {
 		}
 		
 		public String toString(){
-			String s = name + "\t" + basins;
-			for(String g : geneNames){
-				s += "\t" + g;
+			String s ="";
+			for(ValString g : genes){
+				s += g.s + "\t";
 			}
-			s += "\t" + val;
+			s += val;
 			return s;
 		}
+		
 	}
 	
 	static class WtdAttractorSet implements Comparable<WtdAttractorSet>{
@@ -187,8 +215,8 @@ public class GroupWeightedAttractor2 {
 			this.matchNumber = 1;
 			this.numCommonGenes = 0;
 			
-			for(String g : wa.geneNames){
-				allGenes.add(new StringIntPair(g,1));
+			for(ValString g : wa.genes){
+				allGenes.add(new StringIntPair(g.s,1));
 			}
 			
 			avgMI = wa.val;
@@ -204,8 +232,8 @@ public class GroupWeightedAttractor2 {
 				if(wa != null){
 					matchNumber++;
 					avgMI += wa.val;
-					for(String g : wa.geneNames){
-						StringIntPair sip = new StringIntPair(g);
+					for(ValString g : wa.genes){
+						StringIntPair sip = new StringIntPair(g.s);
 						if(allGenes.contains(sip)){
 							allGenes.get(allGenes.indexOf(sip)).incre();
 						}else{
@@ -234,10 +262,9 @@ public class GroupWeightedAttractor2 {
 			}
 		}
 		public String toString(){
-			String s = "ID" + id + "\t" + matchNumber + "\t" + allGenes.size() + "\t" + minMI + "\t" + numCommonGenes + "\n";
+			String s = "ID" + id + "\t" + matchNumber + "\t" + minMI + "\n";
 			for(int i = 0; i < k; i++){
-				s += names[i];
-				s += "\t" + content[i] + "\n";
+				s += names[i] + "\t" + content[i] + "\n";
 			}
 			s += "Top genes:";
 			for(int i = 0; i < 20; i++){
@@ -251,17 +278,17 @@ public class GroupWeightedAttractor2 {
 		}
 		public int ovlapWith(WtdAttractor wa){
 			int nn = 0;
-			int sz = wa.geneNames.size();
+			int sz = wa.genes.size();
 			for(int i = 0; i < sz; i++){
-				StringIntPair sip = new StringIntPair(wa.geneNames.get(i), 1);
+				StringIntPair sip = new StringIntPair(wa.genes.get(i).s, 1);
 				if(allGenes.contains(sip)){
 					nn += i;
 				}
 			}
 			return nn;
 		}
-		public int ovlapWith(WtdAttractorSet was){
-			int nn = 0;
+		public float ovlapWith(WtdAttractorSet was){
+			float nn = 0;
 			for(int i = 0; i < k; i++){
 				if(content[i] == null) continue;
 				WtdAttractor wa = content[i];
@@ -280,7 +307,7 @@ public class GroupWeightedAttractor2 {
 				if (this.content[i] != null && was.content[i] != null){
 					conflictIdx.add(i);
 					ovlpcnt++;
-					if(ovlpcnt > 2){
+					if(ovlpcnt > 0){
 						return false;
 					}
 				}
@@ -320,8 +347,8 @@ public class GroupWeightedAttractor2 {
 				if(wa2 == null) continue;
 				avgMI += wa2.val;
 				if(wa2.val < minMI) minMI = wa2.val;
-				for(String s : wa2.geneNames){
-					StringIntPair sip = new StringIntPair(s, 1);
+				for(ValString s : wa2.genes){
+					StringIntPair sip = new StringIntPair(s.s, 1);
 					if(!allGenes.contains(sip)){
 						allGenes.add(sip);
 					}else{
@@ -344,8 +371,8 @@ public class GroupWeightedAttractor2 {
 				avgMI = avgMI * matchNumber + wa.val;
 				matchNumber ++ ;
 				avgMI /= matchNumber;
-				for(String s : wa.geneNames){
-					StringIntPair sip = new StringIntPair(s, 1);
+				for(ValString vs : wa.genes){
+					StringIntPair sip = new StringIntPair(vs.s, 1);
 					if(!allGenes.contains(sip)){
 						allGenes.add(sip);
 					}else{
@@ -365,8 +392,8 @@ public class GroupWeightedAttractor2 {
 				allGenes = new ArrayList<StringIntPair>();
 				for(WtdAttractor wa2 : content){
 					if(wa2 == null) continue;
-					for(String s : wa2.geneNames){
-						StringIntPair sip = new StringIntPair(s, 1);
+					for(ValString s : wa2.genes){
+						StringIntPair sip = new StringIntPair(s.s, 1);
 						if(!allGenes.contains(sip)){
 							allGenes.add(sip);
 						}else{
@@ -404,6 +431,161 @@ public class GroupWeightedAttractor2 {
 		public int hashCode(){
 			return id;
 		}
+		
+		public ArrayList<ValString> calAverageMI(){
+			ArrayList<ValString> out = new ArrayList<ValString>();
+			for(int i = 0; i < k; i++){
+				if(content[i] != null){
+					for(ValString g : content[i].genes){
+						if(out.contains(g)){
+							out.get(out.indexOf(g)).val += g.val;
+						}else{
+							out.add(g);
+						}
+					}
+				}
+			}
+			
+			for(int i = 0; i < out.size(); i++){
+				out.get(i).val /= this.matchNumber;
+			}
+			Collections.sort(out);
+			
+			return out;
+		}
+		
+		
+	}
+	
+	static class WaCoreSet implements Comparable<WaCoreSet>{
+		static String[] names;
+		static int k;
+		static int count = 0;
+		int id;
+		WtdAttractor[] content;
+		int matchNumber;
+		ArrayList<ValString> coreGenes;
+		float sumMI;
+		int numCommonGenes;
+		float minMI;
+		
+		static void setNames(String[] names){
+			WaCoreSet.names = names;
+			WaCoreSet.k = names.length;
+		}
+		
+		WaCoreSet(WtdAttractor wa, WtdAttractor wb){
+			this.id = count;
+			count++;
+			this.content = new WtdAttractor[k];
+			this.content[wa.source] = wa;
+			this.content[wb.source] = wb;
+			this.coreGenes = wa.getOvlp(wb);
+			this.sumMI = wa.val + wb.val;
+			this.minMI = Math.min(wa.val, wb.val);
+			this.matchNumber = 2;
+			this.numCommonGenes = coreGenes.size();
+		}
+		WtdAttractor fillInBest(ArrayList<WtdAttractor> in ){
+			float score = 0;
+			WtdAttractor winner = null;
+			for(WtdAttractor wa : in ){
+				if(content[wa.source] != null) continue;
+				float ovlp = this.ovlapWith(wa);
+				if(ovlp > score){
+					score = ovlp;
+					winner = wa;
+				}
+			}
+			if(winner != null){
+				content[winner.source] = winner;
+				coreGenes = winner.getOvlp(coreGenes);
+				matchNumber++;
+			}
+			return winner;
+		}
+		/*void fillInRest(ArrayList<WtdAttractor> in){
+			float[] scores = new float[k];
+			for(int i = 0; i < k; i++){
+				scores[i] = content[i]==null? 0 : coreGenes.size();
+			}
+			for(WtdAttractor wa : in){
+				float ovlp = this.ovlapWith(wa);
+				if(ovlp > scores[wa.source]){
+					scores[wa.source] = ovlp;
+					content[wa.source] = wa;
+				}
+			}
+			for(int i = 0; i < k; i++){
+				matchNumber = 0;
+				sumMI = 0;
+				if(content[i] != null){
+					matchNumber++;
+					if(content[i].val < minMI){
+						minMI = content[i].val;
+						sumMI += content[i].val;
+					}
+				}
+			}
+		}*/
+		public float ovlapWith(WtdAttractor wa){
+			float nn = 0;
+			for(ValString vs : wa.genes){
+				if(coreGenes.contains(vs)){
+					//nn += (coreGenes.get(coreGenes.indexOf(vs)).val + vs.val);
+					nn++;
+				}
+			}
+			return nn;
+		}
+		
+		public boolean contains(WtdAttractor a){
+			if(content[a.source] == null){
+				return false;
+			}else{
+				return content[a.source].equals(a);
+			}
+		}
+		public int compareTo(WaCoreSet o) {
+			if(this.matchNumber == o.matchNumber){
+				return -Double.compare(this.minMI, o.minMI);
+			}else{
+				return -Double.compare(this.matchNumber, o.matchNumber);
+			}
+		}
+		public boolean equals(WaCoreSet was){
+			for(int i = 0; i < k; i++){
+				if(this.content[i] != null && was.content[i] != null){
+					if(!this.content[i].equals(was.content[i])){
+						return false;
+					}
+				}else if((this.content[i] != null && was.content[i] == null) || (this.content[i] == null && was.content[i] != null)){
+					return false;
+				}
+			}
+			return true;
+		}
+		public int hashCode(){
+			return id;
+		}
+		
+		public String toString(){
+			String s = "ID" + id + "\t" + matchNumber + "\t" + coreGenes.size() + "\t" + minMI + "\t" + numCommonGenes + "\n";
+			for(int i = 0; i < k; i++){
+				s += names[i];
+				s += "\t" + content[i] + "\n";
+			}
+			s += "Top genes:";
+			for(ValString vs : coreGenes){
+				s += "\t" + vs.toString();
+			}
+			s += "\n";
+			return s;
+		}
+		
+		public boolean full(){
+			return matchNumber == k || coreGenes.size() == 0;
+		}
 	}
 	
 	/**
@@ -416,7 +598,7 @@ public class GroupWeightedAttractor2 {
 			inPath += "/";
 		}
 		
-		String[] files = new File(inPath + "manual.mergeroom.stage2").list();
+		String[] files = new File(inPath + "mergeroom").list();
 		Arrays.sort(files);
 		int nf = files.length;
 		System.out.println(nf + " files in the directory.");
@@ -427,23 +609,13 @@ public class GroupWeightedAttractor2 {
 		for(String f : files){
 			System.out.println("Loading file " + f + "...");
 			ArrayList<WtdAttractor> waInThisFile = new ArrayList<WtdAttractor>();
-			BufferedReader br = new BufferedReader(new FileReader(inPath + "manual.mergeroom.stage2/" + f));
+			BufferedReader br = new BufferedReader(new FileReader(inPath + "mergeroom/" + f));
 			String line = br.readLine();
 			while(line != null){
 				WtdAttractor wa = WtdAttractor.parseWtdAttractor(line, cnt);
-				waInThisFile.add(wa);
+				if(wa.basins > 2) waInThisFile.add(wa);
 				line = br.readLine();
 			}
-			/*Collections.sort(waInThisFile);
-			for(int i = 0; i < waInThisFile.size(); i++){
-				WtdAttractor w = waInThisFile.get(i);
-				for(int j = waInThisFile.size() - 1; j > i; j--){
-					if(w.overlapWith(waInThisFile.get(j))>0){
-						waInThisFile.remove(j);
-					}
-				}
-			}*/
-			
 			allWtdAttractors.addAll(waInThisFile);
 			cnt++;
 			br.close();
@@ -454,8 +626,63 @@ public class GroupWeightedAttractor2 {
 		DistPair.setTotalIdx(n);
 		Collections.sort(allWtdAttractors);
 		
-		WtdAttractorSet.setNames(files);
 		ArrayList<DistPair> allDistPairs = new ArrayList<DistPair>();
+	// new algorithm
+		/*
+		WaCoreSet.setNames(files);
+		
+		ArrayList<WaCoreSet> out = new ArrayList<WaCoreSet>();
+		System.out.println("Calculating distance...");
+		for(int i = 0; i < n; i++){
+			WtdAttractor a = allWtdAttractors.get(i);
+			for(int j = i+1; j < n; j++){
+				WtdAttractor b = allWtdAttractors.get(j);
+				if(a.source == b.source) continue;
+				float ovlp = a.overlapWith(b);
+				if(ovlp > 0){
+					allDistPairs.add(new DistPair(a, b , ovlp));
+				}
+			}
+		}
+		Collections.sort(allDistPairs);
+		System.out.println(allDistPairs.size() + " pairs of distances have been added.");
+		
+		while(allDistPairs.size() > 0){
+			DistPair dp = allDistPairs.get(0);
+			allDistPairs.remove(dp);
+			
+			WaCoreSet wcs = new WaCoreSet(dp.x, dp.y);
+			allWtdAttractors.remove(dp.x);
+			allWtdAttractors.remove(dp.y);
+			
+			WtdAttractor wa = wcs.fillInBest(allWtdAttractors);
+			while(wa != null){
+				allWtdAttractors.remove(wa);
+				wa = wcs.fillInBest(allWtdAttractors);
+			}
+			
+			for(int i = allDistPairs.size() -1; i > -1; i--){
+				DistPair dp2 = allDistPairs.get(i);
+				if(wcs.contains(dp2.x) || wcs.contains(dp2.y)){
+					allDistPairs.remove(dp2);
+				}
+			}
+			out.add(wcs);
+		}
+		Collections.sort(out);
+		System.out.println("Output to file...");
+		PrintWriter pw = new PrintWriter(new FileWriter(inPath + "/matchTable.txt"));
+		int ii = 1;
+		
+		for(WaCoreSet was : out){
+			pw.print(ii + "\t");
+			pw.println(was);
+			ii++;
+		}
+		
+		pw.close();*/
+	// old algorithm
+		WtdAttractorSet.setNames(files);
 		ArrayList<WtdAttractorSet> out = new ArrayList<WtdAttractorSet>();
 		System.out.println("Calculating distance...");
 		for(int i = 0; i < n; i++){
@@ -468,7 +695,7 @@ public class GroupWeightedAttractor2 {
 			
 			for(int j = i+1; j < n; j++){
 				WtdAttractorSet b = out.get(j);
-				int ovlp = a.ovlapWith(b);
+				float ovlp = a.ovlapWith(b);
 				if(ovlp > 0){
 					allDistPairs.add(new DistPair(a, b , ovlp));
 				}
@@ -477,13 +704,11 @@ public class GroupWeightedAttractor2 {
 		Collections.sort(allDistPairs);
 		System.out.println(allDistPairs.size() + " pairs of distances have been added.");
 		
-		
-		
-		int cnt2 = 0;
 		while(allDistPairs.size() > 0){
 			DistPair dp = allDistPairs.get(0);
-			
 			allDistPairs.remove(dp);
+			
+		
 			System.out.println(dp);
 			WtdAttractorSet x = dp.x;
 			boolean mergeable = x.merge(dp.y);
@@ -499,7 +724,7 @@ public class GroupWeightedAttractor2 {
 				for(int i = 0; i < out.size(); i++){
 					if(i != xi){
 						WtdAttractorSet b = out.get(i);
-						int ovlp = x.ovlapWith(b);
+						float ovlp = x.ovlapWith(b);
 						if(ovlp > 0){
 							allDistPairs.add(new DistPair(x, b , ovlp));
 						}
@@ -507,46 +732,14 @@ public class GroupWeightedAttractor2 {
 				}
 				Collections.sort(allDistPairs);
 			}
-			cnt2++;
 		}
 		
-		/*System.out.println("Making matches...");
+		System.out.println("Making matches...");
 		
-		while(allWtdAttractors.size() > 0){
-			WtdAttractor wa = allWtdAttractors.get(0);
-			WtdAttractorSet was = new WtdAttractorSet(wa);
-			//System.out.println(wa.name + "\t" + files[wa.source] + "\n");
-			allWtdAttractors.remove(0);
-			int[] ovlpCnt = new int[nf];
-			ovlpCnt[wa.source] = Integer.MAX_VALUE;
-			for(int j = allWtdAttractors.size()-1; j > 0; j --){
-				WtdAttractor wa2 = allWtdAttractors.get(j);
-				if(wa.source != wa2.source ){
-					int ovlp = was.ovlapWith(wa2);
-					if(ovlp > ovlpCnt[wa2.source]){
-						//System.out.println(wa2.name + "\t" + files[wa2.source]);
-						was.addWtd(wa2);
-						ovlpCnt[wa2.source] = ovlp;
-						allWtdAttractors.remove(j);
-					}
-				}
-			}
-			//System.out.println();
-			for(WtdAttractor wa2 : row){
-				if(wa2 == null) System.out.print("null\t");
-				else System.out.print(wa2.name + "\t");
-				allWtdAttractors.remove(wa2);
-			}System.out.println();
-			for(int gg : ovlpCnt){
-				System.out.print(gg + "\t");
-			}System.out.println();
-			if(was.matchNumber > 1){
-				out.add(was);
-			}
-		}*/
+		
 		Collections.sort(out);
 		System.out.println("Output to file...");
-		PrintWriter pw = new PrintWriter(new FileWriter(inPath + "/matchTable.stage2.txt"));
+		PrintWriter pw = new PrintWriter(new FileWriter(inPath + "/matchTable.txt"));
 		int ii = 1;
 		
 		for(WtdAttractorSet was : out){
@@ -556,7 +749,27 @@ public class GroupWeightedAttractor2 {
 		}
 		
 		pw.close();
-
+		DecimalFormat df = new DecimalFormat("0.0000"); 
+		PrintWriter pw1 = new PrintWriter(new FileWriter(inPath + "/consensus.txt"));
+		int ii1 = 0;
+		for(WtdAttractorSet was : out){
+			if(ii1 >= 10) break;
+			pw1.println();
+			pw1.println((ii1+1) + ".\t\t\tMinimum Strength: " + was.minMI + "\t\t\tCommon Datasets:" + was.matchNumber);
+			ArrayList<ValString> consensus = was.calAverageMI();
+			pw1.print("Gene");
+			for(int i = 0; i < 10; i++){
+				ValString vs = consensus.get(i);
+				pw1.print("\t" + vs.s);
+			}pw1.println();
+			pw1.print("Avg MI");
+			for(int i = 0; i < 10; i++){
+				ValString vs = consensus.get(i);
+				pw1.print("\t" + df.format(vs.val));
+			}pw1.println();
+			ii1++;
+		}
+		pw1.close();
 		System.out.println("Done.");
 		
 	}

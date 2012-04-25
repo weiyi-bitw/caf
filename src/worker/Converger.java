@@ -1194,7 +1194,7 @@ public class Converger extends DistributedWorker{
 			
 			float err = calcMSE(wVec, preWVec, m);
 			if(err < convergeTh){
-				System.out.println("Converged.");
+				//System.out.println("Converged.");
 				return wVec;
 			}
 			System.arraycopy(wVec, 0, preWVec, 0, m);
@@ -1611,7 +1611,9 @@ public class Converger extends DistributedWorker{
 		Converger.itc = itc;
 	}
 
-	
+	public void setMaxIter(int maxIter){
+		this.maxIter = maxIter;
+	}
 	
 	
 	

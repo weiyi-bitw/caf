@@ -21,13 +21,13 @@ public class GroupWeightedAttractor {
 	 */
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-		String path = "/home/weiyi/workspace/javaworks/caf/output/weighted/ov.gse9891.jetset.mean";
-		if(path.endsWith("/")){
-			path = path.substring(0, path.length()-1);
+		String path = "/home/weiyi/workspace/javaworks/caf/output/weighted/";
+		if(!path.endsWith("/")){
+			path = path + "/";
 		}
 		System.out.println("Loading files...");
 		int IDX = 2;
-		int outgenes = 30;
+		int outgenes = 300;
 		int quantile = 30;
 		
 		String[] dataFiles = {
@@ -38,7 +38,14 @@ public class GroupWeightedAttractor {
 				"/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt",
 				"/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt"
 		};
-		
+		final String[] outputDirs={
+				"brca.gse2034.jetset.mean",
+				"coad.gse14333.jetset.mean",
+				"ov.gse9891.jetset.mean",
+				"brca.tcga",
+				"coad.tcga",
+				"ov.tcga.affy"
+		};
 		
 		/*String[] annots = {
 				"/home/weiyi/workspace/data/annot/affy/u133a/annot.jetset.csv",
@@ -49,17 +56,19 @@ public class GroupWeightedAttractor {
 				"/home/weiyi/workspace/data/annot/affy/u133a/annot.jetset.csv"
 		};*/
 		
-		
-		
+		for(int qq = 0; qq < dataFiles.length; qq++)
+		{
+			
+		System.out.println("Processing " + dataFiles[qq] + "...");
 		//Annotations annot = Annotations.parseAnnotations(annots[IDX]);
-		DataFile ma = DataFile.parse(dataFiles[IDX]);
+		DataFile ma = DataFile.parse(dataFiles[qq]);
 		
 		int m = ma.getNumRows();
 		int n = ma.getNumCols();
 		ArrayList<String> genes = ma.getProbes();
 		
-		BufferedReader br = new BufferedReader(new FileReader(path + "/attractors.gwt"));
-		BufferedReader br2 = new BufferedReader(new FileReader(path + "/attractees.gwt"));
+		BufferedReader br = new BufferedReader(new FileReader(path + outputDirs[qq] + "/attractors.gwt"));
+		BufferedReader br2 = new BufferedReader(new FileReader(path + outputDirs[qq] + "/attractees.gwt"));
 		String line = br.readLine();
 		String line2 = br2.readLine();
 		/*String[] tokens = line.split("\t");
@@ -68,10 +77,9 @@ public class GroupWeightedAttractor {
 		int mg = allgenes.length;
 		System.arraycopy(tokens, 2, allgenes, 0, nt-2);*/
 		
-		new File(path + "/../mergeroom").mkdir();
-		String outFileName = path.substring(path.lastIndexOf("/"));
-		PrintWriter pw = new PrintWriter(new FileWriter(path + "/../mergeroom/" + outFileName));
-		PrintWriter pw2 = new PrintWriter(new FileWriter(path + "/attractees.decoded.gwt"));
+		new File(path + "mergeroom.300").mkdir();
+		PrintWriter pw = new PrintWriter(new FileWriter(path + "mergeroom.300/" + outputDirs[qq]));
+		PrintWriter pw2 = new PrintWriter(new FileWriter(path + outputDirs[qq] + "/attractees.decoded.gwt"));
 		
 		//line = br.readLine();
 		
@@ -98,9 +106,8 @@ public class GroupWeightedAttractor {
 			Collections.sort(vec);
 			for(int i = 0; i < outgenes; i++){
 				String g = genes.get(vec.get(i).idx);
-				pw.print("\t" + g);
+				pw.print("\t" + g + ":" + vec.get(i).val);
 			}
-			pw.print("\t" + vec.get(quantile-1).val);
 			pw.println();
 			pw2.println();
 			
@@ -110,6 +117,9 @@ public class GroupWeightedAttractor {
 		br.close();
 		pw.close();
 		pw2.close();
+		
+		
+		}
 		System.out.println("Done.");
 	}
 

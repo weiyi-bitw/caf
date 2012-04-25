@@ -131,7 +131,7 @@ public class TestField {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String path = "/home/weiyi/workspace/data/ov/gse9891";
+		String path = "/home/weiyi/workspace/data/brca/gse2034";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
@@ -143,7 +143,7 @@ public class TestField {
 		if(!outPath.endsWith("/")){
 			outPath = outPath + "/";
 		}
-		DataFile ma = DataFile.parse(path + "ge.19189x285.jetset.mean.txt");
+		DataFile ma = DataFile.parse(path + "ge.12160x286.jetset.mean.txt");
 		ArrayList<String> genes = ma.getProbes();
 		
 		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location4";
@@ -152,9 +152,9 @@ public class TestField {
 		//ma.normalizeRows();
 		
 		ArrayList<String> gs = new ArrayList<String>();
-		gs.add("MAF1");
-		gs.add("CYHR1");
-		gs.add("ZNF7");
+		gs.add("CENPA");
+		gs.add("COL5A2");
+		gs.add("LAPTM5");
 		
 		boolean seedOnly = false;
 		int winsize = 20;
