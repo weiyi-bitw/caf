@@ -294,7 +294,7 @@ public class Converger extends DistributedWorker{
 	}
 	public static boolean identical(double[] w1, double[] w2, int n, float precision){
 		for(int i = 0; i < n ;i++){
-			if(w1[i] - w2[i] > precision) return false;
+			if(Math.abs(w1[i] - w2[i]) > precision) return false;
 		}
 		return true;
 	}

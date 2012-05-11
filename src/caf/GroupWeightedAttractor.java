@@ -27,24 +27,34 @@ public class GroupWeightedAttractor {
 		}
 		System.out.println("Loading files...");
 		int IDX = 2;
-		int outgenes = 300;
-		int quantile = 30;
+		int outgenes = 50;
+		int quantile = 50;
 		
 		String[] dataFiles = {
-				"/home/weiyi/workspace/data/brca/gse2034/ge.12160x286.jetset.mean.txt",
+				//"/home/weiyi/workspace/data/m3d/sone/ge.4054x203.txt",
+				//"/home/weiyi/workspace/data/m3d/ecoli/ge.4297x466.txt",
+				//"/home/weiyi/workspace/data/m3d/yeast/ge.4515x407.txt",
+				/*"/home/weiyi/workspace/data/brca/gse2034/ge.12160x286.jetset.mean.txt",
 				"/home/weiyi/workspace/data/coad/gse14333/ge.19189x290.jetset.mean.txt",
 				"/home/weiyi/workspace/data/ov/gse9891/ge.19189x285.jetset.mean.txt",
 				"/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt",
 				"/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt",
-				"/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt"
+				"/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt"*/
+				//"/home/weiyi/workspace/data/gbm/tcga/ge/ge.12042x545.txt"
+				"/home/weiyi/workspace/data/ov/tcga/super.35696x511.knn.txt"
 		};
 		final String[] outputDirs={
-				"brca.gse2034.jetset.mean",
+				//"sone",
+				//"ecoli",
+				//"yeast",
+				/*"brca.gse2034.jetset.mean",
 				"coad.gse14333.jetset.mean",
 				"ov.gse9891.jetset.mean",
 				"brca.tcga",
 				"coad.tcga",
-				"ov.tcga.affy"
+				"ov.tcga.affy"*/
+				//"gbm.tcga"
+				"ov.super"
 		};
 		
 		/*String[] annots = {
@@ -106,8 +116,10 @@ public class GroupWeightedAttractor {
 			Collections.sort(vec);
 			for(int i = 0; i < outgenes; i++){
 				String g = genes.get(vec.get(i).idx);
-				pw.print("\t" + g + ":" + vec.get(i).val);
+				//pw.print("\t" + g + ":" + vec.get(i).val);
+				pw.print("\t" + g);
 			}
+			pw.print("\t" + vec.get(10-1).val);
 			pw.println();
 			pw2.println();
 			
