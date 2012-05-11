@@ -58,6 +58,8 @@ public class CAFDemo {
 		final int maxIter = 100;
 		final int rank = 20;
 		DecimalFormat df = new DecimalFormat("0.0000"); 
+		System.out.println("Loading files...");
+		DataFile ma = DataFile.parse(datafile);
 		
 		System.out.println("==Correlation Attractor Finder==========Wei-Yi Cheng==wc2302@columbia.edu======\n");
 		System.out.println("-- CAF DEMO");
@@ -72,14 +74,12 @@ public class CAFDemo {
 		System.out.print("Please enter the seed gene (Default=CENPA):");
 		String in = br.readLine();
 		if(!in.equals("")){
-			seed = in;
+			seed = in.toUpperCase();
 		}
 		System.out.println("\n===============================================================================\n");
 		System.out.printf("%-25s%s\n", "Seed:", seed);
 		System.out.println("\n===============================================================================\n");
 		
-		System.out.println("Loading files...");
-		DataFile ma = DataFile.parse(datafile);
 		int m = ma.getNumRows();
 		int n = ma.getNumCols();
 		float[][] data = ma.getData();
@@ -90,72 +90,82 @@ public class CAFDemo {
 		
 		double convergeTh = 1E-14;
 		
-		if(geneNames.contains(seed)){
-			
-			int idx = geneMap.get(seed);
-			float[] vec = data[idx];
-			
-			double[] wVec = itc.getAllDoubleMIWith(vec, data);
-			double[] preWVec = new double[m];
-			System.arraycopy(wVec, 0, preWVec, 0, m);
-			
-		// initial output
-			ValIdx[] out = new ValIdx[m];
-			for(int i = 0; i < m; i++){
-				out[i] = new ValIdx(i, (float) wVec[i]);
-			}
-			Arrays.sort(out);
-			int cnt = 0;
-			System.out.println("Iteration " + cnt);
-			System.out.printf("Rank\t%-15s\t%s\n", "Gene", "MI");
-			for(int i = 0; i < rank; i++){
-				System.out.printf("%s\t%-15s\t%s\n", (i+1), geneNames.get(out[i].idx) , df.format(out[i].val));
-			}
-			boolean converge = false;
-			while(cnt < maxIter){
-				float[] metaGene = getWeightedMetaGene(data, wVec, pow,  m, n);
-				wVec = itc.getAllDoubleMIWith(metaGene, data);
-			// output
-				out = new ValIdx[m];
+		while(!seed.equals("")){
+		
+			if(geneNames.contains(seed)){
+				
+				int idx = geneMap.get(seed);
+				float[] vec = data[idx];
+				
+				double[] wVec = itc.getAllDoubleMIWith(vec, data);
+				double[] preWVec = new double[m];
+				System.arraycopy(wVec, 0, preWVec, 0, m);
+				
+			// initial output
+				ValIdx[] out = new ValIdx[m];
 				for(int i = 0; i < m; i++){
-					out[i] = new ValIdx(i, (float)Math.floor(10000*wVec[i])/10000);
+					out[i] = new ValIdx(i, (float) wVec[i]);
 				}
 				Arrays.sort(out);
-				double err = calcMSE(wVec, preWVec, m);
-				System.out.println("\nIteration " + (cnt+1));
+				int cnt = 0;
+				System.out.println("Iteration " + cnt);
 				System.out.printf("Rank\t%-15s\t%s\n", "Gene", "MI");
 				for(int i = 0; i < rank; i++){
 					System.out.printf("%s\t%-15s\t%s\n", (i+1), geneNames.get(out[i].idx) , df.format(out[i].val));
 				}
+				boolean converge = false;
+				while(cnt < maxIter){
+					float[] metaGene = getWeightedMetaGene(data, wVec, pow,  m, n);
+					wVec = itc.getAllDoubleMIWith(metaGene, data);
+				// output
+					out = new ValIdx[m];
+					for(int i = 0; i < m; i++){
+						out[i] = new ValIdx(i, (float)Math.floor(10000*wVec[i])/10000);
+					}
+					Arrays.sort(out);
+					double err = calcMSE(wVec, preWVec, m);
+					System.out.println("\nIteration " + (cnt+1));
+					System.out.printf("Rank\t%-15s\t%s\n", "Gene", "MI");
+					for(int i = 0; i < rank; i++){
+						System.out.printf("%s\t%-15s\t%s\n", (i+1), geneNames.get(out[i].idx) , df.format(out[i].val));
+					}
+					
+					if(err < convergeTh){
+						System.out.println("Converged.");
+						converge = true;
+						break;
+					}
+					System.arraycopy(wVec, 0, preWVec, 0, m);
+					cnt++;
+				}
 				
-				if(err < convergeTh){
-					System.out.println("Converged.");
-					converge = true;
-					break;
-				}
-				System.arraycopy(wVec, 0, preWVec, 0, m);
-				cnt++;
-			}
-			
-			if(converge){
-				String outFile = seed + "_attractor.txt";
-				System.out.println("\nAttractor was written to file " + outFile);
-				PrintWriter pw = new PrintWriter(new FileWriter(outFile));
-				pw.println("Rank\tGene\tMI");
-				for(int i = 0; i < m; i++){
-					pw.println((i+1) + "\t" + geneNames.get(out[i].idx) + "\t" + df.format(out[i].val));
-				}
-				pw.close();	
+				/*if(converge){
+					String outFile = seed + "_attractor.txt";
+					System.out.println("\nAttractor was written to file " + outFile);
+					PrintWriter pw = new PrintWriter(new FileWriter(outFile));
+					pw.println("Rank\tGene\tMI");
+					for(int i = 0; i < m; i++){
+						pw.println((i+1) + "\t" + geneNames.get(out[i].idx) + "\t" + df.format(out[i].val));
+					}
+					pw.close();	
+				}else{
+					System.out.println("Not converged.");
+				}*/
+				
+				
 			}else{
-				System.out.println("Not converged.");
+				System.out.println("Dataset does not contain seed gene " + seed + "!!");
 			}
-			
-			
-		}else{
-			System.out.println("Dataset does not contain seed gene " + seed + "!!");
+			System.out.print("\nPress < Enter > to exit, or enter another gene: ");
+			in = br.readLine();
+			seed = in;
+			if(!seed.equals("")){
+				System.out.println("\n===============================================================================\n");
+				System.out.printf("%-25s%s\n", "Seed:", seed);
+				System.out.println("\n===============================================================================\n");
+			}
 		}
-		System.out.println("\nPress < Enter > to exit, thank you :)");
-		System.in.read();
+		System.out.println("Thank you :)");
 	}
 
 }
