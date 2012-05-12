@@ -72,7 +72,7 @@ public class GroupWeightedAttractor {
 		System.out.println("Processing " + dataFiles[qq] + "...");
 		//Annotations annot = Annotations.parseAnnotations(annots[IDX]);
 		DataFile ma = DataFile.parse(dataFiles[qq]);
-		
+		ma.sortProbes();
 		int m = ma.getNumRows();
 		int n = ma.getNumCols();
 		ArrayList<String> genes = ma.getProbes();

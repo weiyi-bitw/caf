@@ -2,7 +2,7 @@
 #$ -j y
 #$ -cwd
 #$ -S /bin/bash
-#$ -t 1-600
+#$ -t 1-1000
 export CONF=$1
 export COMMAND=$2
 export JOBID=$3 # JOBID for debugging mode / attractor folder for MRC mode

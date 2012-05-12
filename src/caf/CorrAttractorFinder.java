@@ -35,7 +35,6 @@ public class CorrAttractorFinder {
 	private static long jobID;
 	private static int winsize = 10;
 	private static boolean debugging = false;
-	private static boolean rankBased = false;
 	private static boolean normMI = true;
 	private static String breakPoint = "";
 	private static int maxIter = 100;
@@ -136,16 +135,6 @@ public class CorrAttractorFinder {
 	            }
 		    }
 		    
-		    confLine = config.getProperty("rank_based");
-	    	if (confLine != null && confLine.length() > 0) {
-	            try {
-	               rankBased = Boolean.parseBoolean(confLine);
-	            } catch (NumberFormatException nfe) {
-	            	System.out.println("WARNING: Couldn't parse whether using rank-based MI: " + confLine + ", defaultly using it.");
-	            }
-	        }
-	    	System.out.printf("%-25s%s\n", "Rank-based correlation:", rankBased);
-	    	
 	    	confLine = config.getProperty("max_iter");
 	    	if (confLine != null && confLine.length() > 0) {
 	            try {
@@ -355,29 +344,16 @@ public class CorrAttractorFinder {
 		System.out.println("\n===================================================================================\n");
 		
 		Scheduler scdr = new Scheduler(segment, numSegments, jobID);
-		Converger cvg = new Converger(segment, numSegments, jobID, maxIter, rankBased);
+		Converger cvg = new Converger(segment, numSegments, jobID, maxIter, false);
 		ITComputer itc = new ITComputer(bins, splineOrder, segment, numSegments, normMI);
 		cvg.linkITComputer(itc);
 		cvg.setPrecision(precision);
 		int fold = (int) Math.round(Math.sqrt(numSegments));
 		if(!debugging)
 		{
-			float[][] data = ma.getData();
-			
-			int m = ma.getNumRows();
-			int n = ma.getNumCols();
-			
 			// transform the first data matrix into ranks
-			float[][] val = new float[m][n];
-			if(rankBased){
-				for(int i = 0; i < m; i++){
-					System.arraycopy(StatOps.rank(data[i]), 0, val[i], 0, n);
-				}
-			}else{
-				val = data;
-			}
 			if(command.equalsIgnoreCase("CAF")){
-				cvg.findWeightedAttractor(val, weightExp);
+				cvg.findWeightedAttractor(ma, weightExp);
 			}else if(command.equalsIgnoreCase("CNV")){
 				cvg.findWeightedCNVCoef(ma, gn, wstart, wend, delw, pstart, pend, delp, quantile);
 				//cvg.findWeightedCNV(ma, gn, pstart, pend, delp, quantile);

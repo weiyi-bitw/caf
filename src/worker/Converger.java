@@ -1234,7 +1234,9 @@ public class Converger extends DistributedWorker{
 		wVec[0] = -1;
 		return wVec;
 	}
-	public void findWeightedAttractor(float[][] data, float power) throws Exception{
+	
+	public void findWeightedAttractor(DataFile ma, float power) throws Exception{
+		float[][] data = ma.getData();
 		int m = data.length;
 		int n = data[0].length;
 		
@@ -1247,7 +1249,7 @@ public class Converger extends DistributedWorker{
 		ArrayList<ArrayList<Integer>> basins = new ArrayList<ArrayList<Integer>>();
 		
 		for(int idx = start; idx < end; idx++){
-			System.out.print("Processing " + idx + "...");
+			System.out.print("Processing " + ma.getProbes().get(idx) + "( " + idx + " )" + "...");
 			double[] wVec = itc.getAllDoubleMIWith(data[idx], data);
 			//float[] wVec = StatOps.pearsonCorr(vec, data, m, n);
 			//float[] wVec = StatOps.cov(vec, data, m, n);
