@@ -84,17 +84,16 @@ public class FineTuning {
 		ArrayList<String> gs = new ArrayList<String>();
 		
 		long jobID = System.currentTimeMillis();
-		Converger cvg = new Converger(0, 1, jobID);
-		ITComputer itc = new ITComputer(6, 3, 0, 1, true);
+		Converger cvg = new Converger(459, 7000, jobID);
+		ITComputer itc = new ITComputer(6, 3, 459, 7000, true);
 		//itc.negateMI(true);
 		cvg.linkITComputer(itc);
 		
 		HashMap<String, Integer> geneMap = ma.getRows();
 		
-		gs.add("INHBA");
-		gs.add("AURKA");
-		gs.add("COL3A1");
-		gs.add("CD53");
+		gs.add("COL1A1");
+		gs.add("COL1A2");
+		gs.add("COL2A1");
 		
 		for(String g : gs){
 			ArrayList<String> geneNames = ma.getProbes();
@@ -115,10 +114,14 @@ public class FineTuning {
 						double[] tmp = cvg.findWeightedAttractorDouble(ma, vec, power);
 						
 						if(tmp[0] == -1){
-							/*pw.println("Not converged.");
-							pw.close();*/
 							continue;
 						}
+						
+						double[] tmp2 = new double[m];
+						System.arraycopy(tmp, 0, tmp2, 0, m);
+						Arrays.sort(tmp2);
+						System.out.println("Test diff: " + (tmp2[m-1] - tmp2[m-2]));
+						
 						ValIdx[] vis = new ValIdx[m];
 						for(int i = 0; i < m; i++){
 							vis[i] = new ValIdx(i, (float)tmp[i]);
@@ -136,24 +139,7 @@ public class FineTuning {
 						pw.close();
 						
 						float score = vis[quantile-1].val;
-						/*float score = 0;
-						for(int i = 0; i < quantile; i++){
-							score += vis[i].val;
-						}*/
 						System.out.println("\tScore: " + score);
-						/*if(score > bestScore){
-							bestScore = score;
-							bestPower = power;
-							System.arraycopy(vis, 0, out, 0, m);
-							power -= 0.5;
-						}else{
-							power -= 0.5;
-							if(power == 10){
-								power = 15;
-								continue;
-							}
-							break;
-						}*/
 						
 					}catch (FileNotFoundException exc){
 						System.out.println("Exception: " + exc);
