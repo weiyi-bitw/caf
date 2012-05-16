@@ -38,7 +38,7 @@ public class FineTuningCNV {
 				//"/home/weiyi/workspace/data/brca/gse3494/ge.12160x251.jetset.mean.txt",
 				//"/home/weiyi/workspace/data/brca/gse32646/ge.19189x115.jetset.mean.txt",
 				//"/home/weiyi/workspace/data/brca/gse36771/ge.19189x107.jetset.mean.txt",
-				"/home/weiyi/workspace/data/brca/gse31448/ge.19189x353.jetset.mean.txt",
+				//"/home/weiyi/workspace/data/brca/gse31448/ge.19189x353.jetset.mean.txt",
 				//"/home/weiyi/workspace/data/brca/gse2034/ge.12160x286.jetset.mean.txt",
 				//"/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt",
 				//"/home/weiyi/workspace/data/coad/gse14333/ge.19189x290.jetset.mean.txt",
@@ -48,13 +48,15 @@ public class FineTuningCNV {
 				//"/home/weiyi/workspace/data/ov/gse26193/ge.19189x107.jetset.mean.txt",
 				//"/home/weiyi/workspace/data/prad/gse17951/ge.19189x154.jetset.mean.txt",
 				//"/home/weiyi/workspace/data/prad/gse8218/ge.12160x148.jetset.mean.txt"
+				//"/home/weiyi/workspace/data/nbl/gse3446/ge.12160x117.jetset.mean.txt",
+				"/home/weiyi/workspace/data/nbl/gse3960/L3.9127x102.mean.txt"
 		};
 		
 		final String[] outputDirs={
 				//"brca.gse3494.jetset.mean",
 				//"brca.gse32646.jetset.mean",
 				//"brca.gse36771.jetset.mean",
-				"brca.gse31448.jetset.mean",
+				//"brca.gse31448.jetset.mean",
 				//"brca.gse2034.jetset.mean",
 				//"brca.tcga",
 				//"coad.gse14333.jetset.mean",
@@ -63,7 +65,9 @@ public class FineTuningCNV {
 				//"ov.tcga",
 				//"ov.gse26193",
 				//"prad.gse17951",
-				//"prad.gse8218"
+				//"prad.gse8218",
+				//"nbl.gse3446",
+				"nbl.gse3960"
 		};
 		
 		
@@ -94,7 +98,7 @@ public class FineTuningCNV {
 		
 		//gn.linkToDataFile(ma);
 		//String[] testList = gn.getAllGenesInChrArm(targetArm);
-		String[] testList = gn.getNeighbors("ERBB2", 101);
+		String[] testList = gn.getNeighbors("MYCN", 101);
 				
 		long jobID = System.currentTimeMillis();
 		Converger cvg = new Converger(0, 1, jobID);

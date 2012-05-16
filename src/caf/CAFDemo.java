@@ -53,9 +53,11 @@ public class CAFDemo {
 	public static void main(String[] args) throws Exception {
 		String datafile = args[0];
 		String seed = "CENPA";
-		final float pow = 5f;
+		float pow = Float.parseFloat(args[1]);
+		int bins = Integer.parseInt(args[2]);
+		int so = Integer.parseInt(args[3]);
 		final float precision = 1E-4f;
-		final int maxIter = 100;
+		int maxIter = Integer.parseInt(args[4]);
 		final int rank = 20;
 		DecimalFormat df = new DecimalFormat("0.0000"); 
 		System.out.println("Loading files...");
@@ -66,6 +68,8 @@ public class CAFDemo {
 		System.out.printf("%-25s%s\n", "Expression Data:", datafile);
 		System.out.println("\n==DEMO default setting=========================================================\n");
 		System.out.printf("%-25s%s\n", "Weight Power:",pow);
+		System.out.printf("%-25s%s\n", "Bins:",bins);
+		System.out.printf("%-25s%s\n", "Spline order:",so);
 		System.out.printf("%-25s%s\n", "Converge threshold:", precision);
 		System.out.printf("%-25s%s\n", "Max Iterations:", maxIter);
 		System.out.println("\n===============================================================================\n");
@@ -88,7 +92,7 @@ public class CAFDemo {
 		
 		ITComputer itc = new ITComputer(6, 3, 0, 1, true);
 		
-		double convergeTh = 1E-14;
+		double convergeTh = 5E-14;
 		
 		while(!seed.equals("")){
 		
@@ -124,7 +128,7 @@ public class CAFDemo {
 					}
 					Arrays.sort(out);
 					double err = calcMSE(wVec, preWVec, m);
-					System.out.println("\nIteration " + (cnt+1));
+					System.out.println("\nIteration " + (cnt+1) + "\tDelta: " + err);
 					System.out.printf("Rank\t%-15s\t%s\n", "Gene", "MI");
 					for(int i = 0; i < rank; i++){
 						System.out.printf("%s\t%-15s\t%s\n", (i+1), geneNames.get(out[i].idx) , df.format(out[i].val));
@@ -139,7 +143,7 @@ public class CAFDemo {
 					cnt++;
 				}
 				
-				/*if(converge){
+				if(converge){
 					String outFile = seed + "_attractor.txt";
 					System.out.println("\nAttractor was written to file " + outFile);
 					PrintWriter pw = new PrintWriter(new FileWriter(outFile));
@@ -150,7 +154,7 @@ public class CAFDemo {
 					pw.close();	
 				}else{
 					System.out.println("Not converged.");
-				}*/
+				}
 				
 				
 			}else{

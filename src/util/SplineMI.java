@@ -378,7 +378,7 @@ public class SplineMI {
         float curMax = Float.MIN_VALUE;
 
         for (curSample = 0; curSample < numSamples; curSample++) {
-            if (data[curSample] > curMax) {
+            if (!Float.isNaN(data[curSample]) && data[curSample] > curMax) {
                 curMax = data[curSample];
             }
         }
@@ -390,7 +390,7 @@ public class SplineMI {
         float curMin = Float.MAX_VALUE;
 
         for (curSample = 0; curSample < numSamples; curSample++) {
-            if (data[curSample] < curMin) {
+            if (!Float.isNaN(data[curSample]) && data[curSample] < curMin) {
                 curMin = data[curSample];
             }
         }

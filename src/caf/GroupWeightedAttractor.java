@@ -40,8 +40,14 @@ public class GroupWeightedAttractor {
 				"/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt",
 				"/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt",
 				"/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt"*/
-				//"/home/weiyi/workspace/data/gbm/tcga/ge/ge.12042x545.txt"
-				"/home/weiyi/workspace/data/ov/tcga/super.35696x511.knn.txt"
+				//"/home/weiyi/workspace/data/gbm/tcga/ge/ge.12042x545.txt",
+				//"/home/weiyi/workspace/data/ov/tcga/super.35696x511.knn.txt",
+				//"/home/weiyi/workspace/data/gbm/tcga/super.40092x274.txt",
+				//"/home/weiyi/workspace/data/gbm/tcga/ge_mir_meth/meth.23094x278.knn.txt",
+				//"/home/weiyi/workspace/data/ov/tcga/mergeroom/meth.23094x514.knn.txt",
+				"/home/weiyi/workspace/data/gbm/tcga/ge_mir_meth/mir.472x278.knn.txt",
+				"/home/weiyi/workspace/data/ov/tcga/mergeroom/mir.560x514.common.txt",
+				
 		};
 		final String[] outputDirs={
 				//"sone",
@@ -54,7 +60,12 @@ public class GroupWeightedAttractor {
 				"coad.tcga",
 				"ov.tcga.affy"*/
 				//"gbm.tcga"
-				"ov.super"
+				//"ov.super"
+				//"gbm.super"
+				//"meth.gbm",
+				//"meth.ov",
+				"mir.gbm",
+				"mir.ov"
 		};
 		
 		/*String[] annots = {

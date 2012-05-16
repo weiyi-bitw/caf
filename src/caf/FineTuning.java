@@ -48,8 +48,9 @@ public class FineTuning {
 				//"/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt",
 				//"/home/weiyi/workspace/data/ov/gse26193/ge.19189x107.jetset.mean.txt",
 				//"/home/weiyi/workspace/data/prad/gse17951/ge.19189x154.jetset.mean.txt",
-				//"/home/weiyi/workspace/data/prad/gse8218/ge.12160x148.jetset.mean.txt"
-				"/home/weiyi/workspace/data/ov/tcga/super.35696x511.knn.txt"
+				//"/home/weiyi/workspace/data/prad/gse8218/ge.12160x148.jetset.mean.txt",
+				//"/home/weiyi/workspace/data/ov/tcga/super.35696x511.knn.txt",
+				"/home/weiyi/workspace/data/gbm/tcga/super.40092x274.txt"
 		};
 			
 		final String[] outputDirs={
@@ -66,8 +67,9 @@ public class FineTuning {
 				//"ov.tcga.affy",
 				//"ov.gse26193",
 				//"prad.gse17951",
-				//"prad.gse8218"
-				"ov.super"
+				//"prad.gse8218",
+				//"ov.super",
+				"gbm.super"
 		};
 			
 		
@@ -91,9 +93,7 @@ public class FineTuning {
 		
 		HashMap<String, Integer> geneMap = ma.getRows();
 		
-		gs.add("COL1A1");
-		gs.add("COL1A2");
-		gs.add("COL2A1");
+		gs.add("A4GNT_3_139334564");
 		
 		for(String g : gs){
 			ArrayList<String> geneNames = ma.getProbes();
