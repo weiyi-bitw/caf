@@ -90,7 +90,7 @@ public class CAFDemo {
 		HashMap<String, Integer> geneMap = ma.getRows();
 		ArrayList<String> geneNames = ma.getProbes();
 		
-		ITComputer itc = new ITComputer(6, 3, 0, 1, true);
+		ITComputer itc = new ITComputer(bins, so, 0, 1, true);
 		
 		double convergeTh = 5E-14;
 		

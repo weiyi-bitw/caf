@@ -253,23 +253,26 @@ public class GroupCNVWindow {
 		String[] dataFiles = {
 				//"/home/weiyi/workspace/data/brca/gse32646/ge.19189x115.jetset.mean.txt",
 				//"/home/weiyi/workspace/data/brca/gse36771/ge.19189x107.jetset.mean.txt",
-				"/home/weiyi/workspace/data/brca/gse2034/ge.12160x286.jetset.mean.txt",
+				/*"/home/weiyi/workspace/data/brca/gse2034/ge.12160x286.jetset.mean.txt",
 				"/home/weiyi/workspace/data/coad/gse14333/ge.19189x290.jetset.mean.txt",
 				"/home/weiyi/workspace/data/ov/gse9891/ge.19189x285.jetset.mean.txt",
 				"/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt",
 				"/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt",
-				"/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt"
+				"/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt"*/
+				"/home/weiyi/workspace/data/gbm/tcga/ge/ge.12042x545.txt",
 		};
 		
 		final String[] outputDirs={
 				//"brca.gse32646.jetset.mean",
 				//"brca.gse36771.jetset.mean",
-				"brca.gse2034.jetset.mean",
+				/*"brca.gse2034.jetset.mean",
 				"coad.gse14333.jetset.mean",
 				"ov.gse9891.jetset.mean",
 				"brca.tcga",
 				"coad.tcga",
-				"ov.tcga"
+				"ov.tcga"*/
+				"gbm.tcga",
+				
 		};
 		
 		

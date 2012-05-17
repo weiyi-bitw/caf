@@ -49,7 +49,13 @@ public class FineTuningCNV {
 				//"/home/weiyi/workspace/data/prad/gse17951/ge.19189x154.jetset.mean.txt",
 				//"/home/weiyi/workspace/data/prad/gse8218/ge.12160x148.jetset.mean.txt"
 				//"/home/weiyi/workspace/data/nbl/gse3446/ge.12160x117.jetset.mean.txt",
-				"/home/weiyi/workspace/data/nbl/gse3960/L3.9127x102.mean.txt"
+				//"/home/weiyi/workspace/data/nbl/gse3960/L3.9127x102.mean.txt",
+				//"/home/weiyi/workspace/data/sarcoma/gse6481/ge.12160x104.jetset.mean.txt",
+				//"/home/weiyi/workspace/data/sarcoma/gse21122/ge.12160x149.jetset.mean.txt",
+				//"/home/weiyi/workspace/data/lihc/gse14520/ge.12160x247.jetset.mean.txt",
+				//"/home/weiyi/workspace/data/lihc/gse36376/ge.34696x240.mean.txt",
+				//"/home/weiyi/workspace/data/gbm/rembrandt/ge.19189x450.jetset.mean.txt",
+				"/home/weiyi/workspace/data/gbm/tcga/ge/ge.12042x545.txt"
 		};
 		
 		final String[] outputDirs={
@@ -67,11 +73,17 @@ public class FineTuningCNV {
 				//"prad.gse17951",
 				//"prad.gse8218",
 				//"nbl.gse3446",
-				"nbl.gse3960"
+				//"nbl.gse3960",
+				//"sarcoma.gse6481",
+				//"sarcoma.gse21122",
+				//"lihc.gse14520",
+				//"lihc.gse36376",
+				//"gbm.rembrandt",
+				"gbm.tcga"
 		};
 		
 		
-		String outPath = "/home/weiyi/workspace/javaworks/caf/output/window51/erbb2";
+		String outPath = "/home/weiyi/workspace/javaworks/caf/output/window51/mycn";
 		if(!outPath.endsWith("/")){
 			outPath = outPath + "/";
 		}
