@@ -131,15 +131,13 @@ public class PlayWithExp {
 				while(cnt < maxIter){
 					float[] metaGene = getWeightedMetaGene(data, wVec, pow,  m, n);
 					wVec = itc.getAllDoubleMIWith(metaGene, data);
-				// output
-					out = new ValIdx[m];
-					for(int i = 0; i < m; i++){
-						out[i] = new ValIdx(i, (float)Math.floor(10000*wVec[i])/10000);
-					}
-					Arrays.sort(out);
 					double err = calcMSE(wVec, preWVec, m);
 					if(err < convergeTh){
 						System.out.println("Converged.");
+						out = new ValIdx[m];
+						for(int i = 0; i < m; i++){
+							out[i] = new ValIdx(i, (float) wVec[i]);
+						}
 						converge = true;
 						break;
 					}
@@ -148,6 +146,7 @@ public class PlayWithExp {
 				}
 				
 				if(converge){
+					Arrays.sort(out);
 					String outFile = "output/" + jobID + "/" + seed + "_" + pow + "_attractor.txt";
 					PrintWriter pw = new PrintWriter(new FileWriter(outFile));
 					pw.println("Rank\tGene\tMI");
