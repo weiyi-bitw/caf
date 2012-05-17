@@ -1,5 +1,6 @@
 package caf;
 
+import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -105,10 +106,12 @@ public class PlayWithExp {
 		double convergeTh = 5E-14;
 		int start = tasks * segment / numSegments;
 		int end = tasks * (segment+1)/numSegments;
+		new File("output").mkdir();
+		new File("output/" + jobID).mkdir();
 		
 		for(int cc = start; cc < end; cc++){
-			float pow = pstart + pdel * start;
-			System.out.println("Power: " + pow);
+			float pow = pstart + pdel * cc;
+			System.out.print("Power: " + pow + "...");
 				
 				int idx = geneMap.get(seed);
 				float[] vec = data[idx];
@@ -145,8 +148,7 @@ public class PlayWithExp {
 				}
 				
 				if(converge){
-					String outFile = seed + "_" + pow + "_attractor.txt";
-					System.out.println("\nAttractor was written to file " + outFile);
+					String outFile = "output/" + jobID + "/" + seed + "_" + pow + "_attractor.txt";
 					PrintWriter pw = new PrintWriter(new FileWriter(outFile));
 					pw.println("Rank\tGene\tMI");
 					for(int i = 0; i < m; i++){
