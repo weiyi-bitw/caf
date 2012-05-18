@@ -93,6 +93,9 @@ public class PlayWithExp {
 		int maxIter = 100;
 		
 		DataFile ma = DataFile.parse(args[0]);
+		
+		System.out.println("DataFile: " + args[0]);
+		
 		int m = ma.getNumRows();
 		int n = ma.getNumCols();
 		float[][] data = ma.getData();
