@@ -3,6 +3,7 @@ package caf;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -108,7 +109,7 @@ public class PlayWithExp {
 		int end = tasks * (segment+1)/numSegments;
 		new File("output").mkdir();
 		new File("output/" + jobID).mkdir();
-		
+		DecimalFormat df = new DecimalFormat("00.00");
 		for(int cc = start; cc < end; cc++){
 			float pow = pstart + pdel * cc;
 			System.out.print("Power: " + pow + "...");
@@ -147,7 +148,7 @@ public class PlayWithExp {
 				
 				if(converge){
 					Arrays.sort(out);
-					String outFile = "output/" + jobID + "/" + seed + "_" + pow + "_attractor.txt";
+					String outFile = "output/" + jobID + "/" + seed + "_" + df.format(pow) + "_attractor.txt";
 					PrintWriter pw = new PrintWriter(new FileWriter(outFile));
 					pw.println("Rank\tGene\tMI");
 					for(int i = 0; i < m; i++){

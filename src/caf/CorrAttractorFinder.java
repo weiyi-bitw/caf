@@ -28,7 +28,7 @@ import worker.Scheduler;
 public class CorrAttractorFinder {
 	private static Properties config;
 	private static String configFile;
-	private static String command;
+	private static String command = "CAF";
 	
 	private static int segment = 0;
 	private static int numSegments = 1;
