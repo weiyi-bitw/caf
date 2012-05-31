@@ -115,7 +115,7 @@ public class FineTuningCNV {
 		long jobID = System.currentTimeMillis();
 		Converger cvg = new Converger(0, 1, jobID);
 		ITComputer itc = new ITComputer(6, 3, 0, 1, true);
-		//itc.negateMI(true);
+		itc.negateMI(true);
 		cvg.linkITComputer(itc);
 		HashMap<String, Integer> geneMap = ma.getRows();
 		

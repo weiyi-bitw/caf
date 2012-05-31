@@ -218,7 +218,7 @@ public class ITComputer extends DistributedWorker{
 		}
 		return mi;
 	}
-	private static float getMomentSign(float[] x, float[] y, int n){
+	private static float getMomentSign(final float[] x, final float[] y, final int n){
 		float productMoment = 0;
 		float xmean = 0, ymean = 0;
 		int numSamples = n;

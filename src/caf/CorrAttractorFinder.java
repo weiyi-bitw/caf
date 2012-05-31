@@ -36,10 +36,10 @@ public class CorrAttractorFinder {
 	private static int winsize = 10;
 	private static boolean debugging = false;
 	private static boolean normMI = true;
+	private static boolean negateMI = true;
 	private static String breakPoint = "";
 	private static int maxIter = 100;
 	private static float precision = (float) 1E-4;
-	
 	
 	// general attractor parameter
 	private static float weightExp = 5f;
@@ -150,11 +150,21 @@ public class CorrAttractorFinder {
 	            try {
 	               normMI = Boolean.parseBoolean(confLine);
 	            } catch (NumberFormatException nfe) {
-	            	System.out.println("WARNING: Couldn't parse Row Normalization: " + confLine + ", using default = false");
+	            	System.out.println("WARNING: Couldn't parse MI Normalization: " + confLine + ", using default = true");
 	            }
 	        }
 	    	System.out.printf("%-25s%s\n", "MI Normalization:", normMI);
-
+	    	
+	    	confLine = config.getProperty("negate_MI");
+	    	if (confLine != null && confLine.length() > 0) {
+	            try {
+	               negateMI = Boolean.parseBoolean(confLine);
+	            } catch (NumberFormatException nfe) {
+	            	System.out.println("WARNING: Couldn't parse MI negation: " + confLine + ", using default = true");
+	            }
+	        }
+	    	System.out.printf("%-25s%s\n", "Negate MI:", negateMI);
+	    	
 	    	confLine = config.getProperty("min_size");
 	    	if (confLine != null && confLine.length() > 0) {
 	            try {
@@ -346,6 +356,7 @@ public class CorrAttractorFinder {
 		Scheduler scdr = new Scheduler(segment, numSegments, jobID);
 		Converger cvg = new Converger(segment, numSegments, jobID, maxIter, false);
 		ITComputer itc = new ITComputer(bins, splineOrder, segment, numSegments, normMI);
+		itc.negateMI(negateMI);
 		cvg.linkITComputer(itc);
 		cvg.setPrecision(precision);
 		int fold = (int) Math.round(Math.sqrt(numSegments));

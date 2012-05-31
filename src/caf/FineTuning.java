@@ -88,7 +88,7 @@ public class FineTuning {
 		long jobID = System.currentTimeMillis();
 		Converger cvg = new Converger(459, 7000, jobID);
 		ITComputer itc = new ITComputer(6, 3, 459, 7000, true);
-		//itc.negateMI(true);
+		itc.negateMI(true);
 		cvg.linkITComputer(itc);
 		
 		HashMap<String, Integer> geneMap = ma.getRows();
