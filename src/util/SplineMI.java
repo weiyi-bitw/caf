@@ -375,9 +375,9 @@ public class SplineMI {
 
     public static float max(float[] data, int numSamples) {
         int curSample;
-        float curMax = Float.MIN_VALUE;
+        float curMax = data[0];
 
-        for (curSample = 0; curSample < numSamples; curSample++) {
+        for (curSample = 1; curSample < numSamples; curSample++) {
             if (!Float.isNaN(data[curSample]) && data[curSample] > curMax) {
                 curMax = data[curSample];
             }
@@ -387,9 +387,9 @@ public class SplineMI {
 
     public static float min(float[] data, int numSamples) {
         int curSample;
-        float curMin = Float.MAX_VALUE;
+        float curMin = data[0];
 
-        for (curSample = 0; curSample < numSamples; curSample++) {
+        for (curSample = 1; curSample < numSamples; curSample++) {
             if (!Float.isNaN(data[curSample]) && data[curSample] < curMin) {
                 curMin = data[curSample];
             }
@@ -425,7 +425,7 @@ public class SplineMI {
         int curSample;
         double xMax = max(fromData, numSamples);
         double xMin = min(fromData, numSamples);
-
+        if(xMax == xMin) xMax = xMin + 1; //prevent "flat vector"
         for (curSample = 0; curSample < numSamples; curSample++) {
         	toData[curSample] = (float) ((fromData[curSample] - xMin) * (numBins - splineOrder + 1) / (double) (xMax - xMin));
         }
@@ -486,7 +486,7 @@ public class SplineMI {
 
         for (curSample = 0; curSample < numSamples; curSample++) {
             for (curBin = 0; curBin < numBins; curBin++) {
-                weights[curBin][curSample] = Float.isNaN(z[curSample])? (double)(1/numBins) :SplineBlend(curBin, splineOrder, knots, z[curSample], numBins);
+                weights[curBin][curSample] = Float.isNaN(z[curSample])? ((double)1/numBins) :SplineBlend(curBin, splineOrder, knots, z[curSample], numBins);
                 /* weights[curBin * numSamples + curSample] = splineFunction(z[curSample], splineOrder, curBin + 1, numBins); */
                 /* mexPrintf("%d|%f(%f)\t", curBin, weights[curBin * numSamples + curSample],z[curSample]); */
             }
@@ -501,7 +501,7 @@ public class SplineMI {
 
         for (curSample = 0; curSample < numSamples; curSample++) {
             for (curBin = 0; curBin < numBins; curBin++) {
-                weights[curBin][curSample] = Float.isNaN(z[curSample])? (float)(1/numBins) : (float)SplineBlend(curBin, splineOrder, knots, z[curSample], numBins);
+                weights[curBin][curSample] = Float.isNaN(z[curSample])? ((float)1/numBins) : (float)SplineBlend(curBin, splineOrder, knots, z[curSample], numBins);
             }
         }
     }

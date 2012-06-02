@@ -292,7 +292,9 @@ public class ITComputer extends DistributedWorker{
 				double e2tg = SplineMI.entropy2d(weightTg, weightTg, n, bins);
 				double mitf = 2*e1tf - e2tf;
 				double mitg = 2*e1tg - e2tg;
-				mi[i] = (e1tf + e1tg - e2) / Math.max(mitf, mitg);
+				double largerMI = mitf > mitg? mitf:mitg;
+				if(largerMI == 0) largerMI = 1;
+				mi[i] = (e1tf + e1tg - e2) / largerMI;
 				if(negateMI) mi[i] = mi[i] * getMomentSign(fixVec, data[i], n);
 			}
 			
@@ -356,7 +358,9 @@ public class ITComputer extends DistributedWorker{
 				float e2tg = (float)SplineMI.entropy2f(weightTg, weightTg, n, bins);
 				float mitf = 2*e1tf - e2tf;
 				float mitg = 2*e1tg - e2tg;
-				mi[i] = (e1tf + e1tg - e2) / Math.max(mitf, mitg);
+				float largerMI = mitf > mitg? mitf:mitg;
+				if(largerMI == 0) largerMI = 1;
+				mi[i] = (e1tf + e1tg - e2) / largerMI;
 				if(negateMI) mi[i] = mi[i] * getMomentSign(fixVec, data[i], n);
 			}
 			

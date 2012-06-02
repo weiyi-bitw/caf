@@ -35,16 +35,21 @@ public class Genome {
 		}
 	}
 	static class Gene implements Comparable<Gene>{
+		int entrez;
 		String name;
 		String chr;
 		String chrArm;
 		String chrBand;
 		float coord;
 		
+		Gene(int entrez){
+			this.entrez = entrez;
+		}
 		Gene(String name){
 			this.name = name;
 		}
-		Gene(String name, String chr, String chrArm, String chrBand, float coord){
+		Gene(int entrez, String name, String chr, String chrArm, String chrBand, float coord){
+			this.entrez = entrez;
 			this.name = name;
 			this.chr = chr;
 			this.chrArm = chrArm;
@@ -52,13 +57,13 @@ public class Genome {
 			this.coord = coord;
 		}
 		public int hashCode(){
-			return name.hashCode();
+			return entrez;
 		}
 		public boolean equals(Object other){
 			boolean result = false;
 	        if (other instanceof Gene) {
 	        	Gene that = (Gene) other;
-	            result = (this.name.equals(that.name));
+	            result = this.entrez == that.entrez;
 	        }
 	        return result;
 		}
@@ -80,56 +85,43 @@ public class Genome {
 	HashMap<String, Integer> idxMap;
 	HashMap<String, Float> coordMap;
 	HashMap<String, IntPair> chrIdxRangeMap;
-	HashMap<String, IntPair> chrCoordRangeMap;
 	
 	public static Genome parseGeneLocation(String file)throws Exception{
 		BufferedReader br = new BufferedReader(new FileReader(file));
 		ArrayList<Gene> genes = new ArrayList<Gene>();
-		HashMap<String, IntPair> chrCoordRangeMap = new HashMap<String, IntPair>();
 		
 		br.readLine(); // first row header
 		String line = br.readLine();
 		int lncnt = 0;
-		String preChr = null;
-		int preMaxCoord = -1;
 		
 		while(line != null){
 			String[] tokens = line.split("\t");
-			String name = tokens[0];
-			String chr = tokens[6];
-			String chrBand = tokens[1];
+			int entrez = Integer.parseInt(tokens[0]);
+			String name = tokens[7];
+			String chr = tokens[1];
+			String chrBand = tokens[2];
 			String chrArm = "---";
 			if (tokens[1].contains("p")){
 				chrArm = chr + "p";
 			}else if(tokens[1].contains("q")){
 				chrArm = chr + "q";
 			}
-			int startCoord = Integer.parseInt(tokens[3]);
-			int endCoord = Integer.parseInt(tokens[4]);
+			//int startCoord = Integer.parseInt(tokens[4]);
+			//int endCoord = Integer.parseInt(tokens[5]);
 			
-			if(chrCoordRangeMap.get(chr) == null){ // new chr coming up!
-				if(preChr != null){ // previous chr, push the end value
-					chrCoordRangeMap.get(preChr).setY(preMaxCoord);
-				}
-				chrCoordRangeMap.put(chr, new IntPair(startCoord));
-				preChr = chr;
-			}
-			
-			float chrCoord = Float.parseFloat(tokens[5]);
-			genes.add(new Gene(name, chr, chrArm, chrBand, chrCoord));
-			preMaxCoord = endCoord;
+			float chrCoord = Float.parseFloat(tokens[6]);
+			genes.add(new Gene(entrez, name, chr, chrArm, chrBand, chrCoord));
 			lncnt++;
 			line = br.readLine();
 		}
 		br.close();
-		chrCoordRangeMap.get(preChr).setY(preMaxCoord);
 		
 		System.out.println("Genome contains " + lncnt + " genes.");
 		
-		return new Genome(genes, chrCoordRangeMap);
+		return new Genome(genes);
 	}
 	
-	Genome(ArrayList<Gene> genes, HashMap<String, IntPair> chrCoordRangeMap){
+	Genome(ArrayList<Gene> genes){
 		this.genes = genes;
 		Collections.sort(genes);
 		this.chrMap = new HashMap<String, String>();
@@ -138,7 +130,6 @@ public class Genome {
 		this.idxMap = new HashMap<String, Integer>();
 		this.coordMap = new HashMap<String, Float>();
 		this.chrIdxRangeMap = new HashMap<String, IntPair>();
-		this.chrCoordRangeMap = chrCoordRangeMap;
 		int cnt = 0;
 		String preChr = null;
 		for(Gene g : genes){
@@ -202,11 +193,6 @@ public class Genome {
 	
 	public float getCoord(String gene){
 		return coordMap.get(gene);
-	}
-	
-	public float getChrCoordRange(String chr){
-		IntPair ip = chrCoordRangeMap.get(chr);
-		return (ip.y - ip.x);
 	}
 	
 	public float getChrIdxRange(String chr){

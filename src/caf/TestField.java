@@ -19,6 +19,7 @@ import obj.DataFile;
 import obj.Genome;
 import obj.ValIdx;
 
+import util.SplineMI;
 import util.StatOps;
 import worker.Converger;
 import worker.ITComputer;
@@ -131,7 +132,26 @@ public class TestField {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String path = "/home/weiyi/workspace/data/brca/gse2034";
+		float[][] x = new float[1][5];
+		float[] y = {3f, 3f, 3f, 3f, 3f};
+		
+		float[] z = new float[5];
+		
+		x[0][0] = 1;
+		x[0][1] = 4;
+		x[0][2] = 3;
+		x[0][3] = 2;
+		x[0][4] = 6;
+		
+		ITComputer itc =  new ITComputer(6, 3, 0, 1);
+		double[] mi = itc.getAllDoubleMIWith(y, x);
+		
+		for(int i = 0; i < mi.length; i++){
+			System.out.println(mi[i]);
+		}
+		
+		
+		/*String path = "/home/weiyi/workspace/data/brca/gse2034";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
@@ -206,7 +226,7 @@ public class TestField {
 				System.out.println("Does not contain gene " + g);
 			}
 			
-		}
+		}*/
 		
 		System.out.println("Done.");
 	}
