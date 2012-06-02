@@ -21,6 +21,7 @@ public class ITComputer extends DistributedWorker{
 	private static int bins;
 	private static int splineOrder;
 	private static int[] knots;
+	private static double[] dknots;
 	private static boolean output2File = false;
 	private static boolean rankBased = false;
 	private static boolean negateMI = false;
@@ -39,9 +40,9 @@ public class ITComputer extends DistributedWorker{
 		super(thisSeg, totalSegs);
 		ITComputer.bins = bins;
 		ITComputer.splineOrder = splineOrder;
-		int[] knots = new int[bins + splineOrder];
-		SplineMI.splineKnots(knots, bins, splineOrder);
-		ITComputer.knots = knots;
+		double[] knots = new double[bins + splineOrder];
+		SplineMI.knotVector(knots, bins, splineOrder);
+		ITComputer.dknots = knots;
 		ITComputer.normalizeMI = miNorm;
 		//System.out.println("ITComputer " + (id+1) + " of " + totalComputers + " created.");
 	}
@@ -243,7 +244,7 @@ public class ITComputer extends DistributedWorker{
 	// calculate the MI of fixVec to itself (for normalization)
 		
 		double[][] weightFix = new double[bins][n];
-		SplineMI.findWeights(fixVec, knots, weightFix, n, splineOrder, bins);
+		SplineMI.findWeights(fixVec, dknots, weightFix, n, splineOrder, bins);
 		double[] histValtf = new double[bins];
 		int numSamples = n;
 		
@@ -253,7 +254,7 @@ public class ITComputer extends DistributedWorker{
 		for(int i = 0; i < m; i++){
 			
 			double[][] weightTg = new double[bins][n];
-			SplineMI.findWeights(data[i], knots, weightTg, n, splineOrder, bins);
+			SplineMI.findWeights(data[i], dknots, weightTg, n, splineOrder, bins);
 			
 			double e1tf = 0, e1tg = 0;
 			histValtf = new double[bins];

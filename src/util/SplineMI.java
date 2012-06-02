@@ -350,7 +350,63 @@ public class SplineMI {
         }
         return (value);
     }
+    
+/*
+ * 06/01/2011 latest knotVector and basisFunction
+ * 
+ */
+    public static void knotVector(double[] v, int numBins, int splineOrder) {
+    	int nInternalPoints = numBins - splineOrder;
+    	int i;
 
+    	for (i = 0; i < splineOrder; ++i) {
+    	  v[i] = 0;
+    	}
+    	for (i = splineOrder; i < splineOrder + nInternalPoints; ++i) {
+    	  v[i] = (double)(i - splineOrder + 1)/(nInternalPoints + 1);
+    	}
+    	for (i = splineOrder + nInternalPoints; i < 2*splineOrder + nInternalPoints; ++i) {
+    	  v[i] = 1;
+    	}
+    }
+
+    static double basisFunction(int i, int p, double t, final double kVector[], int numBins) {
+    	  double d1, n1, d2, n2, e1, e2;
+    	  if (p == 1) {
+    	    if ((t >= kVector[i] && t < kVector[i+1] &&
+    	         kVector[i] < kVector[i+1]) ||
+    	        (Math.abs(t - kVector[i+1]) < 1e-10 && (i+1 == numBins))) {
+    	      return(1);
+    	    }
+    	    return(0);
+    	  }
+
+    	  d1 = kVector[i+p-1] - kVector[i];
+    	  n1 = t - kVector[i];
+    	  d2 = kVector[i+p] - kVector[i+1];
+    	  n2 = kVector[i+p] - t;
+
+    	  if (d1 < 1e-10 && d2 < 1e-10) {
+    	    return(0);
+    	  } else if (d1 < 1e-10) {
+    	    e1 = 0;
+    	    e2 = n2/d2*basisFunction(i+1, p-1, t, kVector, numBins);
+    	  } else if (d2 < 1e-10) {
+    	    e2 = 0;
+    	    e1 = n1/d1*basisFunction(i, p-1, t, kVector, numBins);
+    	  } else {
+    	    e1 = n1/d1*basisFunction(i, p-1, t, kVector, numBins);
+    	    e2 = n2/d2*basisFunction(i+1, p-1, t, kVector, numBins);
+    	  }
+
+    	  /* sometimes, this value is < 0 (only just; rounding error); truncate */
+    	  if (e1 + e2 < 0) {
+    	    return(0);
+    	  }
+    	  return(e1 + e2);
+    	}
+
+    
 /*
   The positions of the subintervals of v and breakpoints, the position
   on the curve are called knots. Breakpoints can be uniformly defined
@@ -396,7 +452,29 @@ public class SplineMI {
         }
         return curMin;
     }
+    public static double max(double[] data, int numSamples) {
+        int curSample;
+        double curMax = data[0];
 
+        for (curSample = 1; curSample < numSamples; curSample++) {
+            if (!Double.isNaN(data[curSample]) && data[curSample] > curMax) {
+                curMax = data[curSample];
+            }
+        }
+        return curMax;
+    }
+
+    public static double min(double[] data, int numSamples) {
+        int curSample;
+        double curMin = data[0];
+
+        for (curSample = 1; curSample < numSamples; curSample++) {
+            if (!Double.isNaN(data[curSample]) && data[curSample] < curMin) {
+                curMin = data[curSample];
+            }
+        }
+        return curMin;
+    }
     public static int maxi(int[] data, int numSamples) {
         int curSample;
         int curMax = data[0];
@@ -430,7 +508,15 @@ public class SplineMI {
         	toData[curSample] = (float) ((fromData[curSample] - xMin) * (numBins - splineOrder + 1) / (double) (xMax - xMin));
         }
     }
-
+    public static void xToZ(float[] fromData, double[] toData, int numSamples, int splineOrder, int numBins) {
+        int curSample;
+        double xMax = (double)max(fromData, numSamples);
+        double xMin = (double)min(fromData, numSamples);
+        if(xMax == xMin) xMax = xMin + 1; //prevent "flat vector"
+        for (curSample = 0; curSample < numSamples; curSample++) {
+        	toData[curSample] =  ((double)fromData[curSample] - xMin) / (xMax - xMin);
+        }
+    }
     public static void xToZFixed(float[] fromData, float[] toData, int numSamples, int splineOrder, int numBins, double xMax, double xMin) {
         int curSample;
 
@@ -472,11 +558,11 @@ public class SplineMI {
 		}
 		return weights;
 	}
-    public static void findWeights(float[] x, int[] knots, double[][] weights, int numSamples, int splineOrder, int numBins) {
+    public static void findWeights(float[] x, double[] knots, double[][] weights, int numSamples, int splineOrder, int numBins) {
         int curSample;
         int curBin;
-        float[] z = new float[numSamples];
-
+        double[] z = new double[numSamples];
+        
         /*
           for (curSample = 0; curSample < numBins + splineOrder; curSample++) {
           mexPrintf("knot %d: %d\n", curSample, knots[curSample]);
@@ -486,7 +572,7 @@ public class SplineMI {
 
         for (curSample = 0; curSample < numSamples; curSample++) {
             for (curBin = 0; curBin < numBins; curBin++) {
-                weights[curBin][curSample] = Float.isNaN(z[curSample])? ((double)1/numBins) :SplineBlend(curBin, splineOrder, knots, z[curSample], numBins);
+                weights[curBin][curSample] = Double.isNaN(z[curSample])? ((double)1/numBins) :basisFunction(curBin, splineOrder, z[curSample], knots,  numBins);
                 /* weights[curBin * numSamples + curSample] = splineFunction(z[curSample], splineOrder, curBin + 1, numBins); */
                 /* mexPrintf("%d|%f(%f)\t", curBin, weights[curBin * numSamples + curSample],z[curSample]); */
             }
@@ -830,9 +916,9 @@ public class SplineMI {
     	double wz[][] = new double[7][7];
     	
     	splineKnots(u, 7, 3);
-    	findWeights(x, u, wx, 7, 3, 7);
+    	/*findWeights(x, u, wx, 7, 3, 7);
     	findWeights(y, u, wy, 7, 3, 7);
-    	findWeights(z, u, wz, 7, 3, 7);
+    	findWeights(z, u, wz, 7, 3, 7);*/
     	
     	double e1x = entropy1d(wx, 7, 7);
     	double e1y = entropy1d(wy, 7, 7);

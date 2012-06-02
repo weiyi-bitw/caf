@@ -40,17 +40,17 @@ public class FineTuning {
 				//"/home/weiyi/workspace/data/brca/gse32646/ge.19189x115.jetset.mean.txt",
 				//"/home/weiyi/workspace/data/brca/gse36771/ge.19189x107.jetset.mean.txt",
 				//"/home/weiyi/workspace/data/brca/gse31448/ge.19189x353.jetset.mean.txt",
-				//"/home/weiyi/workspace/data/brca/gse2034/ge.12160x286.jetset.mean.txt",
-				//"/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt",
-				//"/home/weiyi/workspace/data/coad/gse14333/ge.19189x290.jetset.mean.txt",
-				//"/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt",
-				//"/home/weiyi/workspace/data/ov/gse9891/ge.19189x285.jetset.mean.txt",
-				//"/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt",
+				//"/home/weiyi/workspace/data/brca/gse2034/ge.12160x286.jetset.ncbi.txt",
+				//"/home/weiyi/workspace/data/brca/tcga/ge/ge.17475x536.ncbi.txt",
+				"/home/weiyi/workspace/data/coad/gse14333/ge.19190x290.jetset.ncbi.txt",
+				//"/home/weiyi/workspace/data/coad/tcga/ge/ge.17475x154.ncbi.txt",
+				//"/home/weiyi/workspace/data/ov/gse9891/ge.19190x285.jetset.ncbi.txt",
+				//"/home/weiyi/workspace/data/ov/tcga/ge/ge.11963x582.ncbi.txt",
 				//"/home/weiyi/workspace/data/ov/gse26193/ge.19189x107.jetset.mean.txt",
 				//"/home/weiyi/workspace/data/prad/gse17951/ge.19189x154.jetset.mean.txt",
 				//"/home/weiyi/workspace/data/prad/gse8218/ge.12160x148.jetset.mean.txt",
 				//"/home/weiyi/workspace/data/ov/tcga/super.35696x511.knn.txt",
-				"/home/weiyi/workspace/data/gbm/tcga/super.40092x274.txt"
+				//"/home/weiyi/workspace/data/gbm/tcga/super.40092x274.txt"
 		};
 			
 		final String[] outputDirs={
@@ -59,17 +59,17 @@ public class FineTuning {
 				//"brca.gse32646.jetset.mean",
 				//"brca.gse36771.jetset.mean",
 				//"brca.gse31448.jetset.mean",
-				//"brca.gse2034.jetset.mean",
-				//"brca.tcga",
-				//"coad.gse14333.jetset.mean",
-				//"coad.tcga",
-				//"ov.gse9891.jetset.mean",
-				//"ov.tcga.affy",
+				//"brca.gse2034.jetset.ncbi",
+				//"brca.tcga.ncbi",
+				"coad.gse14333.jetset.ncbi",
+				//"coad.tcga.ncbi",
+				//"ov.gse9891.jetset.ncbi",
+				//"ov.tcga.ncbi",
 				//"ov.gse26193",
 				//"prad.gse17951",
 				//"prad.gse8218",
 				//"ov.super",
-				"gbm.super"
+				//"gbm.super"
 		};
 			
 		
@@ -86,15 +86,15 @@ public class FineTuning {
 		ArrayList<String> gs = new ArrayList<String>();
 		
 		long jobID = System.currentTimeMillis();
-		Converger cvg = new Converger(459, 7000, jobID);
-		ITComputer itc = new ITComputer(6, 3, 459, 7000, true);
+		Converger cvg = new Converger(0, 1, jobID);
+		ITComputer itc = new ITComputer(6, 3, 0, 1, true);
 		itc.negateMI(true);
 		cvg.linkITComputer(itc);
 		
 		HashMap<String, Integer> geneMap = ma.getRows();
 		
-		gs.add("A4GNT_3_139334564");
-		
+		gs.add("CENPA");
+	
 		for(String g : gs){
 			ArrayList<String> geneNames = ma.getProbes();
 			

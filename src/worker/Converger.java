@@ -202,19 +202,21 @@ public class Converger extends DistributedWorker{
 		return out;
 	}
 	private static float[] getWeightedMetaGene(float[][] data, double[] w, float power, int m, int n){
-		float[] out = new float[n];
+		double[] tmp = new double[n];
 		double sum = 0;
 		for(int i = 0; i < m; i++){
 			if(w[i] > 0){
 				double f = Math.exp(power*Math.log(w[i]));
 				sum += f;
 				for(int j = 0; j < n; j++){
-					out[j] += data[i][j] * f;
+					tmp[j] += (double)data[i][j] * f;
 				}
 			}
 		}
+		
+		float[] out = new float[n];
 		for(int j = 0; j < n; j++){
-			out[j] /= sum;
+			out[j] = (float) (tmp[j]/sum);
 		}
 		return out;
 	}

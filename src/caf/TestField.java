@@ -133,7 +133,7 @@ public class TestField {
 	 */
 	public static void main(String[] args) throws Exception {
 		float[][] x = new float[1][5];
-		float[] y = {3f, 3f, 3f, 3f, 3f};
+		float[] y = {4f, 3f, 2f, 1f, 4f};
 		
 		float[] z = new float[5];
 		
@@ -143,7 +143,7 @@ public class TestField {
 		x[0][3] = 2;
 		x[0][4] = 6;
 		
-		ITComputer itc =  new ITComputer(6, 3, 0, 1);
+		ITComputer itc =  new ITComputer(6, 3, 0, 1, true);
 		double[] mi = itc.getAllDoubleMIWith(y, x);
 		
 		for(int i = 0; i < mi.length; i++){
