@@ -35,21 +35,16 @@ public class Genome {
 		}
 	}
 	static class Gene implements Comparable<Gene>{
-		int entrez;
 		String name;
 		String chr;
 		String chrArm;
 		String chrBand;
 		float coord;
 		
-		Gene(int entrez){
-			this.entrez = entrez;
-		}
 		Gene(String name){
 			this.name = name;
 		}
-		Gene(int entrez, String name, String chr, String chrArm, String chrBand, float coord){
-			this.entrez = entrez;
+		Gene(String name, String chr, String chrArm, String chrBand, float coord){
 			this.name = name;
 			this.chr = chr;
 			this.chrArm = chrArm;
@@ -57,13 +52,13 @@ public class Genome {
 			this.coord = coord;
 		}
 		public int hashCode(){
-			return entrez;
+			return name.hashCode();
 		}
 		public boolean equals(Object other){
 			boolean result = false;
 	        if (other instanceof Gene) {
 	        	Gene that = (Gene) other;
-	            result = this.entrez == that.entrez;
+	            result = this.name.hashCode()==that.name.hashCode();
 	        }
 	        return result;
 		}
@@ -96,7 +91,6 @@ public class Genome {
 		
 		while(line != null){
 			String[] tokens = line.split("\t");
-			int entrez = Integer.parseInt(tokens[0]);
 			String name = tokens[7];
 			String chr = tokens[1];
 			String chrBand = tokens[2];
@@ -110,7 +104,7 @@ public class Genome {
 			//int endCoord = Integer.parseInt(tokens[5]);
 			
 			float chrCoord = Float.parseFloat(tokens[6]);
-			genes.add(new Gene(entrez, name, chr, chrArm, chrBand, chrCoord));
+			genes.add(new Gene(name, chr, chrArm, chrBand, chrCoord));
 			lncnt++;
 			line = br.readLine();
 		}

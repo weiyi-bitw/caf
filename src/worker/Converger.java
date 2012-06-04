@@ -201,7 +201,7 @@ public class Converger extends DistributedWorker{
 		}
 		return out;
 	}
-	private static float[] getWeightedMetaGene(float[][] data, double[] w, float power, int m, int n){
+	private static float[] getWeightedMetaGene(float[][] data, double[] w, double power, int m, int n){
 		double[] tmp = new double[n];
 		double sum = 0;
 		for(int i = 0; i < m; i++){
@@ -1206,7 +1206,7 @@ public class Converger extends DistributedWorker{
 		wVec[0] = -1;
 		return wVec;
 	}
-	public double[] findWeightedAttractorDouble(DataFile ma, float[] vec, float power) throws Exception{
+	public double[] findWeightedAttractorDouble(DataFile ma, float[] vec, double power) throws Exception{
 		float[][] data = ma.getData();
 		int m = data.length;
 		int n = data[0].length;
@@ -1237,7 +1237,7 @@ public class Converger extends DistributedWorker{
 		return wVec;
 	}
 	
-	public void findWeightedAttractor(DataFile ma, float power) throws Exception{
+	public void findWeightedAttractor(DataFile ma, double power) throws Exception{
 		float[][] data = ma.getData();
 		int m = data.length;
 		int n = data[0].length;

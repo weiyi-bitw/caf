@@ -42,7 +42,7 @@ public class CorrAttractorFinder {
 	private static float precision = (float) 1E-4;
 	
 	// general attractor parameter
-	private static float weightExp = 5f;
+	private static double weightExp = 5.0;
 	
 	// MI parameter
 	private static int bins = 6;
@@ -211,7 +211,7 @@ public class CorrAttractorFinder {
 		String confLine = config.getProperty("exp");
     	if (confLine != null && confLine.length() > 0) {
             try {
-               weightExp = Float.parseFloat(confLine);
+               weightExp = Double.parseDouble(confLine);
             } catch (NumberFormatException nfe) {
             	System.out.println("WARNING: Couldn't parse weight exponent: " + confLine + ", using default " + weightExp);
             }

@@ -21,8 +21,8 @@ public class FineTuning {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		float start = 5f;
-		float end = 5f;
+		double start = 5.;
+		double end = 5.;
 		int quantile = 20;
 		
 		System.out.println("Loading files...");
@@ -36,13 +36,13 @@ public class FineTuning {
 		final String[] dataFiles={
 				//"/home/weiyi/workspace/data/gbm/tcga/ge/ge.12042x545.txt"
 				//"/home/weiyi/workspace/data/brca/gse3143/ge.8443x158.jetset.mean.txt",
-				//"/home/weiyi/workspace/data/brca/gse3494/ge.12160x251.jetset.mean.txt",
-				//"/home/weiyi/workspace/data/brca/gse32646/ge.19189x115.jetset.mean.txt",
-				//"/home/weiyi/workspace/data/brca/gse36771/ge.19189x107.jetset.mean.txt",
-				//"/home/weiyi/workspace/data/brca/gse31448/ge.19189x353.jetset.mean.txt",
-				//"/home/weiyi/workspace/data/brca/gse2034/ge.12160x286.jetset.ncbi.txt",
-				//"/home/weiyi/workspace/data/brca/tcga/ge/ge.17475x536.ncbi.txt",
-				"/home/weiyi/workspace/data/coad/gse14333/ge.19190x290.jetset.ncbi.txt",
+				"/home/weiyi/workspace/data/brca/gse3494/ge.12160x251.jetset.ncbi.txt",
+				"/home/weiyi/workspace/data/brca/gse32646/ge.19190x115.jetset.ncbi.txt",
+				"/home/weiyi/workspace/data/brca/gse36771/ge.19190x107.jetset.ncbi.txt",
+				"/home/weiyi/workspace/data/brca/gse31448/ge.19190x353.jetset.ncbi.txt",
+				"/home/weiyi/workspace/data/brca/gse2034/ge.12160x286.jetset.ncbi.txt",
+				"/home/weiyi/workspace/data/brca/tcga/ge/ge.17475x536.ncbi.txt",
+				//"/home/weiyi/workspace/data/coad/gse14333/ge.19190x290.jetset.ncbi.txt",
 				//"/home/weiyi/workspace/data/coad/tcga/ge/ge.17475x154.ncbi.txt",
 				//"/home/weiyi/workspace/data/ov/gse9891/ge.19190x285.jetset.ncbi.txt",
 				//"/home/weiyi/workspace/data/ov/tcga/ge/ge.11963x582.ncbi.txt",
@@ -55,13 +55,13 @@ public class FineTuning {
 			
 		final String[] outputDirs={
 				//"gbm.tcga"
-				//"brca.gse3494.jetset.mean",
-				//"brca.gse32646.jetset.mean",
-				//"brca.gse36771.jetset.mean",
-				//"brca.gse31448.jetset.mean",
-				//"brca.gse2034.jetset.ncbi",
-				//"brca.tcga.ncbi",
-				"coad.gse14333.jetset.ncbi",
+				"brca.gse3494.jetset.mean",
+				"brca.gse32646.jetset.mean",
+				"brca.gse36771.jetset.mean",
+				"brca.gse31448.jetset.mean",
+				"brca.gse2034.jetset.ncbi",
+				"brca.tcga.ncbi",
+				//"coad.gse14333.jetset.ncbi",
 				//"coad.tcga.ncbi",
 				//"ov.gse9891.jetset.ncbi",
 				//"ov.tcga.ncbi",
@@ -93,7 +93,8 @@ public class FineTuning {
 		
 		HashMap<String, Integer> geneMap = ma.getRows();
 		
-		gs.add("CENPA");
+		gs.add("ESR1");
+		gs.add("FABP4");
 	
 		for(String g : gs){
 			ArrayList<String> geneNames = ma.getProbes();
@@ -103,7 +104,7 @@ public class FineTuning {
 				ValIdx[] out = new ValIdx[m];
 				float bestPower = -1;
 				float bestScore = -1;
-				for(float power = start; power <= end; power += 0.5){
+				for(double power = start; power <= end; power += 0.5){
 					System.out.print("Power " + power + "...");
 					try{
 						
