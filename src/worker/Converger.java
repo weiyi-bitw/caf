@@ -997,7 +997,7 @@ public class Converger extends DistributedWorker{
 		
 		for(int idx = start; idx < end; idx++)
 		{
-			float bestScore = -1;
+			double bestScore = -1;
 			int bestWinSize = -1;
 			float bestExp = -1;
 			ValIdx[] bestVec = null;
@@ -1027,18 +1027,18 @@ public class Converger extends DistributedWorker{
 				for(float power = pstart; power <= pend; power += delp)
 				{
 					
-					float[] wVec = itc.getAllMIWith(vec, data);
-					float[] preWVec = new float[m2];
+					double[] wVec = itc.getAllDoubleMIWith(vec, data);
+					double[] preWVec = new double[m2];
 					System.arraycopy(wVec, 0, preWVec, 0, m2);
 					int c = 0;
 					boolean converge = false;
-					float score = -1;
+					double score = -1;
 					
 					while(c < maxIter){
 						float[] metaGene = getWeightedMetaGene(data, wVec, power,  m2, n);
-						wVec = itc.getAllMIWith(metaGene, data);
+						wVec = itc.getAllDoubleMIWith(metaGene, data);
 						
-						float err = calcMSE(wVec, preWVec, m2);
+						double err = calcMSE(wVec, preWVec, m2);
 						System.arraycopy(wVec, 0, preWVec, 0, m2);
 						
 						if(err < convergeTh){
@@ -1056,7 +1056,7 @@ public class Converger extends DistributedWorker{
 						bestWinSize = winSize;
 						bestVec = new ValIdx[m2];
 						for(int i = 0; i < m2; i++){
-							bestVec[i] = new ValIdx(maMap.get(ma2Genes.get(i)), wVec[i]);
+							bestVec[i] = new ValIdx(maMap.get(ma2Genes.get(i)), (float)wVec[i]);
 						}
 					}
 					
