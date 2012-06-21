@@ -201,7 +201,7 @@ public class Converger extends DistributedWorker{
 		}
 		return out;
 	}
-	private static float[] getWeightedMetaGene(float[][] data, double[] w, double power, int m, int n){
+	public static float[] getWeightedMetaGene(float[][] data, double[] w, double power, int m, int n){
 		double[] tmp = new double[n];
 		double sum = 0;
 		for(int i = 0; i < m; i++){
@@ -1217,7 +1217,7 @@ public class Converger extends DistributedWorker{
 		double[] preWVec = new double[m];
 		System.arraycopy(wVec, 0, preWVec, 0, m);
 		int c = 0;
-		double convergeTh = 1E-14;
+		double convergeTh = epsilon;
 		
 		while(c < maxIter){
 			float[] metaGene = getWeightedMetaGene(data, wVec, power,  m, n);
@@ -1319,10 +1319,189 @@ public class Converger extends DistributedWorker{
 			pw.println();
 		}
 		pw.close();
-		
-		
-		
 	}
+	
+	private double[] getWeightVector(double[] mi, int m, double a){
+		double sum = 0;
+		double[] w = new double[m];
+		
+		for(int i = 0; i < m; i++){
+			if(mi[i] > 0){
+				w[i] = Math.exp(a*Math.log(mi[i]));
+				sum += w[i];
+			}else{
+				w[i] = 0;
+			}
+		}
+		for(int i = 0; i < m; i++){
+			w[i] /= sum;
+		}
+		return w;
+	}
+	
+	private float[] getMetaGene(float[][] data, double[] w, int m, int n){
+		float[] outf = new float[n];
+		
+		for(int j =0 ; j < n; j++){
+			double o = 0;
+			for(int i = 0; i < m; i++){
+				o += w[i] * data[i][j];
+			}
+			outf[j] = (float) o;
+		}
+		
+		return outf;
+	}
+	
+	private double getScore(double[] mi,int m, int pos){
+		double[] garbage = new double[m];
+		System.arraycopy(mi, 0, garbage, 0, m);
+		Arrays.sort(garbage);
+		return garbage[m-pos];
+	}
+	
+	public double[] AttractorScanning(DataFile ma, float[] vec, double powerStart, double[] outPower) throws Exception{
+		float[][] data = ma.getData();
+		int m = data.length;
+		int n = data[0].length;
+		//ArrayList<String> genes = ma.getProbes();
+		
+		double[] mi = itc.getAllDoubleMIWith(vec, data);
+		double preTenthMI = 0;
+		int c = 0;
+		boolean dominance = true;
+		double[] winner = new double[m];
+		winner[0] = -1;
+		double bestScore = -1;
+		double bestPow = powerStart;
+
+		double a = powerStart;
+		
+	// Stage 1: identify best power
+		while(a >= 0){
+			double preScore = 0;
+			double[] deltaWindow = {0, 0, 0};
+			
+			while(c < maxIter){
+				preTenthMI = getScore(mi, m, 10);
+				double[] w = getWeightVector(mi, m, a);
+				float[] metaGene = getMetaGene(data, w, m, n);
+				mi = itc.getAllDoubleMIWith(metaGene, data);
+				
+				double tenthMI = getScore(mi, m, 10);
+				double delta = Math.abs(tenthMI - preTenthMI);
+				int k = c % 3;
+				deltaWindow[k] = delta;
+				System.out.println("Iteration " + (c+1) + "\tDelta = " + delta);
+				if(c >= 3){
+					boolean scoreConverge = true;
+					for(int i = 0; i < 3; i++){
+						if(deltaWindow[i] >= 1E-4){
+							scoreConverge = false;
+							break;
+						}
+					}
+					if(scoreConverge){
+						if(dominance){
+							w = getWeightVector(mi, m, a);
+							double wMax = -1;
+							for(int i = 0; i < m; i++){
+								if(w[i] > wMax){
+									wMax = w[i];
+								}
+							}
+							if(wMax < 0.8) dominance = false;
+							else{
+								a--;
+								System.out.println("Dominance. a = " + a);
+								
+								c = 0;
+								continue;
+							}
+							
+						}
+						if(winner[0] < 0) System.arraycopy(mi, 0, winner, 0, m);
+						// check if the top 10 genes intersect
+						int[] orderMi = StatOps.order(mi, m);
+						int[] orderWinner = StatOps.order(winner, m);
+						HashSet<Integer> hs = new HashSet<Integer>();
+						boolean intersect = false;
+						for(int i = 0; i < 10; i++){
+							hs.add(orderMi[m-1-i]);
+						}
+						for(int i = 0; i < 10; i++){
+							if(hs.contains(orderWinner[m-1-i])) {
+								intersect = true;
+								break;
+							}
+						}
+						if(!intersect) break; //no intersection, discontinuous
+						if(tenthMI > bestScore){
+							bestScore = tenthMI;
+							bestPow = a;
+							System.out.println("Best Score: " + bestScore + 
+									"\tBest Power: " + bestPow);
+							System.arraycopy(mi, 0, winner, 0, m);
+						}
+						double diffScore = tenthMI - preScore;
+						preScore = tenthMI;
+						System.out.println("Score: " + tenthMI + "\tDiff Score: " + diffScore);
+						if(diffScore >= 0){
+							a -= 0.1;
+						}else{
+							a -= 0.3;
+						}
+						if(a < 0) break;
+						System.out.println("a = " + a);
+						c = 0;
+					}
+					
+					
+				}
+				
+				
+				c++;
+			}
+			if(c >= maxIter){
+				a -= 0.1;
+				c = 0;
+				System.out.println("Not converged.");
+				System.out.println("a = " + a);
+				
+			}else break;
+		}
+		
+		if(winner[0] < 0) return winner;
+		
+	// Stage 2: more sophisticated convergence
+		System.out.println("Best Score: " + bestScore + "\tBest Pow:" + bestPow);
+		double convergeTh = epsilon;
+		a = bestPow;
+		double[] premi = new double[m];
+		System.arraycopy(winner, 0, premi, 0, m);
+		double[] w = getWeightVector(premi, m, a);
+		float[] metaGene = getMetaGene(data, w, m, n);
+		mi = itc.getAllDoubleMIWith(metaGene, data);
+		c = 0;
+		double delta = 1;
+		while(delta >= convergeTh && c <= 200){
+			System.arraycopy(mi, 0, premi, 0, m);
+			w = getWeightVector(mi, m, a);
+			metaGene = getMetaGene(data, w, m, n);
+			mi = itc.getAllDoubleMIWith(metaGene, data);
+			delta = calcMSE(mi, premi, m);
+			System.out.println(delta);
+			c++;
+		}
+		if(c > 200){
+			mi[0] = -1;
+		}
+		outPower[0] = bestPow;
+		return mi;
+	}
+	
+	
+	
 	public ArrayList<ValIdx> findAttractor(float[][] data, float[] vec)throws Exception{
 		int m = data.length;
 		int n = data[0].length;

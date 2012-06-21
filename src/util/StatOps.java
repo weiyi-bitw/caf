@@ -319,6 +319,19 @@ public class StatOps {
 		return result;
 	}
 	
+	public static int[] order(double[] x, int n){
+		ValdIdx[] vi = new ValdIdx[n];
+		for(int i = 0; i < n; i++){
+			vi[i] = new ValdIdx(i, x[i]);
+		}
+		Arrays.sort(vi);
+		int[] o = new int[n];
+		for(int i = 0; i < n; i++){
+			o[i] = vi[i].idx;
+		}
+		return o;
+	}
+	
 	public static float[] rank(float[] x){
 		int n = x.length;
 		float[] xt = new float[n];
