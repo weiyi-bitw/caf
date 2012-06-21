@@ -106,6 +106,7 @@ public class PlayWithExp {
 			System.exit(1);
 		}
 		ITComputer itc = new ITComputer(bins, so, 0, 1, true);
+		itc.negateMI(true);
 		
 		double convergeTh = 5E-14;
 		int start = tasks * segment / numSegments;
