@@ -1360,7 +1360,7 @@ public class Converger extends DistributedWorker{
 		return garbage[m-pos];
 	}
 	
-	public double[] AttractorScanning(DataFile ma, float[] vec, double powerStart, double[] outPower) throws Exception{
+	public double[] AttractorScanning(DataFile ma, float[] vec, double powerStart, double powerEnd, double[] outPower) throws Exception{
 		float[][] data = ma.getData();
 		int m = data.length;
 		int n = data[0].length;
@@ -1371,14 +1371,14 @@ public class Converger extends DistributedWorker{
 		int c = 0;
 		boolean dominance = true;
 		double[] winner = new double[m];
-		winner[0] = -1;
+		winner[0] = Double.NaN;
 		double bestScore = -1;
 		double bestPow = powerStart;
 
 		double a = powerStart;
 		
 	// Stage 1: identify best power
-		while(a >= 0){
+		while(a >= powerEnd){
 			double preScore = 0;
 			double[] deltaWindow = {0, 0, 0};
 			
@@ -1392,7 +1392,7 @@ public class Converger extends DistributedWorker{
 				double delta = Math.abs(tenthMI - preTenthMI);
 				int k = c % 3;
 				deltaWindow[k] = delta;
-				System.out.println("Iteration " + (c+1) + "\tDelta = " + delta);
+				//System.out.println("Iteration " + (c+1) + "\tDelta = " + delta);
 				if(c >= 3){
 					boolean scoreConverge = true;
 					for(int i = 0; i < 3; i++){
@@ -1420,8 +1420,11 @@ public class Converger extends DistributedWorker{
 							}
 							
 						}
-						if(winner[0] < 0) System.arraycopy(mi, 0, winner, 0, m);
+						if(Double.isNaN(winner[0])) {
+							System.arraycopy(mi, 0, winner, 0, m);
+						}
 						// check if the top 10 genes intersect
+						//System.out.println("winner[0]: " + winner[0]);
 						int[] orderMi = StatOps.order(mi, m);
 						int[] orderWinner = StatOps.order(winner, m);
 						HashSet<Integer> hs = new HashSet<Integer>();
@@ -1471,7 +1474,7 @@ public class Converger extends DistributedWorker{
 			}else break;
 		}
 		
-		if(winner[0] < 0) return winner;
+		if(Double.isNaN(winner[0])) return winner;
 		
 	// Stage 2: more sophisticated convergence
 		System.out.println("Best Score: " + bestScore + "\tBest Pow:" + bestPow);
@@ -1490,11 +1493,11 @@ public class Converger extends DistributedWorker{
 			metaGene = getMetaGene(data, w, m, n);
 			mi = itc.getAllDoubleMIWith(metaGene, data);
 			delta = calcMSE(mi, premi, m);
-			System.out.println(delta);
+			//System.out.println(delta);
 			c++;
 		}
 		if(c > 200){
-			mi[0] = -1;
+			mi[0] = Double.NaN;
 		}
 		outPower[0] = bestPow;
 		return mi;
