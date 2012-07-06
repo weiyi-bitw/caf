@@ -25,7 +25,7 @@ public class GeneSetMerger extends DistributedWorker{
 	}
 	
 	
-	public void mergeWeightedGeneSets(String path, int numFiles, float precision, boolean finalOutput) throws IOException{
+	public void mergeWeightedGeneSets(String path, int numFiles, double precision, boolean finalOutput) throws IOException{
 		if(!path.endsWith("/")) path = path + "/";
 		int start = id * numFiles/totalComputers;
 		int end = (id+1) * numFiles/totalComputers;

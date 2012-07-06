@@ -517,6 +517,15 @@ public class SplineMI {
         	toData[curSample] =  ((double)fromData[curSample] - xMin) / (xMax - xMin);
         }
     }
+    public static void xToZ(double[] fromData, double[] toData, int numSamples, int splineOrder, int numBins) {
+        int curSample;
+        double xMax = max(fromData, numSamples);
+        double xMin = min(fromData, numSamples);
+        if(xMax == xMin) xMax = xMin + 1; //prevent "flat vector"
+        for (curSample = 0; curSample < numSamples; curSample++) {
+        	toData[curSample] =  (fromData[curSample] - xMin) / (xMax - xMin);
+        }
+    }
     public static void xToZFixed(float[] fromData, float[] toData, int numSamples, int splineOrder, int numBins, double xMax, double xMin) {
         int curSample;
 
@@ -578,6 +587,20 @@ public class SplineMI {
             }
         }
     }
+    public static void findWeights(double[] x, double[] knots, double[][] weights, int numSamples, int splineOrder, int numBins) {
+        int curSample;
+        int curBin;
+        double[] z = new double[numSamples];
+        
+        xToZ(x, z, numSamples, splineOrder, numBins);
+
+        for (curSample = 0; curSample < numSamples; curSample++) {
+            for (curBin = 0; curBin < numBins; curBin++) {
+                weights[curBin][curSample] = basisFunction(curBin, splineOrder, z[curSample], knots,  numBins);
+            }
+        }
+    }
+    
     public static void findWeights(float[] x, int[] knots, float[][] weights, int numSamples, int splineOrder, int numBins) {
         int curSample;
         int curBin;

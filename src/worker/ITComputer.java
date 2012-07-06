@@ -236,6 +236,77 @@ public class ITComputer extends DistributedWorker{
 		return Math.signum(productMoment - xmean*ymean/numSamples);
 		
 	}
+	private static double getMomentSign(final double[] x, final double[] y, final int n){
+		double productMoment = 0;
+		double xmean = 0, ymean = 0;
+		for(int i = 0; i < n; i++){
+			xmean += x[i];
+			ymean += y[i];
+			productMoment += x[i] * y[i];
+		}
+		
+		return Math.signum(productMoment - xmean*ymean/n);
+		
+	}
+	public double[] getAllDoubleMIWith(double[] fixVec, double[][] data) throws Exception{
+		int n = data[0].length;
+		int m = data.length;
+		
+	// calculate the MI of fixVec to itself (for normalization)
+		
+		double[][] weightFix = new double[bins][n];
+		SplineMI.findWeights(fixVec, dknots, weightFix, n, splineOrder, bins);
+		double e1tf = 0;
+		for (int curBin = 0; curBin < bins; curBin++){
+			double h = 0;
+			for(int curSample = 0; curSample < n; curSample++){
+				h += weightFix[curBin][curSample];
+	        }
+			h /= n;
+			if (h > 0) {
+        		e1tf -= h * SplineMI.log2d(h);
+        	}
+		}
+		
+		//float miMax = 2 * e1fix - e2fix;
+		
+		double[] mi = new double[m];
+		for(int i = 0; i < m; i++){
+			
+			double[][] weightTg = new double[bins][n];
+			SplineMI.findWeights(data[i], dknots, weightTg, n, splineOrder, bins);
+			
+			double e1tg = 0;
+			
+			for (int curBin = 0; curBin < bins; curBin++){
+				double h = 0;
+				for(int curSample = 0; curSample < n; curSample++){
+					h += weightTg[curBin][curSample];
+				}
+				h /= n;
+				if (h > 0) {
+	        		e1tg -= h * SplineMI.log2d(h);
+	        	}
+			}
+			
+			double e2 = SplineMI.entropy2d(weightFix, weightTg, n, bins);
+			if(!normalizeMI){
+				mi[i] = (e1tf + e1tg - e2);
+				if(negateMI) mi[i] = mi[i] * getMomentSign(fixVec, data[i], n);
+			}else{
+				double e2tf = SplineMI.entropy2d(weightFix, weightFix, n, bins);
+				double e2tg = SplineMI.entropy2d(weightTg, weightTg, n, bins);
+				double mitf = 2*e1tf - e2tf;
+				double mitg = 2*e1tg - e2tg;
+				double largerMI = mitf > mitg? mitf:mitg;
+				if(largerMI == 0) largerMI = 1;
+				mi[i] = (e1tf + e1tg - e2) / largerMI;
+				if(negateMI) mi[i] = mi[i] * getMomentSign(fixVec, data[i], n);
+			}
+			
+		}
+		return mi;
+	}
 	
 	public double[] getAllDoubleMIWith(float[] fixVec, float[][] data) throws Exception{
 		int n = data[0].length;
@@ -303,83 +374,7 @@ public class ITComputer extends DistributedWorker{
 		return mi;
 	}
 	
-	public float[] getAllMIWith(float[] fixVec, float[][] data) throws Exception{
-		int n = data[0].length;
-		int m = data.length;
-		
-	// calculate the MI of fixVec to itself (for normalization)
-		
-		float[][] weightFix = new float[bins][n];
-		SplineMI.findWeights(fixVec, knots, weightFix, n, splineOrder, bins);
-		float[] histValtf = new float[bins];
-		int numSamples = n;
-		
-		//float miMax = 2 * e1fix - e2fix;
-		
-		float[] mi = new float[m];
-		for(int i = 0; i < m; i++){
-			
-			float[][] weightTg = new float[bins][n];
-			SplineMI.findWeights(data[i], knots, weightTg, n, splineOrder, bins);
-			
-			float e1tf = 0, e1tg = 0;
-			histValtf = new float[bins];
-			float[] histValtg = new float[bins];
-			numSamples = n;
-			
-			for(int curSample = 0; curSample < n; curSample++){
-				
-				if(!Float.isNaN(weightFix[0][curSample]) && !Float.isNaN(weightTg[0][curSample])){
-					for (int curBin = 0; curBin < bins; curBin++) {
-						histValtf[curBin] += weightFix[curBin][curSample];
-						histValtg[curBin] += weightTg[curBin][curSample];
-		            }
-	        	}else{
-	        		numSamples--;
-	        	}
-	        }
-			
-			for (int curBin = 0; curBin < bins; curBin++){
-				histValtg[curBin] /= numSamples;
-				if (histValtg[curBin] > 0) {
-	        		e1tg -= histValtg[curBin] * SplineMI.log2d(histValtg[curBin]);
-	        	}
-				histValtf[curBin] /= numSamples;
-				if (histValtf[curBin] > 0) {
-	        		e1tf -= histValtf[curBin] * SplineMI.log2d(histValtf[curBin]);
-	        	}
-			}
-			
-			float e2 = (float)SplineMI.entropy2f(weightFix, weightTg, n, bins);
-			if(!normalizeMI){
-				mi[i] = (e1tf + e1tg - e2);
-				if(negateMI) mi[i] = mi[i] * getMomentSign(fixVec, data[i], n);
-			}else{
-				float e2tf = (float)SplineMI.entropy2f(weightFix, weightFix, n, bins);
-				float e2tg = (float)SplineMI.entropy2f(weightTg, weightTg, n, bins);
-				float mitf = 2*e1tf - e2tf;
-				float mitg = 2*e1tg - e2tg;
-				float largerMI = mitf > mitg? mitf:mitg;
-				if(largerMI == 0) largerMI = 1;
-				mi[i] = (e1tf + e1tg - e2) / largerMI;
-				if(negateMI) mi[i] = mi[i] * getMomentSign(fixVec, data[i], n);
-			}
-			
-		}
-		/*if(normalizeMI){
-			for(int i = 0; i < m; i++){
-				mi[i] = mi[i]/miMax;
-			}
-		}*/
-		return mi;
-	}
-	public float[] getAllMIWith(float[] vec, DataFile ma)throws Exception{
-		return getAllMIWith(vec, ma.getData());
-	}
-	public float[] getAllMIWith(String probe, DataFile ma)throws Exception{
-		int idx = ma.getRows().get(probe);
-		return getAllMIWith(ma.getData()[idx], ma.getData());
-	}
+	
 	public float[][] getMI2D(float[][][] weights, int[] tfs, int[] targets) throws Exception{
 		int n = weights[0][0].length;
 		int numTfs = tfs.length;

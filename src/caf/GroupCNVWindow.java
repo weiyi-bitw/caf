@@ -135,9 +135,9 @@ public class GroupCNVWindow {
 		
 		
 		while(cnt < maxIter){
-			float[] mi = itc.getAllMIWith(metagene, val);
+			double[] mi = itc.getAllDoubleMIWith(metagene, val);
 			for(int i = 0; i < m; i++){
-				vec[i] = new ValIdx(i, mi[i]);
+				vec[i] = new ValIdx(i, (float) mi[i]);
 			}
 			Arrays.sort(vec);
 			

@@ -1,25 +1,12 @@
 package caf;
 
-import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Properties;
 
-import org.apache.commons.math.distribution.NormalDistributionImpl;
-
 import obj.Annotations;
-import obj.Chromosome;
-import obj.DataFile;
+import obj.DataFileD;
 import obj.GeneSet;
 import obj.Genome;
-import util.StatOps;
-import worker.AttractorGrouper;
 import worker.Converger;
 import worker.GeneSetMerger;
 import worker.ITComputer;
@@ -39,7 +26,7 @@ public class CorrAttractorFinder {
 	private static boolean negateMI = true;
 	private static String breakPoint = "";
 	private static int maxIter = 100;
-	private static float precision = (float) 1E-4;
+	private static double precision =  1E-4;
 	
 	// general attractor parameter
 	private static double weightExp = 5.0;
@@ -52,12 +39,12 @@ public class CorrAttractorFinder {
 	private static int wstart = 11;
 	private static int wend = 51;
 	private static int delw = 10;
-	private static float pstart = 1;
-	private static float pend = 6;
-	private static float delp = 0.5f;
+	private static double pstart = 1;
+	private static double pend = 6;
+	private static double delp = 0.5f;
 	private static int quantile = 5;
 	
-	private static DataFile ma;
+	private static DataFileD ma;
 	private static Annotations annot;
 	private static Genome gn;
 	
@@ -106,7 +93,7 @@ public class CorrAttractorFinder {
 			
 			System.out.printf("%-25s%s\n", "Expression Data:", confLine);
 			try {
-				ma = DataFile.parse(confLine);
+				ma = DataFileD.parse(confLine);
 				ma.sortProbes();
 		    } catch (Exception e) {
 		    	throw new RuntimeException("ERROR:Problem parsing data file.\n" + e);

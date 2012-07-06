@@ -12,6 +12,7 @@ import java.util.HashSet;
 import obj.Annotations;
 import obj.Chromosome;
 import obj.DataFile;
+import obj.DataFileD;
 import obj.Genome;
 import obj.InverseAnnotations;
 import obj.ValIdx;
@@ -30,8 +31,8 @@ public class Converger extends DistributedWorker{
 	private static int bins = 6;
 	private static int splineOrder = 3;
 	private static boolean miNorm = false;
-	private static float precision = (float) 1E-4;
-	private static double epsilon = 1E-14;
+	private static double precision = (float) 1E-4;
+	private static double epsilon = 5E-14;
 	static ITComputer itc;
 	
 	
@@ -201,6 +202,24 @@ public class Converger extends DistributedWorker{
 		}
 		return out;
 	}
+	private static double[] getWeightedMetaGene(double[][] data, double[] w, double power, int m, int n){
+		double[] out = new double[n];
+		double sum = 0;
+		for(int i = 0; i < m; i++){
+			if(w[i] > 0){
+				double f = Math.exp(power*Math.log(w[i]));
+				sum += f;
+				for(int j = 0; j < n; j++){
+					out[j] += data[i][j] * f;
+				}
+			}
+		}
+		for(int j = 0; j < n; j++){
+			out[j] /= sum;
+		}
+		return out;
+	}
+	
 	public static float[] getWeightedMetaGene(float[][] data, double[] w, double power, int m, int n){
 		double[] tmp = new double[n];
 		double sum = 0;
@@ -294,692 +313,14 @@ public class Converger extends DistributedWorker{
 		}
 		return true;
 	}
-	public static boolean identical(double[] w1, double[] w2, int n, float precision){
+	public static boolean identical(double[] w1, double[] w2, int n, double precision){
 		for(int i = 0; i < n ;i++){
 			if(Math.abs(w1[i] - w2[i]) > precision) return false;
 		}
 		return true;
 	}
 	
-	public ArrayList<ValIdx> findAttractor(float[][] data, int idx) throws Exception{
-		int m = data.length;
-		int n = data[0].length;
-		
-		ITComputer itc = new ITComputer(bins, splineOrder, id, totalComputers, miNorm);
-		float[] mi = itc.getAllMIWith(data[idx], data);
-		ArrayList<ValIdx> metaIdx = new ArrayList<ValIdx>();
-		ValIdx[] vec = new ValIdx[m];
-		if(convergeMethod.equals("FIXEDSIZE")){
-			
-			for(int i = 0; i < m; i++){
-				vec[i] = new ValIdx(i, mi[i]);
-			}
-			Arrays.sort(vec);
-			for(int i = 0; i < attractorSize; i++){
-				metaIdx.add(vec[i]);
-			}
-		}else if(convergeMethod.equals("ZSCORE")){
-			float[] z = StatOps.xToZ(mi, m);
-			for(int i = 0; i < m; i++){
-				vec[i] = new ValIdx(i, mi[i]);
-			}
-			//Arrays.sort(vec);
-			for(int i = 0; i < m; i++){
-				if(z[i] > zThreshold){
-					metaIdx.add(vec[i]);
-				}
-			}
-			Collections.sort(metaIdx);
-		}
-		
-		int cnt = 0;
-		ArrayList<ValIdx> preMetaIdx = new ArrayList<ValIdx>();
-		preMetaIdx.addAll(metaIdx);
-		
-		while(cnt < maxIter){
-			
-			// cannot find significant associated genes, exit.
-			
-			if(metaIdx.size() == 0){
-				//System.out.println("Empty set, exit.");
-				break;
-			}
-			System.out.print("Iteration " + cnt + "...");
-			float[] metaGene = getMetaGene(data,metaIdx, n);
-			mi = itc.getAllMIWith(metaGene, data);
-			metaIdx = new ArrayList<ValIdx>();	
-			vec = new ValIdx[m];
-			for(int i = 0; i < m; i++){
-				vec[i] = new ValIdx(i, mi[i]);
-			}
-			if(convergeMethod.equals("FIXEDSIZE")){
-				Arrays.sort(vec);
-				for(int i = 0; i < attractorSize; i++){
-					metaIdx.add(vec[i]);
-				}
-			}else if(convergeMethod.equals("ZSCORE")){
-				float[] z = StatOps.xToZ(mi, m);
-				for(int i = 0; i < m; i++){
-					vec[i] = new ValIdx(i, mi[i]);
-				}
-				//Arrays.sort(vec);
-				for(int i = 0; i < m; i++){
-					if(z[i] > zThreshold){
-						metaIdx.add(vec[i]);
-					}
-				}
-				Collections.sort(metaIdx);
-			}
-			if(preMetaIdx.equals(metaIdx)){
-				System.out.println("Converged.");
-				break;
-			}else{
-				preMetaIdx = metaIdx;
-				System.out.println("Gene Set Size: " + metaIdx.size());
-				cnt++;
-			}
-			
-		}
-		if(cnt == maxIter){
-			System.out.println("Not converged.");
-		}
-		return metaIdx;
-		
-	}
-	public ArrayList<ValIdx> noThConverge(float[][] data, int idx) throws Exception{
-		int m = data.length;
-		int n = data[0].length;
-		
-		ITComputer itc = new ITComputer(bins, splineOrder, id, totalComputers, miNorm);
-		float[] mi = itc.getAllMIWith(data[idx], data);
-		ArrayList<ValIdx> metaIdx = new ArrayList<ValIdx>();
-		ValIdx[] vec = new ValIdx[m];
-		for(int i = 0; i < m; i++){
-			vec[i] = new ValIdx(i, mi[i]);
-		}
-		Arrays.sort(vec);
-		for(int i = 0; i < attractorSize; i++){
-			metaIdx.add(vec[i]);
-		}
-		int cnt = 0;
-		ArrayList<ValIdx> preMetaIdx = new ArrayList<ValIdx>();
-		preMetaIdx.addAll(metaIdx);
-		ArrayList<ValIdx> prepreMetaIdx = new ArrayList<ValIdx>();
-		boolean converged = false;
-		while(cnt < maxIter){
-			
-			// cannot find significant associated genes, exit.
-			
-			if(metaIdx.size() == 0){
-				//System.out.println("Empty set, exit.");
-				break;
-			}
-			System.out.print("Iteration " + cnt + "...");
-			float[] metaGene = getMetaGene(data,metaIdx, n);
-			mi = itc.getAllMIWith(metaGene, data);
-			metaIdx = new ArrayList<ValIdx>();	
-			vec = new ValIdx[m];
-			for(int i = 0; i < m; i++){
-				vec[i] = new ValIdx(i, mi[i]);
-			}
-			Arrays.sort(vec);
-			for(int i = 0; i < attractorSize; i++){
-				metaIdx.add(vec[i]);
-			}
-			
-			if(preMetaIdx.equals(metaIdx)){
-				System.out.println("Converged."); 
-				System.out.println("Gene Set Size: " + metaIdx.size());
-				converged = true;
-				break;
-			}else if (prepreMetaIdx.equals(metaIdx)){
-				System.out.println("Cycled.");
-				converged = true;
-				if(metaIdx.size() >= preMetaIdx.size()){
-					break;
-				}else{
-					metaIdx = preMetaIdx;
-					break;
-				}
-			}
-			else{
-				prepreMetaIdx = preMetaIdx;
-				preMetaIdx = metaIdx;
-				//System.out.println("Gene Set Size: " + metaIdx.size());
-				cnt++;
-			}
-			
-		}
-		if(!converged){
-			System.out.println("Not converged.");
-			metaIdx.clear();
-		}else{
-			System.out.println("Expanding...");
-			HashSet<Integer> base = new HashSet<Integer>();
-			int higher = metaIdx.size() * 2;
-			for(ValIdx vi : metaIdx){
-				base.add(vi.idx);
-			}
-			
-		}
-		return metaIdx;
-		
-	}
-	public void findCNV(float[][] data, float[][] val, ArrayList<Chromosome> chrs, float zth) throws Exception{
-		int n = data[0].length;
-		int m = data.length;
-		
-		int mm = 0;
-		for(Chromosome chr : chrs){
-			mm += chr.size();
-		}
-		int start = id * mm / totalComputers;
-		int end = (id+1) * mm / totalComputers;
-		
-		
-		System.out.println("Processing task " + (start+1) + " to " + end);
-		
-		ITComputer itc = new ITComputer(bins, splineOrder, id, totalComputers, miNorm);
-		//itc.negateMI(true);
-		prepare("geneset");
-		PrintWriter pw = new PrintWriter(new FileWriter("tmp/" + jobID + "/geneset/caf." + String.format("%05d", id)+".txt"));
-		int tt = 0;
-		for(Chromosome chr : chrs){
-			System.out.println("At chromosome " + chr.name() + "...");
-			ArrayList<ValIdx> geneIdx = chr.geneIdx();
-			/*// sort gene idx ascendantly
-			Collections.sort(geneIdx);
-			Collections.reverse(geneIdx);
-			*/
-			int k = geneIdx.size();
-			
-			for(int i = 0; i < k; i++){
-				if(tt >= start && tt < end){
-					int idx = geneIdx.get(i).idx;
-					System.out.print("Processing " + tt + "...");
-					/*
-					 * Step 1: find the genes that are significantly associated with the seed gene 
-					 *         as the initial metagene
-					 */
-					float[] mi = itc.getAllMIWith(val[idx], val);
-					ArrayList<ValIdx> metaIdx = new ArrayList<ValIdx>();
-					
-					float[] z = StatOps.xToZ(mi, m);
-					ValIdx[] vec = new ValIdx[m];
-					for(int j = 0; j < m; j++){
-						vec[j] = new ValIdx(j, z[j]);
-					}
-					Arrays.sort(vec);
-					
-					if(convergeMethod.equals("FIXEDSIZE")){
-						for(int j = 0; j < m; j++){
-							if(metaIdx.size() < attractorSize){
-								if(geneIdx.contains(vec[j])){
-									metaIdx.add(vec[j]);
-								}
-							}else{
-								break;
-							}
-						}
-					}else if(convergeMethod.equals("ZSCORE")){
-						for(int j = 0; j < m; j++){
-							if(vec[j].val > zth){
-								if(geneIdx.contains(vec[j])){
-									metaIdx.add(vec[j]);
-								}
-							}else if(metaIdx.size() < attractorSize){
-								if(geneIdx.contains(vec[j])){
-									metaIdx.add(vec[j]);
-								}
-							}else{
-								break;
-							}
-						}
-					}
-					
-					int cnt = 0;
-					ArrayList<ValIdx> prepreMetaIdx = new ArrayList<ValIdx>();
-					ArrayList<ValIdx> preMetaIdx = new ArrayList<ValIdx>();
-					preMetaIdx.addAll(metaIdx);
-					//System.out.println("Initial gene set size " + metaIdx.size() );
-					
-					/*
-					 * Step 2: Calculate metagene, find the genes that have correlation exceeding the 
-					 *         threshold as the new metagene
-					 */
-					
-					while(cnt < maxIter){
-						
-						// cannot find significant associated genes, exit.
-						
-						if(metaIdx.size() == 0){
-							//System.out.println("Empty set, exit.");
-							break;
-						}
-						//System.out.print("Iteration " + cnt + "...");
-						float[] metaGene = getMetaGene(data,metaIdx, n);
-						if(rankBased){
-							metaGene = StatOps.rank(metaGene);
-						}
-						mi = itc.getAllMIWith(metaGene, val);
-						metaIdx = new ArrayList<ValIdx>();
-						vec = new ValIdx[m];
-						z = StatOps.xToZ(mi, m);
-						for(int j = 0; j < m; j++){
-							vec[j] = new ValIdx(j, z[j]);
-						}
-						Arrays.sort(vec);
-						metaIdx = new ArrayList<ValIdx>();
-						if(convergeMethod.equals("FIXEDSIZE")){
-							for(int j = 0; j < m; j++){
-								if(metaIdx.size() < attractorSize){
-									if(geneIdx.contains(vec[j])){
-										metaIdx.add(vec[j]);
-									}
-								}else{
-									break;
-								}
-							}
-						}else if(convergeMethod.equals("ZSCORE")){
-							for(int j = 0; j < m; j++){
-								if(vec[j].val > zth){
-									if(geneIdx.contains(vec[j])){
-										metaIdx.add(vec[j]);
-									}
-								}else if(metaIdx.size() < attractorSize){
-									if(geneIdx.contains(vec[j])){
-										metaIdx.add(vec[j]);
-									}
-								}else{
-									break;
-								}
-							}
-						}
-						
-						if(preMetaIdx.equals(metaIdx)){
-							System.out.print("Converged. "); 
-							System.out.println("Gene Set Size: " + metaIdx.size());
-							break;
-						}else if (prepreMetaIdx.equals(metaIdx)){
-							System.out.println("Cycled.");
-							if(metaIdx.size() >= preMetaIdx.size()){
-								break;
-							}else{
-								metaIdx = preMetaIdx;
-								break;
-							}
-						}
-						else{
-							prepreMetaIdx = preMetaIdx;
-							preMetaIdx = metaIdx;
-							//System.out.println("Gene Set Size: " + metaIdx.size());
-							cnt++;
-						}
-						
-					}
-					if(cnt == maxIter){
-						System.out.println("Not converged.");
-					}
-					// first token: attractee index
-					pw.print(geneIdx.get(i).idx());
-					pw.print("\t" + 1);
-					if(metaIdx.size() > 1){
-						for(ValIdx vi: metaIdx){
-								pw.print("\t" + vi.idx + "," + vi.val);
-						}
-					}else{
-						pw.print("\tNA");
-					}
-					pw.println();
-					
-				}
-				tt++;
-			}
-		}
-		pw.close();
-	}
-	public ArrayList<ValIdx> findCNV(float[][] data, float[] v, Chromosome chr) throws Exception{
-		int n = data[0].length;
-		int m = data.length;
-		
-		ITComputer itc = new ITComputer(bins, splineOrder, id, totalComputers, miNorm);
-		//itc.negateMI(true);
-		prepare("geneset");
-		PrintWriter pw = new PrintWriter(new FileWriter("tmp/" + jobID + "/geneset/caf." + String.format("%05d", id)+".txt"));
-		int tt = 0;
-		System.out.println("At chromosome " + chr.name() + "...");
-		ArrayList<ValIdx> geneIdx = chr.geneIdx();
-			/*// sort gene idx ascendantly
-			Collections.sort(geneIdx);
-			Collections.reverse(geneIdx);
-			*/
-			/*
-			 * Step 1: find the genes that are significantly associated with the seed gene 
-			 *         as the initial metagene
-			 */
-			float[] mi = itc.getAllMIWith(v, data);
-			ArrayList<ValIdx> metaIdx = new ArrayList<ValIdx>();
-					
-			float[] z = StatOps.xToZ(mi, m);
-			ValIdx[] vec = new ValIdx[m];
-			for(int j = 0; j < m; j++){
-				vec[j] = new ValIdx(j, z[j]);
-			}
-			Arrays.sort(vec);
-			if(convergeMethod.equals("FIXEDSIZE")){
-				for(int j = 0; j < m; j++){
-					if(metaIdx.size() < attractorSize){
-						if(geneIdx.contains(vec[j])){
-							metaIdx.add(vec[j]);
-						}
-					}else{
-						break;
-					}
-				}
-			}else if(convergeMethod.equals("ZSCORE")){
-				for(int j = 0; j < m; j++){
-					if(vec[j].val > zThreshold){
-						if(geneIdx.contains(vec[j])){
-							metaIdx.add(vec[j]);
-						}
-					}else if(metaIdx.size() < attractorSize){
-						if(geneIdx.contains(vec[j])){
-							metaIdx.add(vec[j]);
-						}
-					}else{
-						break;
-					}
-				}
-			}	
-			int cnt = 0;
-			ArrayList<ValIdx> prepreMetaIdx = new ArrayList<ValIdx>();
-			ArrayList<ValIdx> preMetaIdx = new ArrayList<ValIdx>();
-			preMetaIdx.addAll(metaIdx);
-			//System.out.println("Initial gene set size " + metaIdx.size() );
-					
-			/*
-			 * Step 2: Calculate metagene, find the genes that have correlation exceeding the 
-			 *         threshold as the new metagene
-			 */
-				
-			while(cnt < maxIter){
-						
-				// cannot find significant associated genes, exit.
-						
-				if(metaIdx.size() == 0){
-					//System.out.println("Empty set, exit.");
-					break;
-				}
-				//System.out.print("Iteration " + cnt + "...");
-				float[] metaGene = getMetaGene(data,metaIdx, n);
-				mi = itc.getAllMIWith(metaGene, data);
-				metaIdx = new ArrayList<ValIdx>();
-				vec = new ValIdx[m];
-				z = StatOps.xToZ(mi, m);
-				for(int j = 0; j < m; j++){
-					vec[j] = new ValIdx(j, z[j]);
-				}
-				Arrays.sort(vec);
-				metaIdx = new ArrayList<ValIdx>();
-				if(convergeMethod.equals("FIXEDSIZE")){
-					for(int j = 0; j < m; j++){
-						if(metaIdx.size() < attractorSize){
-							if(geneIdx.contains(vec[j])){
-								metaIdx.add(vec[j]);
-							}
-						}else{
-							break;
-						}
-					}
-				}else if(convergeMethod.equals("ZSCORE")){
-				
-					for(int j = 0; j < m; j++){
-						if(vec[j].val > zThreshold){
-							if(geneIdx.contains(vec[j])){
-								metaIdx.add(vec[j]);
-							}
-						}else if(metaIdx.size() < attractorSize){
-							if(geneIdx.contains(vec[j])){
-								metaIdx.add(vec[j]);
-							}
-						}else{
-							break;
-						}
-					}
-				
-				}
-				if(preMetaIdx.equals(metaIdx)){
-					System.out.print("Converged. "); 
-					System.out.println("Gene Set Size: " + metaIdx.size());
-					break;
-				}else if (prepreMetaIdx.equals(metaIdx)){
-					System.out.println("Cycled.");
-					if(metaIdx.size() >= preMetaIdx.size()){
-						break;
-					}else{
-						metaIdx = preMetaIdx;
-						break;
-					}
-				}
-				else{
-					prepreMetaIdx = preMetaIdx;
-					preMetaIdx = metaIdx;
-					//System.out.println("Gene Set Size: " + metaIdx.size());
-					cnt++;
-				}
-				
-			}
-			if(cnt == maxIter){
-				System.out.println("Not converged.");
-			}
-			return metaIdx;
-	}
-	/*
-	 * Apr 6 2012
-	 * Probe-level find CNV
-	 * 
-	 */
-	public ValIdx[] findWeightedCNV(DataFile ma, float[] vec, Genome gn,
-			String[] neighborsG, InverseAnnotations invannot, int winSize,
-			float power, Annotations annot) throws Exception {
-		
-		float[][] data = ma.getData();
-		int m = data.length;
-		int n = data[0].length;
-		int mg = neighborsG.length;
-		HashMap<String, Integer> probeMap = ma.getRows(); 
-		
-		float[] mivec = itc.getAllMIWith(vec, data);
-		float[] premiVec = new float[m];
-		System.arraycopy(mivec, 0, premiVec, 0, m);
-		int c = 0;
-		float convergeTh = precision * precision / m;
-		ValIdx[] wVec = fillInWVec(mivec, neighborsG, probeMap, invannot, mg);
-		while(c < maxIter){
-			float[] metaGene = getWeightedMetageneFromPbs(data, wVec, power,  m, n, mg);
-			mivec = itc.getAllMIWith(metaGene, data);
-			float err = calcMSE(mivec, premiVec, m);
-			//System.out.println(err);
-			if(err < convergeTh){
-				//pw.close();
-				//System.out.println("Converged.");
-				return wVec;
-			}
-			wVec = fillInWVec(mivec, neighborsG, probeMap, invannot, mg);
-			System.arraycopy(mivec, 0, premiVec, 0, m);
-			c++;
-		}
-		//System.out.println("Not converged.");
-		//pw.close();
-		wVec[0] = null;
-		return wVec;
-		
-	}
-	
-	public ValIdx[] findWeightedCNVOptimizePower(DataFile ma, int idx, Genome gn, float pstart, float pend, float delp, int quantile, boolean seedOnly) throws Exception{
-		float[][] data = ma.getData();
-		float[] vec = data[idx];
-		int m = data.length;
-		int n = data[0].length;
-		
-		ValIdx[] bestWVec = null;
-		float bestScore = -1;
-		float bestPow = -1;
-		
-		String seed = ma.getProbes().get(idx);
-		
-		for(float power = pstart; power <= pend; power+=delp)
-		{
-		
-		
-		double[] wVec = itc.getAllDoubleMIWith(vec, data);
-		
-		double[] preWVec = new double[m];
-		System.arraycopy(wVec, 0, preWVec, 0, m);
-		int c = 0;
-		boolean converge = false;
-		
-		while(c < maxIter){
-			float[] metaGene = getWeightedMetaGene(data, wVec, power,  m, n);
-			wVec = itc.getAllDoubleMIWith(metaGene, data);
-			double err = calcMSE(wVec, preWVec, m);
-			//System.out.println(err);
-			if(err < epsilon){
-				converge = true;
-				break;
-			}
-			System.arraycopy(wVec, 0, preWVec, 0, m);
-			c++;
-		}
-		if(converge){
-			ValIdx[] vis = new ValIdx[m];
-			for(int i = 0; i < m; i++){
-				vis[i] = new ValIdx(i, (float)wVec[i]);
-			}
-			Arrays.sort(vis);
-			
-			String center = ma.getProbes().get(vis[0].idx);
-			/*if( (gn.getIdx(seed) - gn.getIdx(center)) > 10 ){
-				System.out.println("Moved way.");
-				continue;
-			}*/
-			
-			float score = vis[quantile-1].val;
-			System.out.println(ma.getProbes().get(vis[0].idx) + "\t" + power + "\t" + score);
-			
-			if(seedOnly && vis[0].idx != idx){
-				System.out.println("Not seed.");
-				continue;
-			}
-			if(score > bestScore){
-				bestScore = score;
-				bestPow = power;
-				bestWVec = new ValIdx[m];
-				System.arraycopy(vis, 0, bestWVec, 0, m);
-			}
-			
-		}
-		
-		} // END power iteration
-		return bestWVec;
-	}
-	public void findWeightedCNV(DataFile ma, Genome gn, float pstart, float pend, float delp, int quantile) throws Exception{
-		
-		ma = ma.getSubProbes(gn.getAllGenes());
-		
-		int m = ma.getNumRows();
-		int n = ma.getNumCols();
-		ArrayList<String> genes = ma.getProbes();
-		
-		int start = id * m / totalComputers;
-		int end = (id+1) * m / totalComputers;
-		
-		System.out.println("Processing gene " + (start+1) + " to " + end);
-		
-		new File("output").mkdir();
-		new File("output/" + jobID).mkdir();
-		PrintWriter pw = new PrintWriter(new FileWriter("output/" + jobID + "/caf." + String.format("%05d", id)+".txt"));
-		
-		for(int idx = start; idx < end; idx++){
-			String g = genes.get(idx);
-			String chrarm = gn.getChrArm(g);
-			if(chrarm.equals("---")){
-				continue;
-			}
-			String[] neighbors = gn.getAllGenesInChrArm(chrarm);
-			if(neighbors == null){
-				continue;
-			}
-			DataFile ma2 = ma.getSubProbes(neighbors);
-			ArrayList<String> genes2 = ma2.getProbes();
-			int m2 = ma2.getNumRows();
-			if(m2 < quantile){
-				continue;
-			}
-			
-			float[][] data = ma2.getData();
-			int idx2 = ma2.getRows().get(g);
-			float[] vec = data[idx2];
-			
-			ValIdx[] bestWVec = null;
-			float bestScore = -1;
-			float bestPow = -1;
-			System.out.print("Processing " + g + "..." + chrarm + "\t" + m2 + "\t");
-			for(float power = pstart; power <= pend; power+=delp)
-			{
-						
-			float[] wVec = itc.getAllMIWith(vec, data);
-			float[] preWVec = new float[m2];
-			System.arraycopy(wVec, 0, preWVec, 0, m2);
-			int c = 0;
-			
-			boolean converge = false;
-			
-			while(c < maxIter){
-				float[] metaGene = getWeightedMetaGene(data, wVec, power,  m2, n);
-				wVec = itc.getAllMIWith(metaGene, data);
-				
-				float err = calcMSE(wVec, preWVec, m2);
-				//System.out.println(err);
-				if(err < epsilon){
-					converge = true;
-					break;
-				}
-				System.arraycopy(wVec, 0, preWVec, 0, m2);
-				c++;
-			}
-			if(converge){
-				ValIdx[] vis = new ValIdx[m2];
-				for(int i = 0; i < m2; i++){
-					vis[i] = new ValIdx(i, wVec[i]);
-				}
-				Arrays.sort(vis);
-				if(vis[0].idx != idx2){
-					continue;
-				}
-				if(vis[0].val - vis[1].val > 0.5){
-					continue;
-				}
-				if(vis[quantile-1].val > bestScore){
-					bestScore = vis[quantile-1].val;
-					bestWVec = new ValIdx[m2];
-					System.arraycopy(vis, 0, bestWVec, 0, m2);
-				}
-			}
-			
-			}// END power iteration
-			
-			System.out.println(bestScore);
-			if(bestWVec != null){
-				pw.print(g + "\t" + chrarm);
-				for(int i = 0; i < m2; i++){
-					pw.print("\t" + genes2.get(bestWVec[i].idx) + ":" + bestWVec[i].val);
-				}pw.println();
-			}
-		} // END idx iteration
-		pw.close();
-	}
-	public void findWeightedCNVCoef(DataFile ma, Genome gn, int wstart, int wend, int delw, float pstart, float pend, float delp, int quantile) throws Exception{
+	public void findWeightedCNVCoef(DataFileD ma, Genome gn, int wstart, int wend, int delw, double pstart, double pend, double delp, int quantile) throws Exception{
 		ma = ma.getSubProbes(gn.getAllGenes());
 		
 		int m = ma.getNumRows();
@@ -999,7 +340,7 @@ public class Converger extends DistributedWorker{
 		{
 			double bestScore = -1;
 			int bestWinSize = -1;
-			float bestExp = -1;
+			double bestExp = -1;
 			ValIdx[] bestVec = null;
 			String g = genes.get(idx);
 			System.out.print("Processing " + g + "..."); 
@@ -1013,18 +354,18 @@ public class Converger extends DistributedWorker{
 					break;
 				}
 				
-				DataFile ma2 = ma.getSubProbes(neighbors);
+				DataFileD ma2 = ma.getSubProbes(neighbors);
 				ArrayList<String> ma2Genes = ma2.getProbes();
 				int m2 = ma2.getNumRows();
 				if(m2 < quantile){
 					continue;
 				}
-				float[][] data = ma2.getData();
+				double[][] data = ma2.getData();
 				int idx2 = ma2.getRows().get(g);
-				float[] vec = data[idx2];
-				float convergeTh = precision * precision /m2;
+				double[] vec = data[idx2];
+				double convergeTh = precision * precision /m2;
 				
-				for(float power = pstart; power <= pend; power += delp)
+				for(double power = pstart; power <= pend; power += delp)
 				{
 					
 					double[] wVec = itc.getAllDoubleMIWith(vec, data);
@@ -1035,7 +376,7 @@ public class Converger extends DistributedWorker{
 					double score = -1;
 					
 					while(c < maxIter){
-						float[] metaGene = getWeightedMetaGene(data, wVec, power,  m2, n);
+						double[] metaGene = getWeightedMetaGene(data, wVec, power,  m2, n);
 						wVec = itc.getAllDoubleMIWith(metaGene, data);
 						
 						double err = calcMSE(wVec, preWVec, m2);
@@ -1083,129 +424,6 @@ public class Converger extends DistributedWorker{
 		
 	}
 
-	/*
-	 * Apr 6 2012
-	 * Probe-level find attractor
-	 * 
-	 */
-	public ValIdx[] findWeightedAttractor(DataFile ma, float[] vec, String[] allgenes, InverseAnnotations invannot, float power, Annotations annot) throws Exception{
-		float[][] data = ma.getData();
-		int m = data.length;
-		int n = data[0].length;
-		int mg = allgenes.length;
-		HashMap<String, Integer> probeMap = ma.getRows();
-		
-		float[] miVec = itc.getAllMIWith(vec, data);
-		float[] preMIVec = new float[m];
-		System.arraycopy(miVec, 0, preMIVec, 0, m);
-		int c = 0;
-		float convergeTh = precision * precision / m;
-		
-		ValIdx[] wVec = fillInWVec(miVec, allgenes, probeMap, invannot, mg); 
-		/*Arrays.sort(wVec);
-		for(int i = 0; i < 5; i++){
-			String gg = ma.getProbes().get(wVec[i].idx);
-			System.out.println(gg + "\t" + annot.getGene(gg) + "\t"  + wVec[i].val);
-		}*/
-		while(c < maxIter){
-			float[] metaGene = getWeightedMetageneFromPbs(data, wVec, power, m, mg, n);
-			//float[] metaGene = getWeightedMetaGene(data, wVec, power,  m, n);
-			
-			miVec = itc.getAllMIWith(metaGene, data);
-			float err = calcMSE(miVec, preMIVec, m);
-			System.out.println("delta: " + err);
-			if(err < convergeTh){
-				System.out.println("Converged.");
-				return wVec;
-			}
-			wVec = fillInWVec(miVec, allgenes, probeMap, invannot, mg);
-			/*Arrays.sort(wVec);
-			for(int i = 0; i < 5; i++){
-				String gg = ma.getProbes().get(wVec[i].idx);
-				System.out.println(gg + "\t" + annot.getGene(gg) + "\t"  + wVec[i].val);
-			}*/
-			
-			
-			System.arraycopy(miVec, 0, preMIVec, 0, m);
-			c++;
-		}
-		System.out.println("Not converged.");
-		//pw.close();
-		wVec[0] = null;
-		return wVec;
-
-	}
-	private float[] getWeightedMetageneFromPbs(float[][] data, ValIdx[] wVec,
-			float power, int m, int n, int mg) {
-		float[] out = new float[n];
-		double sum = 0;
-		for(int i = 0; i < mg; i++){
-			if(wVec[i].val > 0){
-				double f = Math.exp(power*Math.log(wVec[i].val));
-				sum += f;
-				for(int j = 0; j < n; j++){
-					out[j] += data[wVec[i].idx][j] * f;
-				}
-			}
-		}
-		for(int j = 0; j < n; j++){
-			out[j] /= sum;
-		}
-		return out;
-	}
-
-	private ValIdx[] fillInWVec(float[] mivec, String[] allgenes
-			, HashMap<String, Integer> probeMap,InverseAnnotations invannot, int mg ){
-		ValIdx[] wvec = new ValIdx[mg];
-		for(int i = 0; i < mg; i++){
-			String s = allgenes[i];
-			int bestIdx = -1;
-			float bestVal = -1;
-			for(String p : invannot.getProbes(s)){
-				//System.out.println(p);
-				if(probeMap.get(p) != null){
-					int idx = probeMap.get(p);
-					if(mivec[idx] > bestVal){
-						bestIdx = idx;
-						bestVal = mivec[idx];
-					}
-				}
-			}
-			wvec[i] = new ValIdx(bestIdx, bestVal);
-		}
-		return wvec;
-	}
-	
-	
-	public float[] findWeightedAttractor(DataFile ma, float[] vec, float power) throws Exception{
-		float[][] data = ma.getData();
-		int m = data.length;
-		int n = data[0].length;
-		//ArrayList<String> genes = ma.getProbes();
-		
-		float[] wVec = itc.getAllMIWith(vec, data);
-		
-		float[] preWVec = new float[m];
-		System.arraycopy(wVec, 0, preWVec, 0, m);
-		int c = 0;
-		float convergeTh = precision * precision / m;
-		
-		while(c < maxIter){
-			float[] metaGene = getWeightedMetaGene(data, wVec, power,  m, n);
-			wVec = itc.getAllMIWith(metaGene, data);
-			
-			float err = calcMSE(wVec, preWVec, m);
-			if(err < convergeTh){
-				//System.out.println("Converged.");
-				return wVec;
-			}
-			System.arraycopy(wVec, 0, preWVec, 0, m);
-			c++;
-		}
-		System.out.println("Not converged.");
-		wVec[0] = -1;
-		return wVec;
-	}
 	public double[] findWeightedAttractorDouble(DataFile ma, float[] vec, double power) throws Exception{
 		float[][] data = ma.getData();
 		int m = data.length;
@@ -1237,8 +455,8 @@ public class Converger extends DistributedWorker{
 		return wVec;
 	}
 	
-	public void findWeightedAttractor(DataFile ma, double power) throws Exception{
-		float[][] data = ma.getData();
+	public void findWeightedAttractor(DataFileD ma, double power) throws Exception{
+		double[][] data = ma.getData();
 		int m = data.length;
 		int n = data[0].length;
 		
@@ -1260,7 +478,7 @@ public class Converger extends DistributedWorker{
 			int c = 0;
 			boolean converge = false;
 			while(c < maxIter){
-				float[] metaGene = getWeightedMetaGene(data, wVec, power,  m, n);
+				double[] metaGene = getWeightedMetaGene(data, wVec, power,  m, n);
 				wVec = itc.getAllDoubleMIWith(metaGene, data);
 				
 				double err = calcMSE(wVec, preWVec, m);
@@ -1503,266 +721,6 @@ public class Converger extends DistributedWorker{
 		return mi;
 	}
 	
-	
-	
-	public ArrayList<ValIdx> findAttractor(float[][] data, float[] vec)throws Exception{
-		int m = data.length;
-		int n = data[0].length;
-		ITComputer itc = new ITComputer(bins, splineOrder, id, totalComputers, miNorm);
-			/*
-			 * Step 1: find the genes that are significantly associated with the seed gene 
-			 *         as the initial metagene
-			 */
-			
-			float[] mi = itc.getAllMIWith(vec, data);
-			ArrayList<ValIdx> metaIdx = new ArrayList<ValIdx>();
-			ValIdx[] vecMI = new ValIdx[m];
-			for(int i = 0; i < m; i++){
-				vecMI[i] = new ValIdx(i, mi[i]);
-			}
-			ValIdx[] vecZ = new ValIdx[m];
-			
-			if(convergeMethod.equals("FIXEDSIZE")){
-				Arrays.sort(vecMI);
-				for(int i = 0; i < attractorSize; i++){
-					metaIdx.add(vecMI[i]);
-				}
-			}else if(convergeMethod.equals("ZSCORE")){
-				float[] z = StatOps.xToZ(mi, m);
-				for(int i = 0; i < m; i++){
-					vecZ[i] = new ValIdx(i, z[i]);
-				}
-				Arrays.sort(vecZ);
-				/*for(int i = 0; i < attractorSize; i++){
-					metaIdx.add(vecZ[i]);
-				}*/
-				for(int i = 0; i < m; i++){
-					if(vecZ[i].val() > zThreshold){
-						metaIdx.add(vecZ[i]);
-					}else{
-						break;
-					}
-				}
-			}
-			int cnt = 0;
-			ArrayList<ValIdx> prepreMetaIdx = new ArrayList<ValIdx>();
-			ArrayList<ValIdx> preMetaIdx = new ArrayList<ValIdx>();
-			preMetaIdx.addAll(metaIdx);
-			//System.out.println("Initial gene set size " + metaIdx.size() );
-			
-			/*
-			 * Step 2: Calculate metagene, find the genes that have correlation exceeding the 
-			 *         threshold as the new metagene
-			 */
-			
-			while(cnt < maxIter){
-				// cannot find significant associated genes, exit.
-				if(metaIdx.size() == 0){
-					//System.out.println("Empty set, exit.");
-					break;
-				}
-				//System.out.print("Iteration " + cnt + "...");
-				float[] metaGene = getMetaGene(data,metaIdx, n);
-				if(rankBased){
-					metaGene = StatOps.rank(metaGene);
-				}
-				mi = itc.getAllMIWith(metaGene, data);
-				vecMI = new ValIdx[m];
-				for(int i = 0; i < m; i++){
-					vecMI[i] = new ValIdx(i, mi[i]);
-				}
-				metaIdx = new ArrayList<ValIdx>();
-				if(convergeMethod.equals("FIXEDSIZE")){
-					Arrays.sort(vecMI);
-					for(int i = 0; i < attractorSize; i++){
-						metaIdx.add(vecMI[i]);
-					}
-				}else if(convergeMethod.equals("ZSCORE")){
-					vecZ = new ValIdx[m];
-					float[] z = StatOps.xToZ(mi, m);
-					for(int i = 0; i < m; i++){
-						vecZ[i] = new ValIdx(i, z[i]);
-					}
-					Arrays.sort(vecZ);
-					/*for(int i = 0; i < attractorSize; i++){
-						metaIdx.add(vecZ[i]);
-					}*/
-					for(int i = 0; i < m; i++){
-						if(vecZ[i].val() > zThreshold){
-							metaIdx.add(vecZ[i]);
-						}else{
-							break;
-						}
-					}
-				}
-				if(preMetaIdx.equals(metaIdx)){
-					System.out.println("Converged."); 
-					System.out.println("Gene Set Size: " + metaIdx.size());
-					break;
-				}else if (prepreMetaIdx.equals(metaIdx)){
-					System.out.println("Cycled.");
-					metaIdx.clear();
-					break;
-				}
-				else{
-					prepreMetaIdx = preMetaIdx;
-					preMetaIdx = metaIdx;
-					//System.out.println("Gene Set Size: " + metaIdx.size());
-					cnt++;
-				}
-				
-			}
-			if(cnt == maxIter){
-				System.out.println("Not converged.");
-				metaIdx.clear();
-			}
-			return metaIdx;
-	}
-	public void findAttractor(float[][] val, float[][] data) throws Exception{
-		int m = val.length;
-		int n = val[0].length;
-		
-		int start = id * m / totalComputers;
-		int end = (id+1) * m / totalComputers;
-		
-		System.out.println("Processing gene " + (start+1) + " to " + end);
-		
-		ITComputer itc = new ITComputer(bins, splineOrder, id, totalComputers, miNorm);
-		//itc.negateMI(true);
-		prepare("geneset");
-		PrintWriter pw = new PrintWriter(new FileWriter("tmp/" + jobID + "/geneset/caf." + String.format("%05d", id)+".txt"));
-		for(int idx = start; idx < end; idx++){
-			System.out.print("Processing " + idx + "...");
-			/*
-			 * Step 1: find the genes that are significantly associated with the seed gene 
-			 *         as the initial metagene
-			 */
-			
-			float[] mi = itc.getAllMIWith(val[idx], val);
-			ArrayList<ValIdx> metaIdx = new ArrayList<ValIdx>();
-			ValIdx[] vecMI = new ValIdx[m];
-			for(int i = 0; i < m; i++){
-				vecMI[i] = new ValIdx(i, mi[i]);
-			}
-			ValIdx[] vecZ = new ValIdx[m];
-			
-			if(convergeMethod.equals("FIXEDSIZE")){
-				Arrays.sort(vecMI);
-				for(int i = 0; i < attractorSize; i++){
-					metaIdx.add(vecMI[i]);
-				}
-			}else if(convergeMethod.equals("ZSCORE")){
-				float[] z = StatOps.xToZ(mi, m);
-				for(int i = 0; i < m; i++){
-					vecZ[i] = new ValIdx(i, z[i]);
-				}
-				Arrays.sort(vecZ);
-				for(int i = 0; i < attractorSize; i++){
-					metaIdx.add(vecZ[i]);
-				}
-				for(int i = attractorSize; i < m; i++){
-					if(vecZ[i].val() > zThreshold){
-						metaIdx.add(vecZ[i]);
-					}else{
-						break;
-					}
-				}
-			}
-			int cnt = 0;
-			ArrayList<ValIdx> prepreMetaIdx = new ArrayList<ValIdx>();
-			ArrayList<ValIdx> preMetaIdx = new ArrayList<ValIdx>();
-			preMetaIdx.addAll(metaIdx);
-			//System.out.println("Initial gene set size " + metaIdx.size() );
-			
-			/*
-			 * Step 2: Calculate metagene, find the genes that have correlation exceeding the 
-			 *         threshold as the new metagene
-			 */
-			
-			while(cnt < maxIter){
-				// cannot find significant associated genes, exit.
-				if(metaIdx.size() == 0){
-					//System.out.println("Empty set, exit.");
-					break;
-				}
-				//System.out.print("Iteration " + cnt + "...");
-				float[] metaGene = getMetaGene(data,metaIdx, n);
-				if(rankBased){
-					metaGene = StatOps.rank(metaGene);
-				}
-				mi = itc.getAllMIWith(metaGene, val);
-				vecMI = new ValIdx[m];
-				for(int i = 0; i < m; i++){
-					vecMI[i] = new ValIdx(i, mi[i]);
-				}
-				metaIdx = new ArrayList<ValIdx>();
-				if(convergeMethod.equals("FIXEDSIZE")){
-					Arrays.sort(vecMI);
-					for(int i = 0; i < attractorSize; i++){
-						metaIdx.add(vecMI[i]);
-					}
-				}else if(convergeMethod.equals("ZSCORE")){
-					vecZ = new ValIdx[m];
-					float[] z = StatOps.xToZ(mi, m);
-					for(int i = 0; i < m; i++){
-						vecZ[i] = new ValIdx(i, z[i]);
-					}
-					Arrays.sort(vecZ);
-					for(int i = 0; i < attractorSize; i++){
-						metaIdx.add(vecZ[i]);
-					}
-					for(int i = attractorSize; i < m; i++){
-						if(vecZ[i].val() > zThreshold){
-							metaIdx.add(vecZ[i]);
-						}else{
-							break;
-						}
-					}
-				}
-				if(preMetaIdx.equals(metaIdx)){
-					System.out.print("Converged."); 
-					System.out.println("Gene Set Size: " + metaIdx.size());
-					break;
-				}else if (prepreMetaIdx.equals(metaIdx)){
-					System.out.println("Cycled.");
-					if(metaIdx.size() >= preMetaIdx.size()){
-						break;
-					}else{
-						metaIdx = preMetaIdx;
-						break;
-					}
-				}
-				else{
-					prepreMetaIdx = preMetaIdx;
-					preMetaIdx = metaIdx;
-					//System.out.println("Gene Set Size: " + metaIdx.size());
-					cnt++;
-				}
-				
-			}
-			if(cnt == maxIter){
-				System.out.println("Not converged.");
-			}
-			// first token: attractee index
-			pw.print(idx);
-			pw.print("\t" + 1);
-			if(metaIdx.size() > 1){
-				if(convergeMethod.equals("ZSCORE")){
-					for(ValIdx vi: metaIdx){
-						pw.print("\t" + vi.idx + "," + vecMI[vi.idx].val + "," + vi.val);
-					}
-				}else{
-					for(ValIdx vi: metaIdx){
-						pw.print("\t" + vi.idx + "," + vi.val + ",NaN");
-					}
-				}
-			}else{
-				pw.print("\tNA");
-			}
-			pw.println();
-		}
-		pw.close();
-	}	
 	public void setZThreshold(float z) throws MathException{
 		Converger.zThreshold = z;
 	}
@@ -1784,7 +742,7 @@ public class Converger extends DistributedWorker{
 		Converger.bins = bins;
 		Converger.splineOrder = so;
 	}
-	public void setPrecision(float precision){
+	public void setPrecision(double precision){
 		Converger.precision = precision;
 	}
 	public void setEpsilon(double epsilon){

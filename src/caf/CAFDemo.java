@@ -10,13 +10,15 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 import obj.DataFile;
+import obj.DataFileD;
 import obj.ValIdx;
+import obj.ValIdxD;
 import worker.ITComputer;
 
 public class CAFDemo {
 
-	private static float[] getWeightedMetaGene(float[][] data, double[] w, float power, int m, int n){
-		float[] out = new float[n];
+	private static double[] getWeightedMetaGene(double[][] data, double[] w, double power, int m, int n){
+		double[] out = new double[n];
 		double sum = 0;
 		for(int i = 0; i < m; i++){
 			if(w[i] > 0){
@@ -53,15 +55,16 @@ public class CAFDemo {
 	public static void main(String[] args) throws Exception {
 		String datafile = args[0];
 		String seed = "CENPA";
-		float pow = Float.parseFloat(args[1]);
+		double pow = Double.parseDouble(args[1]);
 		int bins = Integer.parseInt(args[2]);
 		int so = Integer.parseInt(args[3]);
-		final float precision = 1E-4f;
+		final double precision = 1E-4f;
 		int maxIter = Integer.parseInt(args[4]);
 		final int rank = 20;
 		DecimalFormat df = new DecimalFormat("0.0000"); 
 		System.out.println("Loading files...");
-		DataFile ma = DataFile.parse(datafile);
+		
+		DataFileD ma = DataFileD.parse(datafile);
 		
 		System.out.println("==Correlation Attractor Finder==========Wei-Yi Cheng==wc2302@columbia.edu======\n");
 		System.out.println("-- CAF DEMO");
@@ -86,7 +89,7 @@ public class CAFDemo {
 		
 		int m = ma.getNumRows();
 		int n = ma.getNumCols();
-		float[][] data = ma.getData();
+		double[][] data = ma.getData();
 		HashMap<String, Integer> geneMap = ma.getRows();
 		ArrayList<String> geneNames = ma.getProbes();
 		
@@ -100,16 +103,16 @@ public class CAFDemo {
 			if(geneNames.contains(seed)){
 				
 				int idx = geneMap.get(seed);
-				float[] vec = data[idx];
+				double[] vec = data[idx];
 				
 				double[] wVec = itc.getAllDoubleMIWith(vec, data);
 				double[] preWVec = new double[m];
 				System.arraycopy(wVec, 0, preWVec, 0, m);
 				
 			// initial output
-				ValIdx[] out = new ValIdx[m];
+				ValIdxD[] out = new ValIdxD[m];
 				for(int i = 0; i < m; i++){
-					out[i] = new ValIdx(i, (float) wVec[i]);
+					out[i] = new ValIdxD(i, wVec[i]);
 				}
 				Arrays.sort(out);
 				int cnt = 0;
@@ -120,12 +123,12 @@ public class CAFDemo {
 				}
 				boolean converge = false;
 				while(cnt < maxIter){
-					float[] metaGene = getWeightedMetaGene(data, wVec, pow,  m, n);
+					double[] metaGene = getWeightedMetaGene(data, wVec, pow,  m, n);
 					wVec = itc.getAllDoubleMIWith(metaGene, data);
 				// output
-					out = new ValIdx[m];
+					out = new ValIdxD[m];
 					for(int i = 0; i < m; i++){
-						out[i] = new ValIdx(i, (float)Math.floor(10000*wVec[i])/10000);
+						out[i] = new ValIdxD(i, wVec[i]);
 					}
 					Arrays.sort(out);
 					double err = calcMSE(wVec, preWVec, m);
@@ -150,7 +153,7 @@ public class CAFDemo {
 					PrintWriter pw = new PrintWriter(new FileWriter(outFile));
 					pw.println("Rank\tGene\tMI");
 					for(int i = 0; i < m; i++){
-						pw.println((i+1) + "\t" + geneNames.get(out[i].idx) + "\t" + df.format(out[i].val));
+						pw.println((i+1) + "\t" + geneNames.get(out[i].idx) + "\t" + (out[i].val));
 					}
 					pw.close();	
 				}else{
