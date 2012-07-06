@@ -21,35 +21,48 @@ public class GroupWeightedAttractor {
 	 */
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-		String path = "/home/weiyi/workspace/javaworks/caf/output/weighted/";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/brca/weighted/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
 		System.out.println("Loading files...");
 		int IDX = 2;
-		int outgenes = 50;
+		int outgenes = 500;
 		int quantile = 50;
 		
 		String[] dataFiles = {
 				//"/home/weiyi/workspace/data/m3d/sone/ge.4054x203.txt",
 				//"/home/weiyi/workspace/data/m3d/ecoli/ge.4297x466.txt",
 				//"/home/weiyi/workspace/data/m3d/yeast/ge.4515x407.txt",
-				/*"/home/weiyi/workspace/data/brca/gse2034/ge.12160x286.jetset.mean.txt",
-				"/home/weiyi/workspace/data/coad/gse14333/ge.19189x290.jetset.mean.txt",
-				"/home/weiyi/workspace/data/ov/gse9891/ge.19189x285.jetset.mean.txt",
-				"/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt",
-				"/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt",
-				"/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt"*/
+				"/home/weiyi/workspace/data/brca/gse3494/ge.12160x251.jetset.ncbi.txt",
+				"/home/weiyi/workspace/data/brca/gse32646/ge.19190x115.jetset.ncbi.txt",
+				"/home/weiyi/workspace/data/brca/gse36771/ge.19190x107.jetset.ncbi.txt",
+				"/home/weiyi/workspace/data/brca/gse31448/ge.19190x353.jetset.ncbi.txt",
+				"/home/weiyi/workspace/data/brca/gse2034/ge.12160x286.jetset.ncbi.txt",
+				"/home/weiyi/workspace/data/brca/tcga/ge/ge.17475x536.ncbi.txt",
+				"/home/weiyi/workspace/data/dream7/preTraining/train/ge.24940x500.mean.txt",
+				
+				//"/home/weiyi/workspace/data/coad/gse14333/ge.19189x290.jetset.mean.txt",
+				//"/home/weiyi/workspace/data/ov/gse9891/ge.19189x285.jetset.mean.txt",
+				//"/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt",
+				//"/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt"
 				//"/home/weiyi/workspace/data/gbm/tcga/ge/ge.12042x545.txt",
 				//"/home/weiyi/workspace/data/ov/tcga/super.35696x511.knn.txt",
 				//"/home/weiyi/workspace/data/gbm/tcga/super.40092x274.txt",
 				//"/home/weiyi/workspace/data/gbm/tcga/ge_mir_meth/meth.23094x278.knn.txt",
 				//"/home/weiyi/workspace/data/ov/tcga/mergeroom/meth.23094x514.knn.txt",
-				"/home/weiyi/workspace/data/gbm/tcga/ge_mir_meth/mir.472x278.knn.txt",
-				"/home/weiyi/workspace/data/ov/tcga/mergeroom/mir.560x514.common.txt",
+				//"/home/weiyi/workspace/data/gbm/tcga/ge_mir_meth/mir.472x278.knn.txt",
+				//"/home/weiyi/workspace/data/ov/tcga/mergeroom/mir.560x514.common.txt",
 				
 		};
 		final String[] outputDirs={
+				"brca.gse3494",
+				"brca.gse32646",
+				"brca.gse36771",
+				"brca.gse31448",
+				"brca.gse2034",
+				"brca.tcga",
+				"dream7",
 				//"sone",
 				//"ecoli",
 				//"yeast",
@@ -64,8 +77,8 @@ public class GroupWeightedAttractor {
 				//"gbm.super"
 				//"meth.gbm",
 				//"meth.ov",
-				"mir.gbm",
-				"mir.ov"
+				//"mir.gbm",
+				//"mir.ov"
 		};
 		
 		/*String[] annots = {
@@ -98,8 +111,8 @@ public class GroupWeightedAttractor {
 		int mg = allgenes.length;
 		System.arraycopy(tokens, 2, allgenes, 0, nt-2);*/
 		
-		new File(path + "mergeroom.300").mkdir();
-		PrintWriter pw = new PrintWriter(new FileWriter(path + "mergeroom.300/" + outputDirs[qq]));
+		new File(path + "mergeroom").mkdirs();
+		PrintWriter pw = new PrintWriter(new FileWriter(path + "mergeroom/" + outputDirs[qq]));
 		PrintWriter pw2 = new PrintWriter(new FileWriter(path + outputDirs[qq] + "/attractees.decoded.gwt"));
 		
 		//line = br.readLine();
@@ -127,8 +140,8 @@ public class GroupWeightedAttractor {
 			Collections.sort(vec);
 			for(int i = 0; i < outgenes; i++){
 				String g = genes.get(vec.get(i).idx);
-				//pw.print("\t" + g + ":" + vec.get(i).val);
-				pw.print("\t" + g);
+				pw.print("\t" + g + ":" + vec.get(i).val);
+				//pw.print("\t" + g);
 			}
 			pw.print("\t" + vec.get(10-1).val);
 			pw.println();

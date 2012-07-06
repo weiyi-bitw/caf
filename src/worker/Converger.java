@@ -31,7 +31,7 @@ public class Converger extends DistributedWorker{
 	private static int splineOrder = 3;
 	private static boolean miNorm = false;
 	private static float precision = (float) 1E-4;
-	private static double epsilon = 5E-14;
+	private static double epsilon = 1E-14;
 	static ITComputer itc;
 	
 	

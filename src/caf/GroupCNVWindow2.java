@@ -228,9 +228,9 @@ public class GroupCNVWindow2 {
 			String a = gn.getChrBand(gn.getGene(range.x));
 			String b = gn.getChrBand(gn.getGene(range.y));
 			
-			String s = "";
+			String s = gn.getChr(geneNames.get(0).s);
 			if(a.equals(b)){
-				s = a;
+				s += a;
 			}else{
 				int idx = 0;
 				if(b.contains("p")) idx = b.lastIndexOf("p");
@@ -239,7 +239,7 @@ public class GroupCNVWindow2 {
 				int idxa = a.length();
 				if(a.contains("-")) idxa = a.indexOf("-");
 				if(a.contains("|")) idxa = a.indexOf("|");
-				s = a.substring(0, idxa)+ "-" +b.substring(idx) ;
+				s += a.substring(0, idxa)+ "-" +b.substring(idx) ;
 			}
 			
 			for(ValString g : geneNames){
@@ -254,7 +254,7 @@ public class GroupCNVWindow2 {
 	 * @param args
 	 */
 	public static void main(String[] args) throws Exception {
-		String inPath = "/home/weiyi/workspace/javaworks/caf/output/window51/";
+		String inPath = "/home/weiyi/workspace/javaworks/caf/output/brca/window/";
 		int loadIn = 500;
 		
 		String[] files = new File(inPath + "mergeroom").list();
@@ -262,7 +262,7 @@ public class GroupCNVWindow2 {
 		int nf = files.length;
 		System.out.println(nf + " files in the directory.");
 		
-		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location4";
+		final String geneLocFile = "/home/weiyi/workspace/data/annot/ncbi/gene.location.ncbi";
 		Genome gn = Genome.parseGeneLocation(geneLocFile);
 		CNVWindow.linkGenome(gn);
 		
@@ -332,7 +332,7 @@ public class GroupCNVWindow2 {
 		for(CNVWindowSet cnvws : out){
 			ArrayList<ValString> consensus = cnvws.calAverageMI();
 			pw2.println();
-			pw2.println(ii + ". " + gn.getChrBand(consensus.get(0).s) + "\t\t\tMinimum Strength: " 
+			pw2.println(ii + ". " + gn.getChr(consensus.get(0).s) +  gn.getChrBand(consensus.get(0).s) + "\t\t\tMinimum Strength: " 
 			+ df.format(cnvws.minMI) + "\t\t\tCommon Dataset: " + cnvws.matchNumber);
 			pw2.print("Gene");
 			for(int i = 0; i < 10; i++){
