@@ -1,9 +1,9 @@
 package obj;
 
 public class ValString implements Comparable<ValString>{
-	public float val;
+	public double val;
 	public String s;
-	public ValString(String s, float v){
+	public ValString(String s, double v){
 		this.s = s;
 		this.val = v;
 	}
@@ -21,7 +21,7 @@ public class ValString implements Comparable<ValString>{
 	public String s(){
 		return s;
 	}
-	public float val(){
+	public double val(){
 		return val;
 	}
 	public boolean equals(Object other){

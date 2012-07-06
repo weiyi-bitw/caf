@@ -23,16 +23,9 @@ import org.apache.commons.math.distribution.NormalDistributionImpl;
 import util.StatOps;
 
 public class Converger extends DistributedWorker{
-	private static float zThreshold = 10;
 	private static int maxIter = 100;
-	private static boolean rankBased = false;
-	private static int attractorSize = 10; // minimum size of an attractor
-	private static String convergeMethod = "WEIGHTED";
-	private static int bins = 6;
-	private static int splineOrder = 3;
-	private static boolean miNorm = false;
 	private static double precision = (float) 1E-4;
-	private static double epsilon = 5E-14;
+	private static double epsilon = 1E-14;
 	static ITComputer itc;
 	
 	
@@ -141,17 +134,11 @@ public class Converger extends DistributedWorker{
 	public Converger(int id, int totalComputers, long jobID){
 		super(id, totalComputers, jobID);
 	}
-	public Converger(int id, int totalComputers, long jobID, String method, int maxIter, boolean rankBased){
+	public Converger(int id, int totalComputers, long jobID, int maxIter) {
 		super(id, totalComputers, jobID);
 		Converger.maxIter = maxIter;
-		Converger.rankBased = rankBased;
-		Converger.convergeMethod = method;
 	}
-	public Converger(int id, int totalComputers, long jobID, int maxIter, boolean rankBased){
-		super(id, totalComputers, jobID);
-		Converger.maxIter = maxIter;
-		Converger.rankBased = rankBased;
-	}
+
 	private static float[] getMetaGene(float[][] data, ArrayList<ValIdx> idx, int n){
 		int m = idx.size();
 		float[] out = new float[n];
@@ -721,35 +708,11 @@ public class Converger extends DistributedWorker{
 		return mi;
 	}
 	
-	public void setZThreshold(float z) throws MathException{
-		Converger.zThreshold = z;
-	}
-	public void setZThreshold(int m) throws MathException{
-		NormalDistributionImpl norm = new NormalDistributionImpl();
-		double pth = 0.05/m;
-		Converger.zThreshold = (float) -norm.inverseCumulativeProbability(pth);
-	}
-	public void setAttractorSize(int sz){
-		Converger.attractorSize = sz;
-	}
-	public float getZThreshold(){
-		return zThreshold;
-	}
-	public void setConvergeMethos(String mthd){
-		Converger.convergeMethod = mthd;
-	}
-	public void setMIParameter(int bins, int so){
-		Converger.bins = bins;
-		Converger.splineOrder = so;
-	}
 	public void setPrecision(double precision){
 		Converger.precision = precision;
 	}
 	public void setEpsilon(double epsilon){
 		Converger.epsilon = epsilon;
-	}
-	public void miNormalization(boolean miNorm){
-		Converger.miNorm = miNorm;
 	}
 	public void linkITComputer(ITComputer itc){
 		Converger.itc = itc;
@@ -758,7 +721,5 @@ public class Converger extends DistributedWorker{
 	public void setMaxIter(int maxIter){
 		this.maxIter = maxIter;
 	}
-	
-	
 	
 }

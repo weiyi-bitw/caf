@@ -341,7 +341,7 @@ public class CorrAttractorFinder {
 		System.out.println("\n===================================================================================\n");
 		
 		Scheduler scdr = new Scheduler(segment, numSegments, jobID);
-		Converger cvg = new Converger(segment, numSegments, jobID, maxIter, false);
+		Converger cvg = new Converger(segment, numSegments, jobID, maxIter);
 		ITComputer itc = new ITComputer(bins, splineOrder, segment, numSegments, normMI);
 		itc.negateMI(negateMI);
 		cvg.linkITComputer(itc);

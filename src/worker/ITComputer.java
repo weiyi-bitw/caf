@@ -248,7 +248,7 @@ public class ITComputer extends DistributedWorker{
 		return Math.signum(productMoment - xmean*ymean/n);
 		
 	}
-	public double[] getAllDoubleMIWith(double[] fixVec, double[][] data) throws Exception{
+	public double[] getAllDoubleMIWith(final double[] fixVec, final double[][] data) throws Exception{
 		int n = data[0].length;
 		int m = data.length;
 		

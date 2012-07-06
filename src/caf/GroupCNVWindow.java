@@ -14,9 +14,11 @@ import java.util.HashMap;
 import caf.GroupCNVWindow2.CNVWindow;
 
 import obj.DataFile;
+import obj.DataFileD;
 import obj.Genome;
 import obj.IntPair;
 import obj.ValIdx;
+import obj.ValIdxD;
 import worker.Converger;
 import worker.ITComputer;
 
@@ -110,9 +112,9 @@ public class GroupCNVWindow {
 	}
 	
 	
-	private static float[] getMetaGene(float[][] data, ArrayList<Integer> idx, int n){
+	private static double[] getMetaGene(double[][] data, ArrayList<Integer> idx, int n){
 		int m = idx.size();
-		float[] out = new float[n];
+		double[] out = new double[n];
 		for(int j = 0; j < n; j++){
 			for(Integer i : idx){
 				out[j] += data[i][j];
@@ -121,7 +123,7 @@ public class GroupCNVWindow {
 		}
 		return out;
 	}
-	private static ArrayList<Integer> getAttractorIdx(float[][] data, float[][] val, ArrayList<Integer> inputIdx, int m, int n, ITComputer itc, int attractorSize, int maxIter) throws Exception{
+	private static ArrayList<Integer> getAttractorIdx(double[][] data, double[][] val, ArrayList<Integer> inputIdx, int m, int n, ITComputer itc, int attractorSize, int maxIter) throws Exception{
 		ArrayList<Integer> metaIdx = inputIdx;
 		ArrayList<Integer> preMetaIdx = new ArrayList<Integer>();
 		ArrayList<Integer> cycMetaIdx = new ArrayList<Integer>();
@@ -129,15 +131,15 @@ public class GroupCNVWindow {
 		preMetaIdx.addAll(inputIdx);
 		cycMetaIdx.addAll(inputIdx);
 		
-		float[] metagene = getMetaGene(data, metaIdx, n);
-		ValIdx[] vec = new ValIdx[m];
+		double[] metagene = getMetaGene(data, metaIdx, n);
+		ValIdxD[] vec = new ValIdxD[m];
 		int cnt = 0;
 		
 		
 		while(cnt < maxIter){
 			double[] mi = itc.getAllDoubleMIWith(metagene, val);
 			for(int i = 0; i < m; i++){
-				vec[i] = new ValIdx(i, (float) mi[i]);
+				vec[i] = new ValIdxD(i, mi[i]);
 			}
 			Arrays.sort(vec);
 			
@@ -299,12 +301,12 @@ public class GroupCNVWindow {
 		{
 		
 		System.out.println("Loading file " + dataFiles[qq]);
-		DataFile ma = DataFile.parse(dataFiles[qq]);
+		DataFileD ma = DataFileD.parse(dataFiles[qq]);
 		
 		//ma.normalizeRows();
 		int m = ma.getNumRows();
 		int n = ma.getNumCols();
-		float[][] data = ma.getData();
+		double[][] data = ma.getData();
 		
 		Genome gn = Genome.parseGeneLocation(geneLocFile);
 		//gn.linkToDataFile(ma);
@@ -330,85 +332,8 @@ public class GroupCNVWindow {
 		
 		pw.close();
 		
-		
-		
-		
-		/*
-		Converger cvg = new Converger(0, 1, jobID);
-		
-		gs.addAll(slidingWindowSelector(outPath + "/basinScores.txt", 101, -1));
-		String[] nbs = gn.getNeighbors("PUF60", 20);
-		for(String s : nbs){
-			gs.add(s);
+				
 		}
-		
-		ITComputer itc = new ITComputer(6, 3, 0, 1, true);
-		cvg.linkITComputer(itc);
-		HashMap<String, Integer> geneMap = ma.getRows();
-		
-		int cnt = 0;
-		new File(outPath + "/../mergeroom").mkdir();
-		String outFileName = outPath.substring(outPath.lastIndexOf("/"));
-		PrintWriter pw = new PrintWriter(new FileWriter(outPath + "/../mergeroom/" + outFileName));
-		for(String g : gs){
-			ArrayList<String> geneNames = ma.getProbes();
-			if(geneNames.contains(g)){
-				System.out.println("Processing " + g + " (" + (gs.indexOf(g)+1) + "/" + gs.size() + ")" + "...");
-					float[] out = new float[m];
-					float[] vec = new float[m];
-					int idx = geneMap.get(g);
-					String[] neighbors = gn.getNeighbors(g, winSize);
-					if(neighbors == null){
-						pw.println("No neighbors");
-						pw.close();
-						continue;
-					}
-					DataFile ma2 = ma.getSubProbes(neighbors);
-					geneNames = ma2.getProbes();
-					m = ma2.getNumRows();
-					idx = ma2.getRows().get(g);
-					data = ma2.getData();
-					vec = data[idx];
-					out = cvg.findWeightedCNV(ma2, g, gn, vec, winSize, power, excludeTop, miDecay);
-					
-					
-					if(out[0] == -1){
-						pw.println("Not converged.");
-						pw.close();
-						continue;
-					}
-					
-					ArrayList<ValIdx> vi = new ArrayList<ValIdx>();
-					for(int i = 0; i < m; i++){
-						//out[i] = (float) Math.round(out[i] * 10000) / 10000;
-						vi.add(new ValIdx(i, out[i]));
-					}
-					Collections.sort(vi);
-					
-					pw.print("Attractor_" + g + "\t" + gn.getChr(geneNames.get(vi.get(0).idx)));
-					for(int i = 0; i< 20; i++){
-						String gg = geneNames.get(vi.get(i).idx);
-						pw.print("\t" + gg);
-					}
-					pw.print("\t" +gn.getChrArm(g) + "\t" +  vi.get(9).val);
-					pw.println();
-					
-					//scores[cnt] = vi.get(9).val;
-					cnt++;
-					
-			}else{
-				System.out.println("Does not contain gene " + g + "!!");
-			}
-		}
-		pw.close();*/
-		
-		}
-		/*PrintWriter pw = new PrintWriter(new FileWriter(outPath + "mergeroom/sizes.txt" ));
-		for(Integer i : allSizes){
-			pw.println(i);
-		}
-		
-		pw.close();*/
 		System.out.println("Done.");
 	}
 

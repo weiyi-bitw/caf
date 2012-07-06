@@ -18,9 +18,9 @@ public class GroupWeightedAttractor2 {
 		static int n = 1000000;
 		WtdAttractorSet x;
 		WtdAttractorSet y;
-		float sim; // similarities
+		double sim; // similarities
 		
-		DistPair(WtdAttractorSet a, WtdAttractorSet b, float sim){
+		DistPair(WtdAttractorSet a, WtdAttractorSet b, double sim){
 			if(a.id < b.id){ // x must always be smaller than y
 				this.x = a;
 				this.y = b;
@@ -103,7 +103,7 @@ public class GroupWeightedAttractor2 {
 		int source;
 		ArrayList<ValString> genes;
 		int basins;
-		float val;
+		double val;
 		
 		WtdAttractor(String name, int basins, ArrayList<ValString> genes,int source){
 			this.name = name;
@@ -120,7 +120,7 @@ public class GroupWeightedAttractor2 {
 			ArrayList<ValString> genes = new ArrayList<ValString>();
 			for(int i = 2; i < nt; i++){
 				String[] t2 = tokens[i].split(":");
-				genes.add(new ValString(t2[0], Float.parseFloat(t2[1])));
+				genes.add(new ValString(t2[0], Double.parseDouble(t2[1])));
 			}
 			return new WtdAttractor(name, basins, genes, source);
 		}
@@ -146,9 +146,9 @@ public class GroupWeightedAttractor2 {
 			return al;
 		}
 		
-		public float overlapWith(WtdAttractor other){
+		public double overlapWith(WtdAttractor other){
 			if(other == null) return 0;
-			float cnt = 0;
+			double cnt = 0;
 			for(ValString g : other.genes){
 				if(this.genes.contains(g)){
 					int i = this.genes.indexOf(g);
@@ -195,9 +195,9 @@ public class GroupWeightedAttractor2 {
 		WtdAttractor[] content;
 		int matchNumber;
 		ArrayList<StringIntPair> allGenes;
-		float avgMI;
+		double avgMI;
 		int numCommonGenes;
-		float minMI;
+		double minMI;
 		
 		static void setNames(String[] names){
 			WtdAttractorSet.names = names;
@@ -287,8 +287,8 @@ public class GroupWeightedAttractor2 {
 			}
 			return nn;
 		}
-		public float ovlapWith(WtdAttractorSet was){
-			float nn = 0;
+		public double ovlapWith(WtdAttractorSet was){
+			double nn = 0;
 			for(int i = 0; i < k; i++){
 				if(content[i] == null) continue;
 				WtdAttractor wa = content[i];
@@ -342,7 +342,7 @@ public class GroupWeightedAttractor2 {
 			allGenes = new ArrayList<StringIntPair>();
 			numCommonGenes = 0;
 			avgMI = 0;
-			minMI = Float.MAX_VALUE;
+			minMI = Double.MAX_VALUE;
 			for(WtdAttractor wa2 : content){
 				if(wa2 == null) continue;
 				avgMI += wa2.val;
@@ -465,9 +465,9 @@ public class GroupWeightedAttractor2 {
 		WtdAttractor[] content;
 		int matchNumber;
 		ArrayList<ValString> coreGenes;
-		float sumMI;
+		double sumMI;
 		int numCommonGenes;
-		float minMI;
+		double minMI;
 		
 		static void setNames(String[] names){
 			WaCoreSet.names = names;
@@ -487,11 +487,11 @@ public class GroupWeightedAttractor2 {
 			this.numCommonGenes = coreGenes.size();
 		}
 		WtdAttractor fillInBest(ArrayList<WtdAttractor> in ){
-			float score = 0;
+			double score = 0;
 			WtdAttractor winner = null;
 			for(WtdAttractor wa : in ){
 				if(content[wa.source] != null) continue;
-				float ovlp = this.ovlapWith(wa);
+				double ovlp = this.ovlapWith(wa);
 				if(ovlp > score){
 					score = ovlp;
 					winner = wa;
@@ -504,32 +504,8 @@ public class GroupWeightedAttractor2 {
 			}
 			return winner;
 		}
-		/*void fillInRest(ArrayList<WtdAttractor> in){
-			float[] scores = new float[k];
-			for(int i = 0; i < k; i++){
-				scores[i] = content[i]==null? 0 : coreGenes.size();
-			}
-			for(WtdAttractor wa : in){
-				float ovlp = this.ovlapWith(wa);
-				if(ovlp > scores[wa.source]){
-					scores[wa.source] = ovlp;
-					content[wa.source] = wa;
-				}
-			}
-			for(int i = 0; i < k; i++){
-				matchNumber = 0;
-				sumMI = 0;
-				if(content[i] != null){
-					matchNumber++;
-					if(content[i].val < minMI){
-						minMI = content[i].val;
-						sumMI += content[i].val;
-					}
-				}
-			}
-		}*/
-		public float ovlapWith(WtdAttractor wa){
-			float nn = 0;
+		public double ovlapWith(WtdAttractor wa){
+			double nn = 0;
 			for(ValString vs : wa.genes){
 				if(coreGenes.contains(vs)){
 					//nn += (coreGenes.get(coreGenes.indexOf(vs)).val + vs.val);
@@ -627,61 +603,7 @@ public class GroupWeightedAttractor2 {
 		Collections.sort(allWtdAttractors);
 		
 		ArrayList<DistPair> allDistPairs = new ArrayList<DistPair>();
-	// new algorithm
-		/*
-		WaCoreSet.setNames(files);
 		
-		ArrayList<WaCoreSet> out = new ArrayList<WaCoreSet>();
-		System.out.println("Calculating distance...");
-		for(int i = 0; i < n; i++){
-			WtdAttractor a = allWtdAttractors.get(i);
-			for(int j = i+1; j < n; j++){
-				WtdAttractor b = allWtdAttractors.get(j);
-				if(a.source == b.source) continue;
-				float ovlp = a.overlapWith(b);
-				if(ovlp > 0){
-					allDistPairs.add(new DistPair(a, b , ovlp));
-				}
-			}
-		}
-		Collections.sort(allDistPairs);
-		System.out.println(allDistPairs.size() + " pairs of distances have been added.");
-		
-		while(allDistPairs.size() > 0){
-			DistPair dp = allDistPairs.get(0);
-			allDistPairs.remove(dp);
-			
-			WaCoreSet wcs = new WaCoreSet(dp.x, dp.y);
-			allWtdAttractors.remove(dp.x);
-			allWtdAttractors.remove(dp.y);
-			
-			WtdAttractor wa = wcs.fillInBest(allWtdAttractors);
-			while(wa != null){
-				allWtdAttractors.remove(wa);
-				wa = wcs.fillInBest(allWtdAttractors);
-			}
-			
-			for(int i = allDistPairs.size() -1; i > -1; i--){
-				DistPair dp2 = allDistPairs.get(i);
-				if(wcs.contains(dp2.x) || wcs.contains(dp2.y)){
-					allDistPairs.remove(dp2);
-				}
-			}
-			out.add(wcs);
-		}
-		Collections.sort(out);
-		System.out.println("Output to file...");
-		PrintWriter pw = new PrintWriter(new FileWriter(inPath + "/matchTable.txt"));
-		int ii = 1;
-		
-		for(WaCoreSet was : out){
-			pw.print(ii + "\t");
-			pw.println(was);
-			ii++;
-		}
-		
-		pw.close();*/
-	// old algorithm
 		WtdAttractorSet.setNames(files);
 		ArrayList<WtdAttractorSet> out = new ArrayList<WtdAttractorSet>();
 		System.out.println("Calculating distance...");
@@ -695,7 +617,7 @@ public class GroupWeightedAttractor2 {
 			
 			for(int j = i+1; j < n; j++){
 				WtdAttractorSet b = out.get(j);
-				float ovlp = a.ovlapWith(b);
+				double ovlp = a.ovlapWith(b);
 				if(ovlp > 0){
 					allDistPairs.add(new DistPair(a, b , ovlp));
 				}
@@ -724,7 +646,7 @@ public class GroupWeightedAttractor2 {
 				for(int i = 0; i < out.size(); i++){
 					if(i != xi){
 						WtdAttractorSet b = out.get(i);
-						float ovlp = x.ovlapWith(b);
+						double ovlp = x.ovlapWith(b);
 						if(ovlp > 0){
 							allDistPairs.add(new DistPair(x, b , ovlp));
 						}

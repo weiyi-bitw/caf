@@ -63,8 +63,8 @@ public class GroupCNVWindow2 {
 		CNVWindow[] content;
 		int matchNumber;
 		ArrayList<StringIntPair> allGenes;
-		float avgMI;
-		float minMI;
+		double avgMI;
+		double minMI;
 		int numCommonGenes;
 		
 		static void setNames(String[] names){
@@ -165,13 +165,13 @@ public class GroupCNVWindow2 {
 		ArrayList<ValString> geneNames;
 		IntPair range;
 		
-		float val;
+		double val;
 		
 		static void linkGenome(Genome gn){
 			CNVWindow.gn = gn;
 		}
 		
-		CNVWindow(String name, String chr, String chrArm, ArrayList<ValString> geneNames, IntPair range, float val, int source){
+		CNVWindow(String name, String chr, String chrArm, ArrayList<ValString> geneNames, IntPair range, double val, int source){
 			this.name = name;
 			this.chr = chr;
 			this.chrArm = chrArm;
@@ -187,14 +187,14 @@ public class GroupCNVWindow2 {
 			String chr = tokens[1];
 			int nt = tokens.length;
 			String chrArm = tokens[nt-2];
-			float val = Float.parseFloat(tokens[nt-1]);
+			double val = Double.parseDouble(tokens[nt-1]);
 			ArrayList<ValString> genes = new ArrayList<ValString>();
 			int x = Integer.MAX_VALUE;
 			int y = -1;
 			for(int i = 2; i < nt-2; i++){
 				String[] t2 = tokens[i].split(":");
 				String g = t2[0];
-				float v = Float.parseFloat(t2[1]);
+				Double v = Double.parseDouble(t2[1]);
 				genes.add(new ValString(g, v));
 				int j = gn.getIdx(g);
 				if(j < x){

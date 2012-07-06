@@ -12,6 +12,7 @@ import obj.Annotations;
 import obj.DataFile;
 import obj.Genome;
 import obj.ValIdx;
+import obj.ValIdxD;
 
 public class GroupWeightedAttractor {
 
@@ -35,12 +36,12 @@ public class GroupWeightedAttractor {
 				//"/home/weiyi/workspace/data/m3d/ecoli/ge.4297x466.txt",
 				//"/home/weiyi/workspace/data/m3d/yeast/ge.4515x407.txt",
 				"/home/weiyi/workspace/data/brca/gse3494/ge.12160x251.jetset.ncbi.txt",
-				"/home/weiyi/workspace/data/brca/gse32646/ge.19190x115.jetset.ncbi.txt",
-				"/home/weiyi/workspace/data/brca/gse36771/ge.19190x107.jetset.ncbi.txt",
-				"/home/weiyi/workspace/data/brca/gse31448/ge.19190x353.jetset.ncbi.txt",
-				"/home/weiyi/workspace/data/brca/gse2034/ge.12160x286.jetset.ncbi.txt",
-				"/home/weiyi/workspace/data/brca/tcga/ge/ge.17475x536.ncbi.txt",
-				"/home/weiyi/workspace/data/dream7/preTraining/train/ge.24940x500.mean.txt",
+				//"/home/weiyi/workspace/data/brca/gse32646/ge.19190x115.jetset.ncbi.txt",
+				//"/home/weiyi/workspace/data/brca/gse36771/ge.19190x107.jetset.ncbi.txt",
+				//"/home/weiyi/workspace/data/brca/gse31448/ge.19190x353.jetset.ncbi.txt",
+				//"/home/weiyi/workspace/data/brca/gse2034/ge.12160x286.jetset.ncbi.txt",
+				//"/home/weiyi/workspace/data/brca/tcga/ge/ge.17475x536.ncbi.txt",
+				//"/home/weiyi/workspace/data/dream7/preTraining/train/ge.24940x500.mean.txt",
 				
 				//"/home/weiyi/workspace/data/coad/gse14333/ge.19189x290.jetset.mean.txt",
 				//"/home/weiyi/workspace/data/ov/gse9891/ge.19189x285.jetset.mean.txt",
@@ -57,12 +58,12 @@ public class GroupWeightedAttractor {
 		};
 		final String[] outputDirs={
 				"brca.gse3494",
-				"brca.gse32646",
-				"brca.gse36771",
-				"brca.gse31448",
-				"brca.gse2034",
-				"brca.tcga",
-				"dream7",
+				//"brca.gse32646",
+				//"brca.gse36771",
+				//"brca.gse31448",
+				//"brca.gse2034",
+				//"brca.tcga",
+				//"dream7",
 				//"sone",
 				//"ecoli",
 				//"yeast",
@@ -118,21 +119,21 @@ public class GroupWeightedAttractor {
 		//line = br.readLine();
 		
 		while(line != null){
-			ArrayList<ValIdx> vec = new ArrayList<ValIdx>();
+			ArrayList<ValIdxD> vec = new ArrayList<ValIdxD>();
 			String[] tokens = line.split("\t");
 			int numBasins = line2.split("\t").length - 2;
 			String name = tokens[0];
 			String[] t2 = line2.split("\t");
 			pw.print(name + "\t" + numBasins);
 			pw2.print(name + "\t" + numBasins);
-			float sum = 0;
+			//double sum = 0;
 			for(int i = 0; i < m; i++){
 				//float f= Float.parseFloat(tokens[i+2]);
 				//float w = (float) Math.exp(5 * Math.log(f));
-				float w = Float.parseFloat(tokens[i+2]);
-				vec.add(new ValIdx(i, w));
+				double w = Double.parseDouble(tokens[i+2]);
+				vec.add(new ValIdxD(i, w));
 					
-				sum += w;
+				//sum += w;
 			}
 			for(int i = 0; i < numBasins; i++){
 				pw2.print("\t" + genes.get(Integer.parseInt(t2[i+2])) );
