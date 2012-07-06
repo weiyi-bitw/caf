@@ -69,12 +69,12 @@ public class GroupCNVWindow {
 		}
 		
 		public String toString(int n){
-			String s = name + "\t" + gn.getChr(genes.get(mis[0].idx));
+			String s = name + "\t" + gn.getChr(genes.get(mis[0].idx)) + gn.getChrBand(genes.get(mis[0].idx));
 			int k = Math.min(mis.length, n);
 			for(int i = 0; i < k; i++){
 				s += "\t" + genes.get(mis[i].idx) + ":" + mis[i].val;
 			}
-			s += "\t" + gn.getChrArm(genes.get(startIdx)) + "\t" + mis[quantile-1].val;
+			s += "\t" + mis[quantile-1].val;
 			return s;
 			
 		}
