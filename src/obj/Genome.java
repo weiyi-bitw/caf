@@ -35,16 +35,18 @@ public class Genome {
 		}
 	}
 	static class Gene implements Comparable<Gene>{
+		int entrez;
 		String name;
 		String chr;
 		String chrArm;
 		String chrBand;
 		float coord;
 		
-		Gene(String name){
-			this.name = name;
+		Gene(int entrez){
+			this.entrez = entrez;
 		}
-		Gene(String name, String chr, String chrArm, String chrBand, float coord){
+		Gene(int entrez, String name, String chr, String chrArm, String chrBand, float coord){
+			this.entrez = entrez;
 			this.name = name;
 			this.chr = chr;
 			this.chrArm = chrArm;
@@ -52,13 +54,13 @@ public class Genome {
 			this.coord = coord;
 		}
 		public int hashCode(){
-			return name.hashCode();
+			return entrez;
 		}
 		public boolean equals(Object other){
 			boolean result = false;
 	        if (other instanceof Gene) {
 	        	Gene that = (Gene) other;
-	            result = this.name.hashCode()==that.name.hashCode();
+	            result = this.entrez == that.entrez;
 	        }
 	        return result;
 		}
@@ -80,6 +82,7 @@ public class Genome {
 	HashMap<String, Integer> idxMap;
 	HashMap<String, Float> coordMap;
 	HashMap<String, IntPair> chrIdxRangeMap;
+	HashMap<String, Integer> entrezMap;
 	
 	public static Genome parseGeneLocation(String file)throws Exception{
 		BufferedReader br = new BufferedReader(new FileReader(file));
@@ -91,6 +94,7 @@ public class Genome {
 		
 		while(line != null){
 			String[] tokens = line.split("\t");
+			int entrez = Integer.parseInt(tokens[0]);
 			String name = tokens[7];
 			String chr = tokens[1];
 			String chrBand = tokens[2];
@@ -104,7 +108,7 @@ public class Genome {
 			//int endCoord = Integer.parseInt(tokens[5]);
 			
 			float chrCoord = Float.parseFloat(tokens[6]);
-			genes.add(new Gene(name, chr, chrArm, chrBand, chrCoord));
+			genes.add(new Gene(entrez, name, chr, chrArm, chrBand, chrCoord));
 			lncnt++;
 			line = br.readLine();
 		}
@@ -121,6 +125,7 @@ public class Genome {
 		this.chrMap = new HashMap<String, String>();
 		this.chrArmMap = new HashMap<String, String>();
 		this.chrBandMap = new HashMap<String, String>();
+		this.entrezMap = new HashMap<String, Integer>();
 		this.idxMap = new HashMap<String, Integer>();
 		this.coordMap = new HashMap<String, Float>();
 		this.chrIdxRangeMap = new HashMap<String, IntPair>();
@@ -136,7 +141,7 @@ public class Genome {
 				preChr = chr;
 				
 			}
-			
+			entrezMap.put(g.name, g.entrez);
 			chrArmMap.put(g.name, g.chrArm);
 			chrBandMap.put(g.name, g.chrBand);
 			chrMap.put(g.name, chr);
@@ -274,7 +279,7 @@ public class Genome {
 	
 // return a gene set within the windowsize centered at the gene, -1 for the whole chromosome
 	public String[] getNeighbors(String gene, int windowsize){
-		int idx = genes.indexOf(new Gene(gene));
+		int idx = genes.indexOf(new Gene(entrezMap.get(gene)));
 		String chr = getChr(gene);
 		ArrayList<String> outGenes = new ArrayList<String>();
 		IntPair ip = chrIdxRangeMap.get(chr);
@@ -291,7 +296,7 @@ public class Genome {
 			
 			//if(start < ip.x) {end = end + ip.x - start; start = ip.x; }
 			//if(end >= ip.y) {start = start - end + ip.y - 1; end = ip.y-1; }
-			//System.out.println(idx + "\t" + start + "\t" + end);
+			System.out.println(idx + "\t" + start + "\t" + end);
 			for(int i = start; i <= end; i++){
 				outGenes.add(genes.get(i).name);
 			}
@@ -313,7 +318,7 @@ public class Genome {
 	}
 	
 	public boolean contains(String gene){
-		return genes.contains(new Gene(gene));
+		return genes.contains(new Gene(entrezMap.get(gene)));
 	}
 	
 }

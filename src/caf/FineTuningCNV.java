@@ -36,16 +36,16 @@ public class FineTuningCNV {
 		final String[] dataFiles={
 				//"/home/weiyi/workspace/data/brca/gse3143/ge.8443x158.jetset.mean.txt",
 				//"/home/weiyi/workspace/data/brca/gse3494/ge.12160x251.jetset.ncbi.txt",
-				"/home/weiyi/workspace/data/brca/gse32646/ge.19190x115.jetset.ncbi.txt",
-				"/home/weiyi/workspace/data/brca/gse36771/ge.19190x107.jetset.ncbi.txt",
-				"/home/weiyi/workspace/data/brca/gse31448/ge.19190x353.jetset.ncbi.txt",
-				"/home/weiyi/workspace/data/brca/gse2034/ge.12160x286.jetset.ncbi.txt",
-				"/home/weiyi/workspace/data/brca/tcga/ge/ge.17475x536.ncbi.txt",
+				//"/home/weiyi/workspace/data/brca/gse32646/ge.19190x115.jetset.ncbi.txt",
+				//"/home/weiyi/workspace/data/brca/gse36771/ge.19190x107.jetset.ncbi.txt",
+				//"/home/weiyi/workspace/data/brca/gse31448/ge.19190x353.jetset.ncbi.txt",
+				//"/home/weiyi/workspace/data/brca/gse2034/ge.12160x286.jetset.ncbi.txt",
+				//"/home/weiyi/workspace/data/brca/tcga/ge/ge.17475x536.ncbi.txt",
 				//"/home/weiyi/workspace/data/coad/gse14333/ge.19190x290.jetset.ncbi.txt",
 				//"/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt",
-				"/home/weiyi/workspace/data/ov/gse9891/ge.19190x285.jetset.ncbi.txt",
-				"/home/weiyi/workspace/data/ov/tcga/ge/ge.11963x582.ncbi.txt",
-				"/home/weiyi/workspace/data/ov/gse26193/ge.19190x107.jetset.ncbi.txt",
+				//"/home/weiyi/workspace/data/ov/gse9891/ge.19190x285.jetset.ncbi.txt",
+				//"/home/weiyi/workspace/data/ov/tcga/ge/ge.11963x582.ncbi.txt",
+				//"/home/weiyi/workspace/data/ov/gse26193/ge.19190x107.jetset.ncbi.txt",
 				//"/home/weiyi/workspace/data/prad/gse17951/ge.19189x154.jetset.mean.txt",
 				//"/home/weiyi/workspace/data/prad/gse8218/ge.12160x148.jetset.mean.txt"
 				//"/home/weiyi/workspace/data/nbl/gse3446/ge.12160x117.jetset.mean.txt",
@@ -56,20 +56,21 @@ public class FineTuningCNV {
 				//"/home/weiyi/workspace/data/lihc/gse36376/ge.34696x240.mean.txt",
 				//"/home/weiyi/workspace/data/gbm/rembrandt/ge.19189x450.jetset.mean.txt",
 				//"/home/weiyi/workspace/data/gbm/tcga/ge/ge.12042x545.txt"
+				"/home/weiyi/workspace/data/dream7/preTraining/train/cnv.21533x500.txt"
 		};
 		
 		final String[] outputDirs={
 				//"brca.gse3494.jetset.mean",
-				"brca.gse32646.jetset.ncbi",
-				"brca.gse36771.jetset.ncbi",
-				"brca.gse31448.jetset.ncbi",
-				"brca.gse2034.jetset.ncbi",
-				"brca.tcga.ncbi",
+				//"brca.gse32646.jetset.ncbi",
+				//"brca.gse36771.jetset.ncbi",
+				//"brca.gse31448.jetset.ncbi",
+				//"brca.gse2034.jetset.ncbi",
+				//"brca.tcga.ncbi",
 				//"coad.gse14333.jetset.ncbi",
 				//"coad.tcga.ncbi",
-				"ov.gse9891.jetset.ncbi",
-				"ov.tcga.ncbi",
-				"ov.gse26193.jetset.ncbi",
+				//"ov.gse9891.jetset.ncbi",
+				//"ov.tcga.ncbi",
+				//"ov.gse26193.jetset.ncbi",
 				//"prad.gse17951",
 				//"prad.gse8218",
 				//"nbl.gse3446",
@@ -80,16 +81,17 @@ public class FineTuningCNV {
 				//"lihc.gse36376",
 				//"gbm.rembrandt",
 				//"gbm.tcga"
+				"dream7.cnv"
 		};
 		
 		String[] bestSeeds = new String[outputDirs.length];
 		
-		String outPath = "/home/weiyi/workspace/javaworks/caf/output/window51/erbb2";
+		String outPath = "/home/weiyi/workspace/javaworks/caf/output/window51/test";
 		if(!outPath.endsWith("/")){
 			outPath = outPath + "/";
 		}
 		//new File("output").mkdir();
-		new File(outPath).mkdir();
+		new File(outPath).mkdirs();
 		
 		final String geneLocFile = "/home/weiyi/workspace/data/annot/ncbi/gene.location.ncbi";
 		//final String geneLocFile = "output/window/gene.location3";
@@ -111,8 +113,9 @@ public class FineTuningCNV {
 		
 		//gn.linkToDataFile(ma);
 		//String[] testList = gn.getAllGenesInChrArm(targetArm);
-		String[] testList = gn.getNeighbors("ERBB2", 101);
-				
+		//String[] testList = gn.getNeighbors("APOBR", 51);
+			
+		String[] testList = {"APOBR"};
 		long jobID = System.currentTimeMillis();
 		Converger cvg = new Converger(0, 1, jobID);
 		ITComputer itc = new ITComputer(6, 3, 0, 1, true);
@@ -134,6 +137,9 @@ public class FineTuningCNV {
 			if(!geneNames.contains(gtest)){
 				continue;
 			}
+			
+			System.out.println(gn.getChr(gtest));
+			
 			float power = estart;
 			float bestScore = -1;
 			System.out.print("Testing " + gtest + "...");
@@ -153,6 +159,7 @@ public class FineTuningCNV {
 					//System.out.println("Window size " + wsize + "\tPower " + power + "...");
 								
 					String[] neighbors = gn.getNeighbors(gtest, wsize);
+					
 					if(neighbors == null){
 						//pw.println("No neighbors");
 						//pw.close();
@@ -160,6 +167,7 @@ public class FineTuningCNV {
 					}
 					DataFile ma2 = ma.getSubProbes(neighbors);
 					geneNames = ma2.getProbes();
+					
 					m = ma2.getNumRows();
 					if(m < quantile){
 						continue;

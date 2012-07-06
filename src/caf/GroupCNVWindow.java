@@ -259,7 +259,8 @@ public class GroupCNVWindow {
 				"/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt",
 				"/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt",
 				"/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt"*/
-				"/home/weiyi/workspace/data/gbm/tcga/ge/ge.12042x545.txt",
+				//"/home/weiyi/workspace/data/gbm/tcga/ge/ge.12042x545.txt",
+				"/home/weiyi/workspace/data/dream7/preTraining/train/cnv.21533x500.txt"
 		};
 		
 		final String[] outputDirs={
@@ -271,14 +272,15 @@ public class GroupCNVWindow {
 				"brca.tcga",
 				"coad.tcga",
 				"ov.tcga"*/
-				"gbm.tcga",
+				//"gbm.tcga",
+				"dream7.cnv"
 				
 		};
 		
 		
-		String outPath = "/home/weiyi/workspace/javaworks/caf/output/window51/";
-
-		final String geneLocFile = "/home/weiyi/workspace/data/annot/affy/u133p2/gene.location4";
+		String outPath = "/home/weiyi/workspace/javaworks/caf/output/brca/window/";
+		
+		final String geneLocFile = "/home/weiyi/workspace/data/annot/ncbi/gene.location.ncbi";
 		int excludeSize = 25;
 		int quantile = 5;
 		int readIn = 15;
@@ -312,7 +314,7 @@ public class GroupCNVWindow {
 		System.out.println(out.size() + " CNVWindow selected.");
 		
 		String outFileName = outputDirs[qq];
-		new File(outPath + "mergeroom").mkdir();
+		new File(outPath + "mergeroom").mkdirs();
 		PrintWriter pw = new PrintWriter(new FileWriter(outPath + "mergeroom/" + outFileName));
 		for(Window w : out){
 			pw.println(w.toString(readIn));
