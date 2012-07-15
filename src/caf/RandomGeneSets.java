@@ -57,10 +57,10 @@ public class RandomGeneSets {
 	public static void main(String[] args) throws Exception {
 		SystemConfiguration();
 		
-		int numPerm = 10000000;
+		long numPerm = 10000000;
 		
-		int start = numPerm * segment / numSegments;
-		int end = numPerm * (segment+1) / numSegments;
+		long start = numPerm * segment / numSegments;
+		long end = numPerm * (segment+1) / numSegments;
 		
 		System.out.println("Performing permutation " + start + " to " + end );
 		
@@ -69,7 +69,7 @@ public class RandomGeneSets {
 		PrintWriter pw = new PrintWriter(new FileWriter(outDir + "/" + "numCommonGenes." + String.format("%05d", segment) + ".txt"));
 		
 	//====== permutation loop ==============================
-		for(int p = start; p < end; p++){
+		for(long p = start; p < end; p++){
 	//======================================================
 		System.out.print("Permutation " + p + "...");
 			
