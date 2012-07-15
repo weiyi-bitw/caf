@@ -153,7 +153,7 @@ public class RandomGeneSets {
 		}
 		
 		System.out.println(maxNumCommonGenes);
-		pw.println(maxNumCommonGenes);
+		if(maxNumCommonGenes > 0) pw.println(maxNumCommonGenes);
 		
 		/*
 		Collections.sort(out);
