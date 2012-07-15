@@ -22,7 +22,7 @@ public class GroupWeightedAttractor {
 	 */
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-		String path = "/home/weiyi/workspace/javaworks/caf/output/brca/weighted/";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/weighted/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
@@ -35,7 +35,7 @@ public class GroupWeightedAttractor {
 				//"/home/weiyi/workspace/data/m3d/sone/ge.4054x203.txt",
 				//"/home/weiyi/workspace/data/m3d/ecoli/ge.4297x466.txt",
 				//"/home/weiyi/workspace/data/m3d/yeast/ge.4515x407.txt",
-				"/home/weiyi/workspace/data/brca/gse3494/ge.12160x251.jetset.ncbi.txt",
+				//"/home/weiyi/workspace/data/brca/gse3494/ge.12160x251.jetset.ncbi.txt",
 				//"/home/weiyi/workspace/data/brca/gse32646/ge.19190x115.jetset.ncbi.txt",
 				//"/home/weiyi/workspace/data/brca/gse36771/ge.19190x107.jetset.ncbi.txt",
 				//"/home/weiyi/workspace/data/brca/gse31448/ge.19190x353.jetset.ncbi.txt",
@@ -43,10 +43,10 @@ public class GroupWeightedAttractor {
 				//"/home/weiyi/workspace/data/brca/tcga/ge/ge.17475x536.ncbi.txt",
 				//"/home/weiyi/workspace/data/dream7/preTraining/train/ge.24940x500.mean.txt",
 				
-				//"/home/weiyi/workspace/data/coad/gse14333/ge.19189x290.jetset.mean.txt",
-				//"/home/weiyi/workspace/data/ov/gse9891/ge.19189x285.jetset.mean.txt",
-				//"/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt",
-				//"/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt"
+				"/home/weiyi/workspace/data/coad/gse14333/ge.19190x290.jetset.ncbi.txt",
+				"/home/weiyi/workspace/data/ov/gse9891/ge.19190x285.jetset.ncbi.txt",
+				"/home/weiyi/workspace/data/coad/tcga/ge/ge.17475x154.ncbi.txt",
+				"/home/weiyi/workspace/data/ov/tcga/ge/ge.11963x582.ncbi.txt"
 				//"/home/weiyi/workspace/data/gbm/tcga/ge/ge.12042x545.txt",
 				//"/home/weiyi/workspace/data/ov/tcga/super.35696x511.knn.txt",
 				//"/home/weiyi/workspace/data/gbm/tcga/super.40092x274.txt",
@@ -57,7 +57,7 @@ public class GroupWeightedAttractor {
 				
 		};
 		final String[] outputDirs={
-				"brca.gse3494",
+				//"brca.gse3494",
 				//"brca.gse32646",
 				//"brca.gse36771",
 				//"brca.gse31448",
@@ -67,12 +67,10 @@ public class GroupWeightedAttractor {
 				//"sone",
 				//"ecoli",
 				//"yeast",
-				/*"brca.gse2034.jetset.mean",
-				"coad.gse14333.jetset.mean",
-				"ov.gse9891.jetset.mean",
-				"brca.tcga",
+				"coad.gse14333",
+				"ov.gse9891",
 				"coad.tcga",
-				"ov.tcga.affy"*/
+				"ov.tcga",
 				//"gbm.tcga"
 				//"ov.super"
 				//"gbm.super"

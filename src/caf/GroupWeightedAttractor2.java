@@ -10,11 +10,13 @@ import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Random;
 
 import obj.ValString;
 
 public class GroupWeightedAttractor2 {
-	static class DistPair implements Comparable<DistPair>{
+	public static class DistPair implements Comparable<DistPair>{
 		static int n = 1000000;
 		WtdAttractorSet x;
 		WtdAttractorSet y;
@@ -97,8 +99,10 @@ public class GroupWeightedAttractor2 {
 		
 	}
 	
-	static class WtdAttractor implements Comparable<WtdAttractor>{
+	public static class WtdAttractor implements Comparable<WtdAttractor>{
 		static int quantile = 50;
+		static long randseed = System.currentTimeMillis();
+		static Random randMachine;
 		String name;
 		int source;
 		ArrayList<ValString> genes;
@@ -118,12 +122,35 @@ public class GroupWeightedAttractor2 {
 			String name = tokens[0];
 			int basins = Integer.parseInt(tokens[1]);
 			ArrayList<ValString> genes = new ArrayList<ValString>();
-			for(int i = 2; i < nt; i++){
+			for(int i = 2; i < quantile+2; i++){
+				//System.out.println(tokens[i]);
 				String[] t2 = tokens[i].split(":");
 				genes.add(new ValString(t2[0], Double.parseDouble(t2[1])));
 			}
 			return new WtdAttractor(name, basins, genes, source);
 		}
+		static void setSeed(long s){
+			WtdAttractor.randseed = s;
+			WtdAttractor.randMachine = new Random(s);
+		}
+		static WtdAttractor generateRandomAttractor(int id, int source, int geneSize){
+			HashSet<Integer> hs = new HashSet<Integer>();
+			while(hs.size() < quantile){
+				int k = randMachine.nextInt(geneSize);
+				hs.add(k);
+			}
+			String name = "Attractor" + String.format("%05d", id);
+			int basins = 0;
+			ArrayList<ValString> genes = new ArrayList<ValString>();
+			for(int k : hs){
+				genes.add(new ValString("G" + k, 0.0));
+			}
+			return new WtdAttractor(name, basins, genes, source);
+			
+		}
+		
+		
+		
 		public ArrayList<ValString> getOvlp(WtdAttractor other){
 			if(other == null) return null;
 			ArrayList<ValString> al = new ArrayList<ValString>();
@@ -184,10 +211,12 @@ public class GroupWeightedAttractor2 {
 			s += val;
 			return s;
 		}
-		
+		public static void setquantile(int k){
+			WtdAttractor.quantile = k;
+		}
 	}
 	
-	static class WtdAttractorSet implements Comparable<WtdAttractorSet>{
+	public static class WtdAttractorSet implements Comparable<WtdAttractorSet>{
 		static String[] names;
 		static int k;
 		static int count = 0;
@@ -457,7 +486,7 @@ public class GroupWeightedAttractor2 {
 		
 	}
 	
-	static class WaCoreSet implements Comparable<WaCoreSet>{
+	/*static class WaCoreSet implements Comparable<WaCoreSet>{
 		static String[] names;
 		static int k;
 		static int count = 0;
@@ -563,7 +592,7 @@ public class GroupWeightedAttractor2 {
 			return matchNumber == k || coreGenes.size() == 0;
 		}
 	}
-	
+	*/
 	/**
 	 * @param args
 	 * @throws Exception 
@@ -583,7 +612,7 @@ public class GroupWeightedAttractor2 {
 		
 		int cnt = 0;
 		for(String f : files){
-			System.out.println("Loading file " + f + "...");
+			System.out.print("Loading file " + f + "...");
 			ArrayList<WtdAttractor> waInThisFile = new ArrayList<WtdAttractor>();
 			BufferedReader br = new BufferedReader(new FileReader(inPath + "mergeroom/" + f));
 			String line = br.readLine();
@@ -593,6 +622,7 @@ public class GroupWeightedAttractor2 {
 				line = br.readLine();
 			}
 			allWtdAttractors.addAll(waInThisFile);
+			System.out.println(" (" + waInThisFile.size() + ") ");
 			cnt++;
 			br.close();
 		}
@@ -661,7 +691,7 @@ public class GroupWeightedAttractor2 {
 		
 		Collections.sort(out);
 		System.out.println("Output to file...");
-		PrintWriter pw = new PrintWriter(new FileWriter(inPath + "/matchTable.txt"));
+		PrintWriter pw = new PrintWriter(new FileWriter(inPath + "/matchTable.small.txt"));
 		int ii = 1;
 		
 		for(WtdAttractorSet was : out){
@@ -672,7 +702,7 @@ public class GroupWeightedAttractor2 {
 		
 		pw.close();
 		DecimalFormat df = new DecimalFormat("0.0000"); 
-		PrintWriter pw1 = new PrintWriter(new FileWriter(inPath + "/consensus.txt"));
+		PrintWriter pw1 = new PrintWriter(new FileWriter(inPath + "/consensus.small.txt"));
 		int ii1 = 0;
 		for(WtdAttractorSet was : out){
 			if(ii1 >= 10) break;

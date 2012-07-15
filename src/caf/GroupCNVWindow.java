@@ -260,13 +260,12 @@ public class GroupCNVWindow {
 				"/home/weiyi/workspace/data/brca/gse2034/ge.12160x286.jetset.ncbi.txt",
 				"/home/weiyi/workspace/data/brca/tcga/ge/ge.17475x536.ncbi.txt",
 				"/home/weiyi/workspace/data/dream7/preTraining/train/ge.24940x500.mean.txt",
-				/*"/home/weiyi/workspace/data/coad/gse14333/ge.19189x290.jetset.mean.txt",
-				"/home/weiyi/workspace/data/ov/gse9891/ge.19189x285.jetset.mean.txt",
-				"/home/weiyi/workspace/data/brca/tcga/ge/ge.17814x536.knn.txt",
-				"/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt",
-				"/home/weiyi/workspace/data/ov/tcga/ge/ge.12042x582.txt"*/
+				"/home/weiyi/workspace/data/coad/gse14333/ge.19190x290.jetset.ncbi.txt",
+				"/home/weiyi/workspace/data/ov/gse9891/ge.19190x285.jetset.ncbi.txt",
+				"/home/weiyi/workspace/data/coad/tcga/ge/ge.17475x154.ncbi.txt",
+				"/home/weiyi/workspace/data/ov/tcga/ge/ge.11963x582.ncbi.txt",
 				//"/home/weiyi/workspace/data/gbm/tcga/ge/ge.12042x545.txt",
-				//"/home/weiyi/workspace/data/dream7/preTraining/train/cnv.21533x500.txt"
+				"/home/weiyi/workspace/data/dream7/preTraining/train/cnv.21533x500.txt"
 		};
 		
 		final String[] outputDirs={
@@ -277,18 +276,17 @@ public class GroupCNVWindow {
 				"brca.gse2034",
 				"brca.tcga",
 				"dream7",
-				/*"coad.gse14333.jetset.mean",
-				"ov.gse9891.jetset.mean",
-				"brca.tcga",
+				"coad.gse14333",
+				"ov.gse9891",
 				"coad.tcga",
-				"ov.tcga"*/
+				"ov.tcga",
 				//"gbm.tcga",
-				//"dream7.cnv"
+				"dream7.cnv"
 				
 		};
 		
 		
-		String outPath = "/home/weiyi/workspace/javaworks/caf/output/brca/window/";
+		String outPath = "/home/weiyi/workspace/javaworks/caf/output/window/";
 		
 		final String geneLocFile = "/home/weiyi/workspace/data/annot/ncbi/gene.location.ncbi";
 		int excludeSize = 25;
