@@ -441,7 +441,36 @@ public class Converger extends DistributedWorker{
 		wVec[0] = -1;
 		return wVec;
 	}
-	
+	public double[] findWeightedAttractorDouble(DataFileD ma, double[] vec, double power) throws Exception{
+		double[][] data = ma.getData();
+		int m = data.length;
+		int n = data[0].length;
+		//ArrayList<String> genes = ma.getProbes();
+		
+		double[] wVec = itc.getAllDoubleMIWith(vec, data);
+		
+		double[] preWVec = new double[m];
+		System.arraycopy(wVec, 0, preWVec, 0, m);
+		int c = 0;
+		double convergeTh = epsilon;
+		
+		while(c < maxIter){
+			double[] metaGene = getWeightedMetaGene(data, wVec, power,  m, n);
+			wVec = itc.getAllDoubleMIWith(metaGene, data);
+			
+			double err = calcMSE(wVec, preWVec, m);
+			//System.out.println(err);
+			if(err < convergeTh){
+				//System.out.println("Converged.");
+				return wVec;
+			}
+			System.arraycopy(wVec, 0, preWVec, 0, m);
+			c++;
+		}
+		System.out.println("Not converged.");
+		wVec[0] = -1;
+		return wVec;
+	}
 	public void findWeightedAttractor(DataFileD ma, double power) throws Exception{
 		double[][] data = ma.getData();
 		int m = data.length;

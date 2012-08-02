@@ -100,7 +100,7 @@ public class GroupWeightedAttractor2 {
 	}
 	
 	public static class WtdAttractor implements Comparable<WtdAttractor>{
-		static int quantile = 50;
+		static int quantile = 10;
 		static long randseed = System.currentTimeMillis();
 		static Random randMachine;
 		String name;
@@ -122,7 +122,7 @@ public class GroupWeightedAttractor2 {
 			String name = tokens[0];
 			int basins = Integer.parseInt(tokens[1]);
 			ArrayList<ValString> genes = new ArrayList<ValString>();
-			for(int i = 2; i < quantile+2; i++){
+			for(int i = 2; i < 50+2; i++){
 				//System.out.println(tokens[i]);
 				String[] t2 = tokens[i].split(":");
 				genes.add(new ValString(t2[0], Double.parseDouble(t2[1])));
@@ -691,7 +691,7 @@ public class GroupWeightedAttractor2 {
 		
 		Collections.sort(out);
 		System.out.println("Output to file...");
-		PrintWriter pw = new PrintWriter(new FileWriter(inPath + "/matchTable.small.txt"));
+		PrintWriter pw = new PrintWriter(new FileWriter(inPath + "/matchTable.txt"));
 		int ii = 1;
 		
 		for(WtdAttractorSet was : out){
@@ -702,7 +702,7 @@ public class GroupWeightedAttractor2 {
 		
 		pw.close();
 		DecimalFormat df = new DecimalFormat("0.0000"); 
-		PrintWriter pw1 = new PrintWriter(new FileWriter(inPath + "/consensus.small.txt"));
+		PrintWriter pw1 = new PrintWriter(new FileWriter(inPath + "/consensus.txt"));
 		int ii1 = 0;
 		for(WtdAttractorSet was : out){
 			if(ii1 >= 10) break;
