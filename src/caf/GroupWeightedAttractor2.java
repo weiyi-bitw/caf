@@ -598,7 +598,7 @@ public class GroupWeightedAttractor2 {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String inPath = "/home/weiyi/workspace/javaworks/caf/output/weighted/";
+		String inPath = "/home/weiyi/workspace/javaworks/caf/output/brca/weighted/";
 		if(!inPath.endsWith("/")){
 			inPath += "/";
 		}
@@ -705,17 +705,17 @@ public class GroupWeightedAttractor2 {
 		PrintWriter pw1 = new PrintWriter(new FileWriter(inPath + "/consensus.txt"));
 		int ii1 = 0;
 		for(WtdAttractorSet was : out){
-			if(ii1 >= 10) break;
+			if(ii1 >= 50) break;
 			pw1.println();
 			pw1.println((ii1+1) + ".\t\t\tMinimum Strength: " + was.minMI + "\t\t\tCommon Datasets:" + was.matchNumber);
 			ArrayList<ValString> consensus = was.calAverageMI();
 			pw1.print("Gene");
-			for(int i = 0; i < 10; i++){
+			for(int i = 0; i < 50; i++){
 				ValString vs = consensus.get(i);
 				pw1.print("\t" + vs.s);
 			}pw1.println();
 			pw1.print("Avg MI");
-			for(int i = 0; i < 10; i++){
+			for(int i = 0; i < 50; i++){
 				ValString vs = consensus.get(i);
 				pw1.print("\t" + df.format(vs.val));
 			}pw1.println();

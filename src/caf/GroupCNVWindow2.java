@@ -254,7 +254,7 @@ public class GroupCNVWindow2 {
 	 * @param args
 	 */
 	public static void main(String[] args) throws Exception {
-		String inPath = "/home/weiyi/workspace/javaworks/caf/output/window/";
+		String inPath = "/home/weiyi/workspace/javaworks/caf/output/brca/window/";
 		int loadIn = 500;
 		
 		String[] files = new File(inPath + "mergeroom").list();

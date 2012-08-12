@@ -22,7 +22,7 @@ public class GroupWeightedAttractor {
 	 */
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-		String path = "/home/weiyi/workspace/javaworks/caf/output/weighted/";
+		String path = "/home/weiyi/workspace/javaworks/caf/output/brca/weighted/";
 		if(!path.endsWith("/")){
 			path = path + "/";
 		}
@@ -41,12 +41,12 @@ public class GroupWeightedAttractor {
 				//"/home/weiyi/workspace/data/brca/gse31448/ge.19190x353.jetset.ncbi.txt",
 				//"/home/weiyi/workspace/data/brca/gse2034/ge.12160x286.jetset.ncbi.txt",
 				//"/home/weiyi/workspace/data/brca/tcga/ge/ge.17475x536.ncbi.txt",
-				//"/home/weiyi/workspace/data/dream7/preTraining/train/ge.24940x500.mean.txt",
+				"/home/weiyi/workspace/data/dream7/preTraining/train/ge.37586x500.mean.txt",
 				
-				"/home/weiyi/workspace/data/coad/gse14333/ge.19190x290.jetset.ncbi.txt",
-				"/home/weiyi/workspace/data/ov/gse9891/ge.19190x285.jetset.ncbi.txt",
-				"/home/weiyi/workspace/data/coad/tcga/ge/ge.17475x154.ncbi.txt",
-				"/home/weiyi/workspace/data/ov/tcga/ge/ge.11963x582.ncbi.txt"
+				//"/home/weiyi/workspace/data/coad/gse14333/ge.19190x290.jetset.ncbi.txt",
+				//"/home/weiyi/workspace/data/ov/gse9891/ge.19190x285.jetset.ncbi.txt",
+				//"/home/weiyi/workspace/data/coad/tcga/ge/ge.17475x154.ncbi.txt",
+				//"/home/weiyi/workspace/data/ov/tcga/ge/ge.11963x582.ncbi.txt"
 				//"/home/weiyi/workspace/data/gbm/tcga/ge/ge.12042x545.txt",
 				//"/home/weiyi/workspace/data/ov/tcga/super.35696x511.knn.txt",
 				//"/home/weiyi/workspace/data/gbm/tcga/super.40092x274.txt",
@@ -63,14 +63,14 @@ public class GroupWeightedAttractor {
 				//"brca.gse31448",
 				//"brca.gse2034",
 				//"brca.tcga",
-				//"dream7",
+				"dream7",
 				//"sone",
 				//"ecoli",
 				//"yeast",
-				"coad.gse14333",
-				"ov.gse9891",
-				"coad.tcga",
-				"ov.tcga",
+				//"coad.gse14333",
+				//"ov.gse9891",
+				//"coad.tcga",
+				//"ov.tcga",
 				//"gbm.tcga"
 				//"ov.super"
 				//"gbm.super"
