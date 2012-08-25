@@ -37,16 +37,17 @@ public class FineTuningCNV {
 		final String[] dataFiles={
 				//"/home/weiyi/workspace/data/brca/gse3143/ge.8443x158.jetset.mean.txt",
 				//"/home/weiyi/workspace/data/brca/gse3494/ge.12160x251.jetset.ncbi.txt",
-				"/home/weiyi/workspace/data/brca/gse32646/ge.19190x115.jetset.ncbi.txt",
-				"/home/weiyi/workspace/data/brca/gse36771/ge.19190x107.jetset.ncbi.txt",
-				"/home/weiyi/workspace/data/brca/gse31448/ge.19190x353.jetset.ncbi.txt",
-				"/home/weiyi/workspace/data/brca/gse2034/ge.12160x286.jetset.ncbi.txt",
-				"/home/weiyi/workspace/data/brca/tcga/ge/ge.17475x536.ncbi.txt",
+				"/home/weiyi/workspace/data/brca/metabric/ge.37586x993.txt",
+				//"/home/weiyi/workspace/data/brca/gse32646/ge.19190x115.jetset.ncbi.txt",
+				//"/home/weiyi/workspace/data/brca/gse36771/ge.19190x107.jetset.ncbi.txt",
+				//"/home/weiyi/workspace/data/brca/gse31448/ge.19190x353.jetset.ncbi.txt",
+				//"/home/weiyi/workspace/data/brca/gse2034/ge.12160x286.jetset.ncbi.txt",
+				//"/home/weiyi/workspace/data/brca/tcga/ge/ge.17475x536.ncbi.txt",
 				//"/home/weiyi/workspace/data/coad/gse14333/ge.19190x290.jetset.ncbi.txt",
 				//"/home/weiyi/workspace/data/coad/tcga/ge/ge.17814x154.knn.txt",
-				"/home/weiyi/workspace/data/ov/gse9891/ge.19190x285.jetset.ncbi.txt",
-				"/home/weiyi/workspace/data/ov/tcga/ge/ge.11963x582.ncbi.txt",
-				"/home/weiyi/workspace/data/ov/gse26193/ge.19190x107.jetset.ncbi.txt",
+				//"/home/weiyi/workspace/data/ov/gse9891/ge.19190x285.jetset.ncbi.txt",
+				//"/home/weiyi/workspace/data/ov/tcga/ge/ge.11963x582.ncbi.txt",
+				//"/home/weiyi/workspace/data/ov/gse26193/ge.19190x107.jetset.ncbi.txt",
 				//"/home/weiyi/workspace/data/prad/gse17951/ge.19189x154.jetset.mean.txt",
 				//"/home/weiyi/workspace/data/prad/gse8218/ge.12160x148.jetset.mean.txt"
 				//"/home/weiyi/workspace/data/nbl/gse3446/ge.12160x117.jetset.mean.txt",
@@ -62,16 +63,17 @@ public class FineTuningCNV {
 		
 		final String[] outputDirs={
 				//"brca.gse3494.jetset.mean",
-				"brca.gse32646.jetset.ncbi",
-				"brca.gse36771.jetset.ncbi",
-				"brca.gse31448.jetset.ncbi",
-				"brca.gse2034.jetset.ncbi",
-				"brca.tcga.ncbi",
+				"brca.metabric2                                                                                                                                                                                                                                                                                                                                                                              ",
+				//"brca.gse32646.jetset.ncbi",
+				//"brca.gse36771.jetset.ncbi",
+				//"brca.gse31448.jetset.ncbi",
+				//"brca.gse2034.jetset.ncbi",
+				//"brca.tcga.ncbi",
 				//"coad.gse14333.jetset.ncbi",
 				//"coad.tcga.ncbi",
-				"ov.gse9891.jetset.ncbi",
-				"ov.tcga.ncbi",
-				"ov.gse26193.jetset.ncbi",
+				//"ov.gse9891.jetset.ncbi",
+				//"ov.tcga.ncbi",
+				//"ov.gse26193.jetset.ncbi",
 				//"prad.gse17951",
 				//"prad.gse8218",
 				//"nbl.gse3446",
@@ -114,7 +116,7 @@ public class FineTuningCNV {
 		
 		//gn.linkToDataFile(ma);
 		//String[] testList = gn.getAllGenesInChrArm(targetArm);
-		String[] testList = gn.getNeighbors("ERBB2", 51);
+		String[] testList = gn.getNeighbors("SUSD3", 51);
 			
 		//String[] testList = {"PUF60"};
 		long jobID = System.currentTimeMillis();
