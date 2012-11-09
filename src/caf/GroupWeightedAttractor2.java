@@ -598,7 +598,8 @@ public class GroupWeightedAttractor2 {
 	 * @throws Exception 
 	 */
 	public static void main(String[] args) throws Exception {
-		String inPath = "/home/weiyi/workspace/javaworks/caf/output/brca/weighted/";
+		//String inPath = "/home/weiyi/workspace/javaworks/caf/output/brca/weighted/";
+		String inPath = "/home/weiyi/workspace/data/caf_clusterValid/";
 		if(!inPath.endsWith("/")){
 			inPath += "/";
 		}
@@ -618,7 +619,7 @@ public class GroupWeightedAttractor2 {
 			String line = br.readLine();
 			while(line != null){
 				WtdAttractor wa = WtdAttractor.parseWtdAttractor(line, cnt);
-				if(wa.basins > 2) waInThisFile.add(wa);
+				if(wa.basins > 0) waInThisFile.add(wa);
 				line = br.readLine();
 			}
 			allWtdAttractors.addAll(waInThisFile);
