@@ -206,9 +206,10 @@ public class GroupWeightedAttractor2 {
 		public String toString(){
 			String s ="";
 			for(ValString g : genes){
+				if(g.s.startsWith("+AF8AXwBf")) continue;
 				s += g.s + "\t";
 			}
-			s += val;
+			//s += val;
 			return s;
 		}
 		public static void setquantile(int k){
@@ -291,7 +292,7 @@ public class GroupWeightedAttractor2 {
 			}
 		}
 		public String toString(){
-			String s = "ID" + id + "\t" + matchNumber + "\t" + minMI + "\n";
+			String s = "ID" + id + "\t" + matchNumber + "\n";//"\t" + minMI + "\n";
 			for(int i = 0; i < k; i++){
 				s += names[i] + "\t" + content[i] + "\n";
 			}
@@ -599,7 +600,7 @@ public class GroupWeightedAttractor2 {
 	 */
 	public static void main(String[] args) throws Exception {
 		//String inPath = "/home/weiyi/workspace/javaworks/caf/output/brca/weighted/";
-		String inPath = "/home/weiyi/workspace/data/caf_clusterValid/";
+		String inPath = "/home/weiyi/workspace/data/caf_clusterValid/pca/";
 		if(!inPath.endsWith("/")){
 			inPath += "/";
 		}
@@ -619,7 +620,7 @@ public class GroupWeightedAttractor2 {
 			String line = br.readLine();
 			while(line != null){
 				WtdAttractor wa = WtdAttractor.parseWtdAttractor(line, cnt);
-				if(wa.basins > 0) waInThisFile.add(wa);
+				if(wa.basins >= 0) waInThisFile.add(wa);
 				line = br.readLine();
 			}
 			allWtdAttractors.addAll(waInThisFile);
@@ -713,6 +714,7 @@ public class GroupWeightedAttractor2 {
 			pw1.print("Gene");
 			for(int i = 0; i < 50; i++){
 				ValString vs = consensus.get(i);
+				if(vs.s.startsWith("___")) continue;
 				pw1.print("\t" + vs.s);
 			}pw1.println();
 			pw1.print("Avg MI");
